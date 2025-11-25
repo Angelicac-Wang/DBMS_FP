@@ -1,0 +1,333 @@
+/* 可愛的 K-pop 風格樣式 */
+#root {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #e8f4fd 0%, #f0e6ff 25%, #ffe6f0 50%, #fff0e6 75%, #e6f7ff 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  position: relative;
+  overflow-x: hidden;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 星星背景動畫 */
+#root::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.6), transparent);
+  background-repeat: repeat;
+  background-size: 200px 100px;
+  animation: sparkle 3s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes sparkle {
+  0% { transform: translateY(0px); opacity: 1; }
+  100% { transform: translateY(-100px); opacity: 0; }
+}
+
+.ant-layout {
+  background: transparent;
+  min-height: 100vh;
+  position: relative;
+  z-index: 2;
+}
+
+.ant-layout-header {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(15px);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 0 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000 !important;
+  width: 100% !important;
+}
+
+.ant-layout-content {
+  padding: 24px !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  width: 100% !important;
+  position: relative;
+  z-index: 2;
+}
+
+/* 可愛的卡片樣式 */
+.ant-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 2px solid transparent;
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.ant-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6b9d, #c44569, #f8b500, #ff6b9d);
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.ant-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 
+    0 15px 40px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* 標題樣式 */
+.ant-typography h2 {
+  background: linear-gradient(45deg, #ff6b9d, #c44569, #f8b500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(255, 107, 157, 0.3);
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+  font-weight: 800;
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.ant-typography h2::after {
+  content: '✨';
+  position: absolute;
+  top: -10px;
+  right: -20px;
+  font-size: 1.5rem;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
+}
+
+/* 搜尋框樣式 */
+.ant-input {
+  border-radius: 25px;
+  border: 2px solid rgba(255, 107, 157, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.ant-input:focus {
+  border-color: #ff6b9d;
+  box-shadow: 0 0 0 2px rgba(255, 107, 157, 0.2);
+}
+
+/* 按鈕樣式 */
+.ant-btn-primary {
+  background: linear-gradient(45deg, #ff6b9d, #c44569);
+  border: none;
+  border-radius: 25px;
+  box-shadow: 0 4px 15px rgba(255, 107, 157, 0.4);
+  transition: all 0.3s ease;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(45deg, #ff5582, #b73e5a);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 157, 0.6);
+}
+
+/* 標籤樣式 */
+.ant-tag {
+  border-radius: 15px;
+  border: none;
+  font-weight: 600;
+  padding: 4px 12px;
+}
+
+/* 選擇器樣式 */
+.ant-select {
+  border-radius: 15px;
+}
+
+.ant-select .ant-select-selector {
+  border-radius: 15px;
+  border: 2px solid rgba(255, 107, 157, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+}
+
+/* 日期選擇器樣式 */
+.ant-picker {
+  border-radius: 15px;
+  border: 2px solid rgba(255, 107, 157, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+}
+
+/* 行事曆樣式 */
+.ant-calendar-fullscreen {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 107, 157, 0.2);
+}
+
+/* 選單樣式 */
+.ant-menu-dark {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.ant-menu-dark .ant-menu-item-selected {
+  background: linear-gradient(45deg, #ff6b9d, #c44569);
+  border-radius: 10px;
+}
+
+.ant-menu-dark .ant-menu-item {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.ant-menu-dark .ant-menu-item:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+/* 底部導覽列樣式 */
+.ant-layout-footer {
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .ant-typography h2 {
+    font-size: 2rem;
+  }
+  
+  .ant-card {
+    margin-bottom: 16px;
+  }
+  
+  /* 手機版底部導覽列 */
+  .ant-layout-footer {
+    height: 70px !important;
+    padding: 12px 0 !important;
+  }
+  
+  /* 手機版搜尋欄 */
+  .ant-input {
+    width: 100% !important;
+    min-width: 200px !important;
+  }
+}
+
+/* 可愛的彈跳動畫 */
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* 行事曆縮小樣式 */
+.ant-picker-calendar {
+  font-size: 12px !important;
+}
+
+.ant-picker-calendar-date {
+  height: 80px !important;
+  padding: 2px !important;
+}
+
+.ant-picker-calendar-date-content {
+  height: 60px !important;
+  overflow: visible !important;
+}
+
+.ant-picker-calendar-date-value {
+  font-size: 14px !important;
+}
+
+/* 行事曆樣式優化 */
+.ant-picker-calendar .ant-picker-calendar-date {
+  position: relative;
+}
+
+/* 行事曆樣式優化 - 移除自動隱藏規則，改用 JavaScript 動態控制 */
+
+/* 行事曆格子內的滾動軸樣式 */
+.ant-picker-calendar-date-content > div {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 107, 157, 0.3) transparent;
+}
+
+.ant-picker-calendar-date-content > div::-webkit-scrollbar {
+  width: 4px;
+}
+
+.ant-picker-calendar-date-content > div::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ant-picker-calendar-date-content > div::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 107, 157, 0.3);
+  border-radius: 2px;
+  transition: background-color 0.3s ease;
+}
+
+.ant-picker-calendar-date-content > div::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 107, 157, 0.5);
+}
+
+/* 可愛的卡片樣式 */
+.ant-card {
+  box-shadow: 0 4px 12px rgba(255, 107, 157, 0.15) !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-card:hover {
+  box-shadow: 0 8px 24px rgba(255, 107, 157, 0.25) !important;
+  transform: translateY(-2px) !important;
+}
