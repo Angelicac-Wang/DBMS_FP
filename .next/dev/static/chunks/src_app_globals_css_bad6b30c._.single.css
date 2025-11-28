@@ -970,6 +970,10 @@
     background-color: var(--color-pink-500);
   }
 
+  .bg-purple-50 {
+    background-color: var(--color-purple-50);
+  }
+
   .bg-purple-100 {
     background-color: var(--color-purple-100);
   }
@@ -984,6 +988,10 @@
 
   .bg-red-500 {
     background-color: var(--color-red-500);
+  }
+
+  .bg-red-600 {
+    background-color: var(--color-red-600);
   }
 
   .bg-white {
@@ -1253,6 +1261,10 @@
     font-weight: var(--font-weight-semibold);
   }
 
+  .whitespace-nowrap {
+    white-space: nowrap;
+  }
+
   .text-blue-600 {
     color: var(--color-blue-600);
   }
@@ -1497,6 +1509,12 @@
   @media (hover: hover) {
     .hover\:bg-red-600:hover {
       background-color: var(--color-red-600);
+    }
+  }
+
+  @media (hover: hover) {
+    .hover\:bg-red-700:hover {
+      background-color: var(--color-red-700);
     }
   }
 

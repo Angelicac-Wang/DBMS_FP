@@ -256,6 +256,45 @@ export default function ManageProjectPage() {
     }
   };
 
+  const handleDeleteProject = async () => {
+    if (!confirm('確定要刪除此專案嗎？此操作無法復原，所有相關資料（練習時間、成員、申請等）都將被刪除。')) return;
+
+    try {
+      setLoading(true);
+      setError('');
+
+      // 根據外鍵約束，刪除順序很重要：
+      // 1. PROJECT_TARGET 的主鍵包含 project_id，需要先手動刪除（因為 ON DELETE SET NULL 會違反主鍵約束）
+      // 2. 其他表（PRACTICE_SCHEDULE, PROJECT_MEMBERS, PROJECT_APPLICATIONS）會因為 CASCADE 自動刪除
+      
+      // 先刪除 PROJECT_TARGET（因為主鍵包含 project_id，不能設為 NULL）
+      const { error: targetError } = await supabase
+        .from('project_target')
+        .delete()
+        .eq('project_id', projectId);
+
+      if (targetError) throw targetError;
+
+      // 刪除專案（會自動 CASCADE 刪除相關資料）
+      // PRACTICE_SCHEDULE: ON DELETE CASCADE
+      // PROJECT_MEMBERS: ON DELETE CASCADE  
+      // PROJECT_APPLICATIONS: ON DELETE CASCADE
+      const { error: projectError } = await supabase
+        .from('project')
+        .delete()
+        .eq('p_id', projectId);
+
+      if (projectError) throw projectError;
+
+      // 刪除成功，返回專案列表
+      alert('專案已成功刪除');
+      router.push('/profile/projects');
+    } catch (err: any) {
+      setError('刪除失敗：' + (err.message || '未知錯誤'));
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
@@ -294,12 +333,20 @@ export default function ManageProjectPage() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-purple-600">專案管理</h1>
-          <button
-            onClick={() => router.back()}
-            className="text-gray-600 hover:text-gray-800"
-          >
-            ← 返回
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleDeleteProject}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
+            >
+              刪除專案
+            </button>
+            <button
+              onClick={() => router.back()}
+              className="text-gray-600 hover:text-gray-800"
+            >
+              ← 返回
+            </button>
+          </div>
         </div>
 
         {/* 專案資訊 */}

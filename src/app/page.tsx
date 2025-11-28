@@ -187,7 +187,8 @@ export default function Home() {
                   missingPositions.push(`位置 ${target.target_seq}`);
                 }
               } else {
-                missingPositions.push(`位置 ${target.target_seq}`);
+                // idol_id 為 NULL 代表是伴舞
+                missingPositions.push(`伴舞 ${target.target_seq}`);
               }
             }
           }

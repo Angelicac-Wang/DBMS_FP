@@ -1,5 +1,11 @@
 {
+  "/auth/page": "app/auth/page.js",
   "/page": "app/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/profile/portfolio/page": "app/profile/portfolio/page.js",
+  "/profile/projects/page": "app/profile/projects/page.js",
+  "/project/[id]/apply/page": "app/project/[id]/apply/page.js",
+  "/project/[id]/page": "app/project/[id]/page.js",
   "/project/create/page": "app/project/create/page.js",
   "/project/manage/[id]/page": "app/project/manage/[id]/page.js"
 }

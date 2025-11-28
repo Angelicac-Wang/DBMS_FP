@@ -433,7 +433,7 @@ export default function ProjectDetailPage() {
                   key={idx}
                   className="bg-gradient-to-r from-pink-100 to-rose-100 text-pink-700 px-4 py-2 rounded-full text-sm font-medium border border-pink-200"
                 >
-                  位置 {position.target_seq}
+                  {position.idol_id ? `位置 ${position.target_seq}` : `伴舞 ${position.target_seq}`}
                   {position.idol_name && (
                     position.idol_id ? (
                       <Link
@@ -477,7 +477,7 @@ export default function ProjectDetailPage() {
               {project.filled_positions.map((position, idx) => (
                 <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <span className="font-medium text-gray-800 min-w-[80px]">
-                    位置 {position.target_seq}
+                    {position.idol_id ? `位置 ${position.target_seq}` : `伴舞 ${position.target_seq}`}
                   </span>
                   {position.idol_name && (
                     position.idol_id ? (

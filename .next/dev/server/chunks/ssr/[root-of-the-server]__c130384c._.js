@@ -141,20 +141,12 @@ function CreateProjectPage() {
         performance_location: '',
         discription: ''
     });
-    const [practiceSchedules, setPracticeSchedules] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([
-        {
-            date: '',
-            start_time: '',
-            end_time: ''
-        }
-    ]);
-    const [targetPositions, setTargetPositions] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([
-        {
-            target_seq: 1,
-            idol_id: ''
-        }
-    ]);
+    const [practiceSchedules, setPracticeSchedules] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [targetPositions, setTargetPositions] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [idols, setIdols] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [songIdols, setSongIdols] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [selectedPosition, setSelectedPosition] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(''); // 用戶選擇自己要跳的位置
+    const [dancerCount, setDancerCount] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('0'); // 伴舞數量
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         const id = localStorage.getItem('userId');
         if (!id) {
@@ -163,30 +155,97 @@ function CreateProjectPage() {
         }
         setUserId(id);
         fetchSongs();
-        fetchIdols();
     }, [
         router
+    ]);
+    // 當選取歌曲時，獲取團體成員數和該歌曲的偶像列表
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        if (formData.song_id) {
+            fetchSongGroupInfo(formData.song_id);
+            fetchSongIdols(formData.song_id);
+        } else {
+            setSongIdols([]);
+            setSelectedPosition('');
+            setTargetPositions([]);
+        }
+    }, [
+        formData.song_id
+    ]);
+    // 當用戶選擇自己要跳的位置時，自動生成要徵的位置列表
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        if (selectedPosition && songIdols.length > 0) {
+            // 過濾掉用戶選擇的位置，剩下的就是要徵的位置
+            // 使用原始索引作為 target_seq，確保不重複
+            const positions = songIdols.map((idol, originalIndex)=>({
+                    originalIndex: originalIndex + 1,
+                    idol: idol
+                })).filter((item)=>item.idol.idol_id.toString() !== selectedPosition).map((item)=>({
+                    target_seq: item.originalIndex,
+                    idol_id: item.idol.idol_id.toString()
+                }));
+            setTargetPositions(positions);
+        } else {
+            setTargetPositions([]);
+        }
+    }, [
+        selectedPosition,
+        songIdols
     ]);
     const fetchSongs = async ()=>{
         const { data } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from('kpop_songs').select('song_id, title, difficulty_level').order('title');
         if (data) setSongs(data);
     };
-    const fetchIdols = async ()=>{
-        const { data } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from('kpop_idols').select(`
-        idol_id,
-        stage_name,
-        kpop_groups!inner(group_name)
-      `).limit(500);
-        if (data) {
-            const idolsData = data.map((item)=>({
-                    idol_id: item.idol_id,
-                    stage_name: item.stage_name,
-                    group_name: item.kpop_groups?.group_name || ''
-                }));
-            setIdols(idolsData);
+    // 獲取歌曲對應的團體資訊和成員數
+    const fetchSongGroupInfo = async (songId)=>{
+        try {
+            // 獲取歌曲對應的團體
+            const { data: songGroups } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from('song_group').select('group_id').eq('song_id', parseInt(songId)).limit(1);
+            if (songGroups && songGroups.length > 0) {
+                // 獲取團體的成員數
+                const { data: group } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from('kpop_groups').select('member_count').eq('group_id', songGroups[0].group_id).single();
+                if (group) {
+                    // 自動設定目標人數為團體成員數
+                    setFormData((prev)=>({
+                            ...prev,
+                            target_cnt: group.member_count.toString()
+                        }));
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching group info:', err);
+        }
+    };
+    // 獲取歌曲對應的所有偶像
+    const fetchSongIdols = async (songId)=>{
+        try {
+            // 獲取歌曲對應的偶像
+            const { data: songIdolsData } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from('song_idol').select('idol_id').eq('song_id', parseInt(songId));
+            if (songIdolsData && songIdolsData.length > 0) {
+                const idolIds = songIdolsData.map((item)=>item.idol_id);
+                // 獲取這些偶像的詳細資訊
+                const { data: idolsData } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from('kpop_idols').select(`
+            idol_id,
+            stage_name,
+            kpop_groups!inner(group_name)
+          `).in('idol_id', idolIds);
+                if (idolsData) {
+                    const formattedIdols = idolsData.map((item)=>({
+                            idol_id: item.idol_id,
+                            stage_name: item.stage_name,
+                            group_name: item.kpop_groups?.group_name || ''
+                        }));
+                    setSongIdols(formattedIdols);
+                }
+            } else {
+                setSongIdols([]);
+            }
+        } catch (err) {
+            console.error('Error fetching song idols:', err);
+            setSongIdols([]);
         }
     };
     const addPracticeSchedule = ()=>{
+        // 確保新增的時間欄位都是空字串，避免瀏覽器顯示預設值
         setPracticeSchedules([
             ...practiceSchedules,
             {
@@ -203,37 +262,101 @@ function CreateProjectPage() {
         const updated = [
             ...practiceSchedules
         ];
+        // 確保時間值為空字串而不是 undefined 或 null
         updated[index] = {
             ...updated[index],
-            [field]: value
+            [field]: value === null || value === undefined ? '' : value
         };
         setPracticeSchedules(updated);
     };
-    const addTargetPosition = ()=>{
-        setTargetPositions([
-            ...targetPositions,
-            {
-                target_seq: targetPositions.length + 1,
-                idol_id: ''
-            }
-        ]);
+    // 生成小時選項（0-23）
+    const generateHourOptions = ()=>{
+        return Array.from({
+            length: 24
+        }, (_, i)=>{
+            const hour = i.toString().padStart(2, '0');
+            return {
+                value: hour,
+                label: `${hour}時`
+            };
+        });
     };
-    const removeTargetPosition = (index)=>{
-        const updated = targetPositions.filter((_, i)=>i !== index).map((pos, idx)=>({
-                ...pos,
-                target_seq: idx + 1
-            }));
-        setTargetPositions(updated);
+    // 生成分鐘選項（0, 15, 30, 45）
+    const generateMinuteOptions = ()=>{
+        return [
+            0,
+            15,
+            30,
+            45
+        ].map((min)=>{
+            const minute = min.toString().padStart(2, '0');
+            return {
+                value: minute,
+                label: `${minute}分`
+            };
+        });
     };
-    const updateTargetPosition = (index, field, value)=>{
-        const updated = [
-            ...targetPositions
-        ];
-        updated[index] = {
-            ...updated[index],
-            [field]: value
+    // 組合小時和分鐘為時間字串（允許部分值）
+    const combineTime = (hour, minute)=>{
+        // 如果兩個值都存在，組合為 HH:MM
+        if (hour && minute) {
+            return `${hour}:${minute}`;
+        }
+        // 如果只有小時，保存為 HH:（用於顯示已選擇的小時）
+        if (hour && !minute) {
+            return `${hour}:`;
+        }
+        // 如果只有分鐘，需要小時才能組合（這種情況不應該發生，但為了安全）
+        if (!hour && minute) {
+            return `:${minute}`;
+        }
+        // 兩個都沒有，返回空字串
+        return '';
+    };
+    // 解析時間字串為小時和分鐘（處理部分值）
+    const parseTime = (timeString)=>{
+        if (!timeString || timeString === '') {
+            return {
+                hour: '',
+                minute: ''
+            };
+        }
+        // 處理 HH: 格式（只有小時）
+        if (timeString.endsWith(':') && !timeString.includes(':', 3)) {
+            const hour = timeString.replace(':', '');
+            return {
+                hour: hour || '',
+                minute: ''
+            };
+        }
+        // 處理 :MM 格式（只有分鐘，不應該發生）
+        if (timeString.startsWith(':') && timeString.length === 3) {
+            const minute = timeString.replace(':', '');
+            return {
+                hour: '',
+                minute: minute || ''
+            };
+        }
+        // 正常格式 HH:MM
+        const [hour, minute] = timeString.split(':');
+        return {
+            hour: hour || '',
+            minute: minute || ''
         };
-        setTargetPositions(updated);
+    };
+    // 更新時間（小時或分鐘）
+    const updateTime = (index, timeType, part, value)=>{
+        const schedule = practiceSchedules[index];
+        const currentTime = schedule[timeType] || '';
+        const { hour, minute } = parseTime(currentTime);
+        const newHour = part === 'hour' ? value : hour;
+        const newMinute = part === 'minute' ? value : minute;
+        const newTime = combineTime(newHour, newMinute);
+        updatePracticeSchedule(index, timeType, newTime);
+    };
+    // 處理用戶選擇自己要跳的位置
+    const handleSelectPosition = (idolId)=>{
+        setSelectedPosition(idolId);
     };
     const handleSubmit = async (e)=>{
         e.preventDefault();
@@ -241,6 +364,19 @@ function CreateProjectPage() {
         try {
             setLoading(true);
             setError('');
+            // 驗證：如果選了歌曲，必須選擇自己要跳的位置
+            if (formData.song_id && !selectedPosition) {
+                setError('請選擇你要跳的位置');
+                setLoading(false);
+                return;
+            }
+            // 驗證：至少需要一個練習時間
+            const validSchedules = practiceSchedules.filter((s)=>s.date && s.start_time && s.end_time);
+            if (validSchedules.length === 0) {
+                setError('請至少新增一個練習時間');
+                setLoading(false);
+                return;
+            }
             // 生成專案ID
             const generateProjectId = ()=>{
                 const timestamp = Date.now();
@@ -276,26 +412,79 @@ function CreateProjectPage() {
             });
             if (projectError) throw projectError;
             // 創建練習時間表
-            if (practiceSchedules.length > 0 && practiceSchedules[0].date) {
-                const schedules = practiceSchedules.filter((s)=>s.date && s.start_time && s.end_time).map((s)=>({
-                        p_id: newProjectId,
-                        date: s.date,
-                        start_time: s.start_time,
-                        end_time: s.end_time
-                    }));
-                if (schedules.length > 0) {
-                    await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from('practice_schedule').insert(schedules);
-                }
+            const schedules = validSchedules.map((s)=>({
+                    p_id: newProjectId,
+                    date: s.date,
+                    start_time: s.start_time,
+                    end_time: s.end_time
+                }));
+            if (schedules.length > 0) {
+                const { error: scheduleError } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from('practice_schedule').insert(schedules);
+                if (scheduleError) throw scheduleError;
             }
-            // 創建目標位置
+            // 創建所有目標位置（包括用戶選擇的、要徵的、和伴舞）
+            const allTargets = [];
+            // 添加要徵的位置（空缺）
             const targets = targetPositions.filter((t)=>t.idol_id).map((t)=>({
                     target_seq: t.target_seq,
                     project_id: newProjectId,
                     idol_id: parseInt(t.idol_id),
                     status: 'I'
                 }));
-            if (targets.length > 0) {
-                await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from('project_target').insert(targets);
+            allTargets.push(...targets);
+            // 如果用戶選擇了自己要跳的位置，添加為已填滿的位置
+            let userPositionSeq = null;
+            if (selectedPosition) {
+                // 找到用戶選擇的位置在原始列表中的索引
+                const selectedIndex = songIdols.findIndex((idol)=>idol.idol_id.toString() === selectedPosition);
+                if (selectedIndex !== -1) {
+                    // 用戶選擇的位置編號（從1開始）
+                    userPositionSeq = selectedIndex + 1;
+                    // 檢查是否已經存在（理論上不應該，但為了安全）
+                    const exists = allTargets.some((t)=>t.target_seq === userPositionSeq);
+                    if (!exists) {
+                        allTargets.push({
+                            target_seq: userPositionSeq,
+                            project_id: newProjectId,
+                            idol_id: parseInt(selectedPosition),
+                            status: 'F'
+                        });
+                    }
+                }
+            }
+            // 添加伴舞位置（idol_id 為 NULL）
+            const dancerCountNum = parseInt(dancerCount) || 0;
+            if (dancerCountNum > 0) {
+                // 找出最大的 target_seq，伴舞從下一個開始編號
+                // 需要考慮所有已添加的位置（包括偶像位置）
+                const existingSeqs = allTargets.map((t)=>t.target_seq);
+                const maxIdolSeq = songIdols.length; // 偶像的最大編號
+                const maxTargetSeq = existingSeqs.length > 0 ? Math.max(...existingSeqs, maxIdolSeq) : maxIdolSeq;
+                // 為每個伴舞創建一個位置
+                for(let i = 1; i <= dancerCountNum; i++){
+                    allTargets.push({
+                        target_seq: maxTargetSeq + i,
+                        project_id: newProjectId,
+                        idol_id: null,
+                        status: 'I'
+                    });
+                }
+            }
+            // 先一次性插入所有目標位置（必須在插入 project_members 之前）
+            if (allTargets.length > 0) {
+                const { error: targetError } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from('project_target').insert(allTargets);
+                if (targetError) throw targetError;
+            }
+            // 如果用戶選擇了自己要跳的位置，將創建者加入專案成員（在 project_target 插入之後）
+            if (selectedPosition && userPositionSeq !== null) {
+                const { error: memberError } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from('project_members').insert({
+                    p_id: newProjectId,
+                    member_id: userId,
+                    join_date: new Date().toISOString().split('T')[0],
+                    target_seq: userPositionSeq,
+                    status: 'Y'
+                });
+                if (memberError) throw memberError;
             }
             router.push(`/project/manage/${newProjectId}`);
         } catch (err) {
@@ -318,7 +507,7 @@ function CreateProjectPage() {
                                 children: "建立翻跳專案"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                lineNumber: 214,
+                                lineNumber: 445,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -327,13 +516,13 @@ function CreateProjectPage() {
                                 children: "← 返回"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                lineNumber: 215,
+                                lineNumber: 446,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/project/create/page.tsx",
-                        lineNumber: 213,
+                        lineNumber: 444,
                         columnNumber: 9
                     }, this),
                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -341,7 +530,7 @@ function CreateProjectPage() {
                         children: error
                     }, void 0, false, {
                         fileName: "[project]/src/app/project/create/page.tsx",
-                        lineNumber: 224,
+                        lineNumber: 455,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -356,7 +545,7 @@ function CreateProjectPage() {
                                         children: "基本資訊"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                        lineNumber: 232,
+                                        lineNumber: 463,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -369,7 +558,7 @@ function CreateProjectPage() {
                                                         children: "專案標題 *"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 235,
+                                                        lineNumber: 466,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -384,13 +573,13 @@ function CreateProjectPage() {
                                                         required: true
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 236,
+                                                        lineNumber: 467,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                lineNumber: 234,
+                                                lineNumber: 465,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -400,7 +589,7 @@ function CreateProjectPage() {
                                                         children: "翻跳歌曲（選填）"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 246,
+                                                        lineNumber: 477,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -416,7 +605,7 @@ function CreateProjectPage() {
                                                                 children: "無"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                                lineNumber: 252,
+                                                                lineNumber: 483,
                                                                 columnNumber: 19
                                                             }, this),
                                                             songs.map((song)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -429,29 +618,39 @@ function CreateProjectPage() {
                                                                     ]
                                                                 }, song.song_id, true, {
                                                                     fileName: "[project]/src/app/project/create/page.tsx",
-                                                                    lineNumber: 254,
+                                                                    lineNumber: 485,
                                                                     columnNumber: 21
                                                                 }, this))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 247,
+                                                        lineNumber: 478,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                lineNumber: 245,
+                                                lineNumber: 476,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
                                                         className: "block text-sm font-medium text-gray-700 mb-2",
-                                                        children: "目標人數 *"
-                                                    }, void 0, false, {
+                                                        children: [
+                                                            "目標人數 *",
+                                                            formData.song_id && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                className: "text-xs text-gray-500 ml-2",
+                                                                children: "(已根據團體成員數自動填入)"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/app/project/create/page.tsx",
+                                                                lineNumber: 495,
+                                                                columnNumber: 21
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 261,
+                                                        lineNumber: 492,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -466,13 +665,13 @@ function CreateProjectPage() {
                                                         required: true
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 262,
+                                                        lineNumber: 500,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                lineNumber: 260,
+                                                lineNumber: 491,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -482,7 +681,7 @@ function CreateProjectPage() {
                                                         children: "練習地點 *"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 272,
+                                                        lineNumber: 510,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -497,13 +696,13 @@ function CreateProjectPage() {
                                                         required: true
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 273,
+                                                        lineNumber: 511,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                lineNumber: 271,
+                                                lineNumber: 509,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -513,7 +712,7 @@ function CreateProjectPage() {
                                                         children: "拍攝地點 *"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 283,
+                                                        lineNumber: 521,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -528,13 +727,13 @@ function CreateProjectPage() {
                                                         required: true
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 284,
+                                                        lineNumber: 522,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                lineNumber: 282,
+                                                lineNumber: 520,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -544,7 +743,7 @@ function CreateProjectPage() {
                                                         children: "專案描述"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 294,
+                                                        lineNumber: 532,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -558,25 +757,25 @@ function CreateProjectPage() {
                                                         className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 295,
+                                                        lineNumber: 533,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                lineNumber: 293,
+                                                lineNumber: 531,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                        lineNumber: 233,
+                                        lineNumber: 464,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                lineNumber: 231,
+                                lineNumber: 462,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -590,7 +789,7 @@ function CreateProjectPage() {
                                                 children: "練習時間"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                lineNumber: 309,
+                                                lineNumber: 547,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -600,16 +799,23 @@ function CreateProjectPage() {
                                                 children: "+ 新增時間"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                lineNumber: 310,
+                                                lineNumber: 548,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                        lineNumber: 308,
+                                        lineNumber: 546,
                                         columnNumber: 13
                                     }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    practiceSchedules.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "text-sm text-gray-500 text-center py-4",
+                                        children: "點擊「+ 新增時間」來新增練習時間"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                        lineNumber: 557,
+                                        columnNumber: 15
+                                    }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "space-y-3",
                                         children: practiceSchedules.map((schedule, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "flex gap-3 items-end",
@@ -622,242 +828,412 @@ function CreateProjectPage() {
                                                                 children: "日期"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                                lineNumber: 322,
-                                                                columnNumber: 21
+                                                                lineNumber: 565,
+                                                                columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                                                                 type: "date",
-                                                                value: schedule.date,
-                                                                onChange: (e)=>updatePracticeSchedule(index, 'date', e.target.value),
-                                                                className: "w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                                            }, void 0, false, {
+                                                                value: schedule.date || '',
+                                                                onChange: (e)=>updatePracticeSchedule(index, 'date', e.target.value || ''),
+                                                                className: "w-full px-3 py-2 border border-gray-300 rounded-lg",
+                                                                autoComplete: "off",
+                                                                required: true
+                                                            }, `date-${index}-${schedule.date || 'empty'}`, false, {
                                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                                lineNumber: 323,
-                                                                columnNumber: 21
+                                                                lineNumber: 566,
+                                                                columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 321,
-                                                        columnNumber: 19
+                                                        lineNumber: 564,
+                                                        columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "flex-1",
                                                         children: [
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
                                                                 className: "block text-sm font-medium text-gray-700 mb-1",
-                                                                children: "開始時間"
+                                                                children: "開始時間 (24小時制)"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                                lineNumber: 331,
-                                                                columnNumber: 21
+                                                                lineNumber: 577,
+                                                                columnNumber: 23
                                                             }, this),
-                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                                                type: "time",
-                                                                value: schedule.start_time,
-                                                                onChange: (e)=>updatePracticeSchedule(index, 'start_time', e.target.value),
-                                                                className: "w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                                            }, void 0, false, {
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                className: "flex gap-2",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
+                                                                        value: parseTime(schedule.start_time).hour,
+                                                                        onChange: (e)=>updateTime(index, 'start_time', 'hour', e.target.value),
+                                                                        className: "flex-1 px-3 py-2 border border-gray-300 rounded-lg",
+                                                                        required: true,
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                                                value: "",
+                                                                                children: "請選擇"
+                                                                            }, void 0, false, {
+                                                                                fileName: "[project]/src/app/project/create/page.tsx",
+                                                                                lineNumber: 585,
+                                                                                columnNumber: 27
+                                                                            }, this),
+                                                                            generateHourOptions().map((opt)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                                                    value: opt.value,
+                                                                                    children: opt.label
+                                                                                }, opt.value, false, {
+                                                                                    fileName: "[project]/src/app/project/create/page.tsx",
+                                                                                    lineNumber: 587,
+                                                                                    columnNumber: 29
+                                                                                }, this))
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                                                        lineNumber: 579,
+                                                                        columnNumber: 25
+                                                                    }, this),
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
+                                                                        value: parseTime(schedule.start_time).minute,
+                                                                        onChange: (e)=>updateTime(index, 'start_time', 'minute', e.target.value),
+                                                                        className: "flex-1 px-3 py-2 border border-gray-300 rounded-lg",
+                                                                        required: true,
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                                                value: "",
+                                                                                children: "請選擇"
+                                                                            }, void 0, false, {
+                                                                                fileName: "[project]/src/app/project/create/page.tsx",
+                                                                                lineNumber: 596,
+                                                                                columnNumber: 27
+                                                                            }, this),
+                                                                            generateMinuteOptions().map((opt)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                                                    value: opt.value,
+                                                                                    children: opt.label
+                                                                                }, opt.value, false, {
+                                                                                    fileName: "[project]/src/app/project/create/page.tsx",
+                                                                                    lineNumber: 598,
+                                                                                    columnNumber: 29
+                                                                                }, this))
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                                                        lineNumber: 590,
+                                                                        columnNumber: 25
+                                                                    }, this)
+                                                                ]
+                                                            }, void 0, true, {
                                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                                lineNumber: 332,
-                                                                columnNumber: 21
+                                                                lineNumber: 578,
+                                                                columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 330,
-                                                        columnNumber: 19
+                                                        lineNumber: 576,
+                                                        columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "flex-1",
                                                         children: [
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
                                                                 className: "block text-sm font-medium text-gray-700 mb-1",
-                                                                children: "結束時間"
+                                                                children: "結束時間 (24小時制)"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                                lineNumber: 340,
-                                                                columnNumber: 21
+                                                                lineNumber: 604,
+                                                                columnNumber: 23
                                                             }, this),
-                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                                                type: "time",
-                                                                value: schedule.end_time,
-                                                                onChange: (e)=>updatePracticeSchedule(index, 'end_time', e.target.value),
-                                                                className: "w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                                            }, void 0, false, {
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                className: "flex gap-2",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
+                                                                        value: parseTime(schedule.end_time).hour,
+                                                                        onChange: (e)=>updateTime(index, 'end_time', 'hour', e.target.value),
+                                                                        className: "flex-1 px-3 py-2 border border-gray-300 rounded-lg",
+                                                                        required: true,
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                                                value: "",
+                                                                                children: "請選擇"
+                                                                            }, void 0, false, {
+                                                                                fileName: "[project]/src/app/project/create/page.tsx",
+                                                                                lineNumber: 612,
+                                                                                columnNumber: 27
+                                                                            }, this),
+                                                                            generateHourOptions().map((opt)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                                                    value: opt.value,
+                                                                                    children: opt.label
+                                                                                }, opt.value, false, {
+                                                                                    fileName: "[project]/src/app/project/create/page.tsx",
+                                                                                    lineNumber: 614,
+                                                                                    columnNumber: 29
+                                                                                }, this))
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                                                        lineNumber: 606,
+                                                                        columnNumber: 25
+                                                                    }, this),
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
+                                                                        value: parseTime(schedule.end_time).minute,
+                                                                        onChange: (e)=>updateTime(index, 'end_time', 'minute', e.target.value),
+                                                                        className: "flex-1 px-3 py-2 border border-gray-300 rounded-lg",
+                                                                        required: true,
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                                                value: "",
+                                                                                children: "請選擇"
+                                                                            }, void 0, false, {
+                                                                                fileName: "[project]/src/app/project/create/page.tsx",
+                                                                                lineNumber: 623,
+                                                                                columnNumber: 27
+                                                                            }, this),
+                                                                            generateMinuteOptions().map((opt)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                                                    value: opt.value,
+                                                                                    children: opt.label
+                                                                                }, opt.value, false, {
+                                                                                    fileName: "[project]/src/app/project/create/page.tsx",
+                                                                                    lineNumber: 625,
+                                                                                    columnNumber: 29
+                                                                                }, this))
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                                                        lineNumber: 617,
+                                                                        columnNumber: 25
+                                                                    }, this)
+                                                                ]
+                                                            }, void 0, true, {
                                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                                lineNumber: 341,
-                                                                columnNumber: 21
+                                                                lineNumber: 605,
+                                                                columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 339,
-                                                        columnNumber: 19
+                                                        lineNumber: 603,
+                                                        columnNumber: 21
                                                     }, this),
-                                                    practiceSchedules.length > 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                         type: "button",
                                                         onClick: ()=>removePracticeSchedule(index),
-                                                        className: "px-3 py-2 text-red-500 hover:text-red-700",
+                                                        className: "px-3 py-2 text-red-500 hover:text-red-700 whitespace-nowrap",
                                                         children: "刪除"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 349,
+                                                        lineNumber: 630,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, index, true, {
                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                lineNumber: 320,
-                                                columnNumber: 17
+                                                lineNumber: 563,
+                                                columnNumber: 19
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                        lineNumber: 318,
-                                        columnNumber: 13
+                                        lineNumber: 561,
+                                        columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                lineNumber: 307,
+                                lineNumber: 545,
                                 columnNumber: 11
+                            }, this),
+                            formData.song_id && songIdols.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "bg-white rounded-xl shadow-md p-6",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                                        className: "text-xl font-bold text-gray-800 mb-4",
+                                        children: "選擇你要跳的位置 *"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                        lineNumber: 646,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "text-sm text-gray-600 mb-4",
+                                        children: "請選擇你要跳的位置，剩下的位置將會自動成為要徵的位置"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                        lineNumber: 647,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
+                                        value: selectedPosition,
+                                        onChange: (e)=>handleSelectPosition(e.target.value),
+                                        className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500",
+                                        required: formData.song_id ? true : false,
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: "",
+                                                children: "請選擇位置"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/project/create/page.tsx",
+                                                lineNumber: 656,
+                                                columnNumber: 17
+                                            }, this),
+                                            songIdols.map((idol)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                    value: idol.idol_id,
+                                                    children: [
+                                                        idol.stage_name,
+                                                        " (",
+                                                        idol.group_name,
+                                                        ")"
+                                                    ]
+                                                }, idol.idol_id, true, {
+                                                    fileName: "[project]/src/app/project/create/page.tsx",
+                                                    lineNumber: 658,
+                                                    columnNumber: 19
+                                                }, this))
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                        lineNumber: 650,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/app/project/create/page.tsx",
+                                lineNumber: 645,
+                                columnNumber: 13
+                            }, this),
+                            targetPositions.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "bg-white rounded-xl shadow-md p-6",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                                        className: "text-xl font-bold text-gray-800 mb-4",
+                                        children: "要徵的位置"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                        lineNumber: 669,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "text-sm text-gray-600 mb-4",
+                                        children: "以下位置將開放招募（已排除你選擇的位置）"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                        lineNumber: 670,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "space-y-3",
+                                        children: targetPositions.map((position, index)=>{
+                                            const idol = songIdols.find((i)=>i.idol_id.toString() === position.idol_id);
+                                            return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: "flex gap-3 items-center p-3 bg-purple-50 rounded-lg",
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        className: "w-20",
+                                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            className: "text-sm font-medium text-gray-700",
+                                                            children: [
+                                                                "位置 ",
+                                                                position.target_seq
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/app/project/create/page.tsx",
+                                                            lineNumber: 679,
+                                                            columnNumber: 25
+                                                        }, this)
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                                        lineNumber: 678,
+                                                        columnNumber: 23
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        className: "flex-1",
+                                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            className: "text-gray-800 font-medium",
+                                                            children: idol ? `${idol.stage_name} (${idol.group_name})` : '未知'
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/app/project/create/page.tsx",
+                                                            lineNumber: 682,
+                                                            columnNumber: 25
+                                                        }, this)
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                                        lineNumber: 681,
+                                                        columnNumber: 23
+                                                    }, this)
+                                                ]
+                                            }, index, true, {
+                                                fileName: "[project]/src/app/project/create/page.tsx",
+                                                lineNumber: 677,
+                                                columnNumber: 21
+                                            }, this);
+                                        })
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                        lineNumber: 673,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/app/project/create/page.tsx",
+                                lineNumber: 668,
+                                columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "bg-white rounded-xl shadow-md p-6",
                                 children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                                        className: "text-xl font-bold text-gray-800 mb-4",
+                                        children: "伴舞需求"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                        lineNumber: 695,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "text-sm text-gray-600 mb-4",
+                                        children: "請輸入需要招募的伴舞人數（idol_id 為 NULL 的伴舞）"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/project/create/page.tsx",
+                                        lineNumber: 696,
+                                        columnNumber: 13
+                                    }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "flex justify-between items-center mb-4",
                                         children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                                className: "text-xl font-bold text-gray-800",
-                                                children: "目標位置（選填）"
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                className: "block text-sm font-medium text-gray-700 mb-2",
+                                                children: "伴舞數量 *"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                lineNumber: 365,
+                                                lineNumber: 700,
                                                 columnNumber: 15
                                             }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                                type: "button",
-                                                onClick: addTargetPosition,
-                                                className: "px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700",
-                                                children: "+ 新增位置"
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                type: "number",
+                                                value: dancerCount,
+                                                onChange: (e)=>setDancerCount(e.target.value),
+                                                min: "0",
+                                                className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500",
+                                                required: true
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                                lineNumber: 366,
+                                                lineNumber: 701,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "mt-2 text-xs text-gray-500",
+                                                children: "伴舞將在偶像位置之後自動編號"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/project/create/page.tsx",
+                                                lineNumber: 709,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                        lineNumber: 364,
-                                        columnNumber: 13
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "space-y-3",
-                                        children: targetPositions.map((position, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "flex gap-3 items-end",
-                                                children: [
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "w-20",
-                                                        children: [
-                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                                                className: "block text-sm font-medium text-gray-700 mb-1",
-                                                                children: "位置"
-                                                            }, void 0, false, {
-                                                                fileName: "[project]/src/app/project/create/page.tsx",
-                                                                lineNumber: 378,
-                                                                columnNumber: 21
-                                                            }, this),
-                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                                                type: "text",
-                                                                value: position.target_seq,
-                                                                disabled: true,
-                                                                className: "w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
-                                                            }, void 0, false, {
-                                                                fileName: "[project]/src/app/project/create/page.tsx",
-                                                                lineNumber: 379,
-                                                                columnNumber: 21
-                                                            }, this)
-                                                        ]
-                                                    }, void 0, true, {
-                                                        fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 377,
-                                                        columnNumber: 19
-                                                    }, this),
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "flex-1",
-                                                        children: [
-                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                                                className: "block text-sm font-medium text-gray-700 mb-1",
-                                                                children: "偶像"
-                                                            }, void 0, false, {
-                                                                fileName: "[project]/src/app/project/create/page.tsx",
-                                                                lineNumber: 387,
-                                                                columnNumber: 21
-                                                            }, this),
-                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
-                                                                value: position.idol_id,
-                                                                onChange: (e)=>updateTargetPosition(index, 'idol_id', e.target.value),
-                                                                className: "w-full px-3 py-2 border border-gray-300 rounded-lg",
-                                                                children: [
-                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
-                                                                        value: "",
-                                                                        children: "無"
-                                                                    }, void 0, false, {
-                                                                        fileName: "[project]/src/app/project/create/page.tsx",
-                                                                        lineNumber: 393,
-                                                                        columnNumber: 23
-                                                                    }, this),
-                                                                    idols.map((idol)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
-                                                                            value: idol.idol_id,
-                                                                            children: [
-                                                                                idol.stage_name,
-                                                                                " (",
-                                                                                idol.group_name,
-                                                                                ")"
-                                                                            ]
-                                                                        }, idol.idol_id, true, {
-                                                                            fileName: "[project]/src/app/project/create/page.tsx",
-                                                                            lineNumber: 395,
-                                                                            columnNumber: 25
-                                                                        }, this))
-                                                                ]
-                                                            }, void 0, true, {
-                                                                fileName: "[project]/src/app/project/create/page.tsx",
-                                                                lineNumber: 388,
-                                                                columnNumber: 21
-                                                            }, this)
-                                                        ]
-                                                    }, void 0, true, {
-                                                        fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 386,
-                                                        columnNumber: 19
-                                                    }, this),
-                                                    targetPositions.length > 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                                        type: "button",
-                                                        onClick: ()=>removeTargetPosition(index),
-                                                        className: "px-3 py-2 text-red-500 hover:text-red-700",
-                                                        children: "刪除"
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/app/project/create/page.tsx",
-                                                        lineNumber: 402,
-                                                        columnNumber: 21
-                                                    }, this)
-                                                ]
-                                            }, index, true, {
-                                                fileName: "[project]/src/app/project/create/page.tsx",
-                                                lineNumber: 376,
-                                                columnNumber: 17
-                                            }, this))
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/project/create/page.tsx",
-                                        lineNumber: 374,
+                                        lineNumber: 699,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                lineNumber: 363,
+                                lineNumber: 694,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -870,7 +1246,7 @@ function CreateProjectPage() {
                                         children: "取消"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                        lineNumber: 417,
+                                        lineNumber: 717,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -880,36 +1256,36 @@ function CreateProjectPage() {
                                         children: loading ? '建立中...' : '建立專案'
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/project/create/page.tsx",
-                                        lineNumber: 424,
+                                        lineNumber: 724,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/project/create/page.tsx",
-                                lineNumber: 416,
+                                lineNumber: 716,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/project/create/page.tsx",
-                        lineNumber: 229,
+                        lineNumber: 460,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/project/create/page.tsx",
-                lineNumber: 212,
+                lineNumber: 443,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$BottomNav$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                 fileName: "[project]/src/app/project/create/page.tsx",
-                lineNumber: 435,
+                lineNumber: 735,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/project/create/page.tsx",
-        lineNumber: 211,
+        lineNumber: 442,
         columnNumber: 5
     }, this);
 }

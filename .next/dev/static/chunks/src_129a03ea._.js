@@ -320,6 +320,31 @@ function ManageProjectPage() {
             setError('刪除失敗：' + (err_2.message || '未知錯誤'));
         }
     };
+    const handleDeleteProject = async ()=>{
+        if (!confirm('確定要刪除此專案嗎？此操作無法復原，所有相關資料（練習時間、成員、申請等）都將被刪除。')) return;
+        try {
+            setLoading(true);
+            setError('');
+            // 根據外鍵約束，刪除順序很重要：
+            // 1. PROJECT_TARGET 的主鍵包含 project_id，需要先手動刪除（因為 ON DELETE SET NULL 會違反主鍵約束）
+            // 2. 其他表（PRACTICE_SCHEDULE, PROJECT_MEMBERS, PROJECT_APPLICATIONS）會因為 CASCADE 自動刪除
+            // 先刪除 PROJECT_TARGET（因為主鍵包含 project_id，不能設為 NULL）
+            const { error: targetError } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from('project_target').delete().eq('project_id', projectId);
+            if (targetError) throw targetError;
+            // 刪除專案（會自動 CASCADE 刪除相關資料）
+            // PRACTICE_SCHEDULE: ON DELETE CASCADE
+            // PROJECT_MEMBERS: ON DELETE CASCADE  
+            // PROJECT_APPLICATIONS: ON DELETE CASCADE
+            const { error: projectError_0 } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from('project').delete().eq('p_id', projectId);
+            if (projectError_0) throw projectError_0;
+            // 刪除成功，返回專案列表
+            alert('專案已成功刪除');
+            router.push('/profile/projects');
+        } catch (err_3) {
+            setError('刪除失敗：' + (err_3.message || '未知錯誤'));
+            setLoading(false);
+        }
+    };
     if (loading) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20",
@@ -333,7 +358,7 @@ function ManageProjectPage() {
                                 className: "inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 226,
+                                lineNumber: 259,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -341,29 +366,29 @@ function ManageProjectPage() {
                                 children: "載入中..."
                             }, void 0, false, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 227,
+                                lineNumber: 260,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                        lineNumber: 225,
+                        lineNumber: 258,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                    lineNumber: 224,
+                    lineNumber: 257,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$BottomNav$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                     fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                    lineNumber: 230,
+                    lineNumber: 263,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-            lineNumber: 223,
+            lineNumber: 256,
             columnNumber: 12
         }, this);
     }
@@ -381,7 +406,7 @@ function ManageProjectPage() {
                                 children: error || '專案不存在或無權限訪問'
                             }, void 0, false, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 237,
+                                lineNumber: 270,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -390,29 +415,29 @@ function ManageProjectPage() {
                                 children: "返回"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 238,
+                                lineNumber: 271,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                        lineNumber: 236,
+                        lineNumber: 269,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                    lineNumber: 235,
+                    lineNumber: 268,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$BottomNav$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                     fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                    lineNumber: 243,
+                    lineNumber: 276,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-            lineNumber: 234,
+            lineNumber: 267,
             columnNumber: 12
         }, this);
     }
@@ -430,22 +455,40 @@ function ManageProjectPage() {
                                 children: "專案管理"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 249,
+                                lineNumber: 282,
                                 columnNumber: 11
                             }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                onClick: ()=>router.back(),
-                                className: "text-gray-600 hover:text-gray-800",
-                                children: "← 返回"
-                            }, void 0, false, {
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "flex gap-3",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        onClick: handleDeleteProject,
+                                        className: "px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700",
+                                        children: "刪除專案"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/project/manage/[id]/page.tsx",
+                                        lineNumber: 284,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        onClick: ()=>router.back(),
+                                        className: "text-gray-600 hover:text-gray-800",
+                                        children: "← 返回"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/project/manage/[id]/page.tsx",
+                                        lineNumber: 287,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 250,
+                                lineNumber: 283,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                        lineNumber: 248,
+                        lineNumber: 281,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -456,7 +499,7 @@ function ManageProjectPage() {
                                 children: project.porject_title
                             }, void 0, false, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 257,
+                                lineNumber: 295,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -469,7 +512,7 @@ function ManageProjectPage() {
                                                 children: "狀態："
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 260,
+                                                lineNumber: 298,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -477,13 +520,13 @@ function ManageProjectPage() {
                                                 children: project.status === 'A' ? '招募中' : project.status === 'D' ? '進行中' : '已完成'
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 261,
+                                                lineNumber: 299,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                        lineNumber: 259,
+                                        lineNumber: 297,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -493,7 +536,7 @@ function ManageProjectPage() {
                                                 children: "目標人數："
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 266,
+                                                lineNumber: 304,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -501,13 +544,13 @@ function ManageProjectPage() {
                                                 children: project.target_cnt
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 267,
+                                                lineNumber: 305,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                        lineNumber: 265,
+                                        lineNumber: 303,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -517,7 +560,7 @@ function ManageProjectPage() {
                                                 children: "練習地點："
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 270,
+                                                lineNumber: 308,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -525,13 +568,13 @@ function ManageProjectPage() {
                                                 children: project.practice_location
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 271,
+                                                lineNumber: 309,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                        lineNumber: 269,
+                                        lineNumber: 307,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -541,7 +584,7 @@ function ManageProjectPage() {
                                                 children: "拍攝地點："
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 274,
+                                                lineNumber: 312,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -549,25 +592,25 @@ function ManageProjectPage() {
                                                 children: project.performance_location
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 275,
+                                                lineNumber: 313,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                        lineNumber: 273,
+                                        lineNumber: 311,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 258,
+                                lineNumber: 296,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                        lineNumber: 256,
+                        lineNumber: 294,
                         columnNumber: 9
                     }, this),
                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -575,7 +618,7 @@ function ManageProjectPage() {
                         children: error
                     }, void 0, false, {
                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                        lineNumber: 280,
+                        lineNumber: 318,
                         columnNumber: 19
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -589,7 +632,7 @@ function ManageProjectPage() {
                                         children: "練習時間"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                        lineNumber: 287,
+                                        lineNumber: 325,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -598,13 +641,13 @@ function ManageProjectPage() {
                                         children: "+ 新增時間"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                        lineNumber: 288,
+                                        lineNumber: 326,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 286,
+                                lineNumber: 324,
                                 columnNumber: 11
                             }, this),
                             showScheduleForm && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -623,7 +666,7 @@ function ManageProjectPage() {
                                                 className: "px-3 py-2 border border-gray-300 rounded-lg"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 295,
+                                                lineNumber: 333,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -636,7 +679,7 @@ function ManageProjectPage() {
                                                 className: "px-3 py-2 border border-gray-300 rounded-lg"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 299,
+                                                lineNumber: 337,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -649,13 +692,13 @@ function ManageProjectPage() {
                                                 className: "px-3 py-2 border border-gray-300 rounded-lg"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 303,
+                                                lineNumber: 341,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                        lineNumber: 294,
+                                        lineNumber: 332,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -667,7 +710,7 @@ function ManageProjectPage() {
                                                 children: "確認"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 309,
+                                                lineNumber: 347,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -683,19 +726,19 @@ function ManageProjectPage() {
                                                 children: "取消"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 312,
+                                                lineNumber: 350,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                        lineNumber: 308,
+                                        lineNumber: 346,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 293,
+                                lineNumber: 331,
                                 columnNumber: 32
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -715,7 +758,7 @@ function ManageProjectPage() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                    lineNumber: 327,
+                                                    lineNumber: 365,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -724,13 +767,13 @@ function ManageProjectPage() {
                                                     children: "刪除"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                    lineNumber: 330,
+                                                    lineNumber: 368,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, idx, true, {
                                             fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                            lineNumber: 326,
+                                            lineNumber: 364,
                                             columnNumber: 55
                                         }, this)),
                                     practiceSchedules.length === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -738,19 +781,19 @@ function ManageProjectPage() {
                                         children: "尚未設定練習時間"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                        lineNumber: 334,
+                                        lineNumber: 372,
                                         columnNumber: 48
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 325,
+                                lineNumber: 363,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                        lineNumber: 285,
+                        lineNumber: 323,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -761,7 +804,7 @@ function ManageProjectPage() {
                                 children: "專案成員"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 340,
+                                lineNumber: 378,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -777,7 +820,7 @@ function ManageProjectPage() {
                                                             children: member.users?.name
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                            lineNumber: 344,
+                                                            lineNumber: 382,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -788,13 +831,13 @@ function ManageProjectPage() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                            lineNumber: 345,
+                                                            lineNumber: 383,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                    lineNumber: 343,
+                                                    lineNumber: 381,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -805,13 +848,13 @@ function ManageProjectPage() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                    lineNumber: 347,
+                                                    lineNumber: 385,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, idx_0, true, {
                                             fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                            lineNumber: 342,
+                                            lineNumber: 380,
                                             columnNumber: 45
                                         }, this)),
                                     members.length === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -819,19 +862,19 @@ function ManageProjectPage() {
                                         children: "尚未有成員"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                        lineNumber: 351,
+                                        lineNumber: 389,
                                         columnNumber: 38
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 341,
+                                lineNumber: 379,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                        lineNumber: 339,
+                        lineNumber: 377,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -842,7 +885,7 @@ function ManageProjectPage() {
                                 children: "待審核申請"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 357,
+                                lineNumber: 395,
                                 columnNumber: 11
                             }, this),
                             applications.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -850,7 +893,7 @@ function ManageProjectPage() {
                                 children: "目前沒有待審核的申請"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 358,
+                                lineNumber: 396,
                                 columnNumber: 40
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "space-y-4",
@@ -867,7 +910,7 @@ function ManageProjectPage() {
                                                                 children: app_1.applicant_name
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                                lineNumber: 362,
+                                                                lineNumber: 400,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -878,7 +921,7 @@ function ManageProjectPage() {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                                lineNumber: 363,
+                                                                lineNumber: 401,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -889,13 +932,13 @@ function ManageProjectPage() {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                                lineNumber: 366,
+                                                                lineNumber: 404,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                        lineNumber: 361,
+                                                        lineNumber: 399,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -907,7 +950,7 @@ function ManageProjectPage() {
                                                                 children: "接受"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                                lineNumber: 371,
+                                                                lineNumber: 409,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -916,19 +959,19 @@ function ManageProjectPage() {
                                                                 children: "拒絕"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                                lineNumber: 374,
+                                                                lineNumber: 412,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                        lineNumber: 370,
+                                                        lineNumber: 408,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 360,
+                                                lineNumber: 398,
                                                 columnNumber: 19
                                             }, this),
                                             app_1.applicant_skills && app_1.applicant_skills.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -939,7 +982,7 @@ function ManageProjectPage() {
                                                         children: "技能："
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                        lineNumber: 381,
+                                                        lineNumber: 419,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -954,18 +997,18 @@ function ManageProjectPage() {
                                                                 ]
                                                             }, idx_1, true, {
                                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                                lineNumber: 383,
+                                                                lineNumber: 421,
                                                                 columnNumber: 84
                                                             }, this))
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                        lineNumber: 382,
+                                                        lineNumber: 420,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 380,
+                                                lineNumber: 418,
                                                 columnNumber: 83
                                             }, this),
                                             app_1.applicant_portfolios && app_1.applicant_portfolios.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -975,7 +1018,7 @@ function ManageProjectPage() {
                                                         children: "作品集："
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                        lineNumber: 390,
+                                                        lineNumber: 428,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -988,52 +1031,52 @@ function ManageProjectPage() {
                                                                 children: portfolio.title
                                                             }, idx_2, false, {
                                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                                lineNumber: 392,
+                                                                lineNumber: 430,
                                                                 columnNumber: 92
                                                             }, this))
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                        lineNumber: 391,
+                                                        lineNumber: 429,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                                lineNumber: 389,
+                                                lineNumber: 427,
                                                 columnNumber: 91
                                             }, this)
                                         ]
                                     }, app_1.appli_id, true, {
                                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                        lineNumber: 359,
+                                        lineNumber: 397,
                                         columnNumber: 42
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                                lineNumber: 358,
+                                lineNumber: 396,
                                 columnNumber: 103
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                        lineNumber: 356,
+                        lineNumber: 394,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                lineNumber: 247,
+                lineNumber: 280,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$BottomNav$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                 fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-                lineNumber: 402,
+                lineNumber: 440,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/project/manage/[id]/page.tsx",
-        lineNumber: 246,
+        lineNumber: 279,
         columnNumber: 10
     }, this);
 }
