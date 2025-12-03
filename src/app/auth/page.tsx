@@ -36,7 +36,7 @@ export default function AuthPage() {
       // 使用用戶名稱和密碼登入
       const { data, error: fetchError } = await supabase
         .from('users')
-        .select('u_id, status, password')
+        .select('u_id, status, password, role')
         .eq('name', loginData.name)
         .single();
 
@@ -67,7 +67,14 @@ export default function AuthPage() {
 
       // 儲存到 localStorage
       localStorage.setItem('userId', data.u_id.toString());
-      router.push('/');
+      localStorage.setItem('userRole', data.role);
+      
+      // 根據角色導向不同頁面
+      if (data.role === 'A') {
+        router.push('/admin');
+      } else {
+        router.push('/');
+      }
     } catch (err) {
       setError('登入失敗，請稍後再試');
     } finally {

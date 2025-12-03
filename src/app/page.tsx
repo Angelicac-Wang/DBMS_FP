@@ -52,8 +52,16 @@ export default function Home() {
   useEffect(() => {
     // 檢查是否已登入
     const userId = localStorage.getItem('userId');
+    const userRole = localStorage.getItem('userRole');
+    
     if (!userId) {
       router.push('/auth');
+      return;
+    }
+
+    // 如果是管理員，導向管理頁面
+    if (userRole === 'A') {
+      router.push('/admin');
       return;
     }
 

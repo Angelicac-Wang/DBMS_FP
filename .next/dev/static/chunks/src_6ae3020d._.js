@@ -60,7 +60,7 @@ function AuthPage() {
         setError('');
         try {
             // 使用用戶名稱和密碼登入
-            const { data, error: fetchError } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from('users').select('u_id, status, password').eq('name', loginData.name).single();
+            const { data, error: fetchError } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from('users').select('u_id, status, password, role').eq('name', loginData.name).single();
             if (fetchError || !data) {
                 setError('用戶名稱或密碼錯誤');
                 setLoading(false);
@@ -83,7 +83,13 @@ function AuthPage() {
             }).eq('u_id', data.u_id);
             // 儲存到 localStorage
             localStorage.setItem('userId', data.u_id.toString());
-            router.push('/');
+            localStorage.setItem('userRole', data.role);
+            // 根據角色導向不同頁面
+            if (data.role === 'A') {
+                router.push('/admin');
+            } else {
+                router.push('/');
+            }
         } catch (err) {
             setError('登入失敗，請稍後再試');
         } finally{
@@ -176,7 +182,7 @@ function AuthPage() {
                             children: "舞告Match"
                         }, void 0, false, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 160,
+                            lineNumber: 167,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -184,13 +190,13 @@ function AuthPage() {
                             children: "K-pop 舞蹈翻跳媒合平台"
                         }, void 0, false, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 161,
+                            lineNumber: 168,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/auth/page.tsx",
-                    lineNumber: 159,
+                    lineNumber: 166,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -202,7 +208,7 @@ function AuthPage() {
                             children: "登入"
                         }, void 0, false, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 165,
+                            lineNumber: 172,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -211,13 +217,13 @@ function AuthPage() {
                             children: "註冊"
                         }, void 0, false, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 168,
+                            lineNumber: 175,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/auth/page.tsx",
-                    lineNumber: 164,
+                    lineNumber: 171,
                     columnNumber: 9
                 }, this),
                 error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -225,7 +231,7 @@ function AuthPage() {
                     children: error
                 }, void 0, false, {
                     fileName: "[project]/src/app/auth/page.tsx",
-                    lineNumber: 173,
+                    lineNumber: 180,
                     columnNumber: 19
                 }, this),
                 isLogin ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -239,7 +245,7 @@ function AuthPage() {
                                     children: "用戶名稱"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 179,
+                                    lineNumber: 186,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -254,13 +260,13 @@ function AuthPage() {
                                     placeholder: "請輸入用戶名稱"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 182,
+                                    lineNumber: 189,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 178,
+                            lineNumber: 185,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -270,7 +276,7 @@ function AuthPage() {
                                     children: "密碼"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 188,
+                                    lineNumber: 195,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -285,13 +291,13 @@ function AuthPage() {
                                     placeholder: "請輸入密碼"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 191,
+                                    lineNumber: 198,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 187,
+                            lineNumber: 194,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -301,13 +307,13 @@ function AuthPage() {
                             children: loading ? '登入中...' : '登入'
                         }, void 0, false, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 196,
+                            lineNumber: 203,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/auth/page.tsx",
-                    lineNumber: 177,
+                    lineNumber: 184,
                     columnNumber: 20
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
                     onSubmit: handleRegister,
@@ -320,7 +326,7 @@ function AuthPage() {
                                     children: "用戶名稱 *"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 201,
+                                    lineNumber: 208,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -336,7 +342,7 @@ function AuthPage() {
                                     placeholder: "請輸入用戶名稱（最多15字）"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 204,
+                                    lineNumber: 211,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -344,13 +350,13 @@ function AuthPage() {
                                     children: "用戶ID將由系統自動生成"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 208,
+                                    lineNumber: 215,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 200,
+                            lineNumber: 207,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -360,7 +366,7 @@ function AuthPage() {
                                     children: "Email *"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 211,
+                                    lineNumber: 218,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -376,13 +382,13 @@ function AuthPage() {
                                     placeholder: "請輸入Email"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 214,
+                                    lineNumber: 221,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 210,
+                            lineNumber: 217,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -392,7 +398,7 @@ function AuthPage() {
                                     children: "密碼 *"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 220,
+                                    lineNumber: 227,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -408,13 +414,13 @@ function AuthPage() {
                                     placeholder: "請輸入密碼（最多15字）"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 223,
+                                    lineNumber: 230,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 219,
+                            lineNumber: 226,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -424,7 +430,7 @@ function AuthPage() {
                                     children: "生日 *"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 229,
+                                    lineNumber: 236,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -438,13 +444,13 @@ function AuthPage() {
                                     className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 232,
+                                    lineNumber: 239,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 228,
+                            lineNumber: 235,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -454,7 +460,7 @@ function AuthPage() {
                                     children: "性別 *"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 238,
+                                    lineNumber: 245,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -471,7 +477,7 @@ function AuthPage() {
                                             children: "請選擇性別"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/auth/page.tsx",
-                                            lineNumber: 245,
+                                            lineNumber: 252,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -479,7 +485,7 @@ function AuthPage() {
                                             children: "男"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/auth/page.tsx",
-                                            lineNumber: 246,
+                                            lineNumber: 253,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -487,19 +493,19 @@ function AuthPage() {
                                             children: "女"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/auth/page.tsx",
-                                            lineNumber: 247,
+                                            lineNumber: 254,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 241,
+                                    lineNumber: 248,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 237,
+                            lineNumber: 244,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -509,7 +515,7 @@ function AuthPage() {
                                     children: "地區 *"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 251,
+                                    lineNumber: 258,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -525,13 +531,13 @@ function AuthPage() {
                                     placeholder: "請輸入地區（如：雙北、台中）"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 254,
+                                    lineNumber: 261,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 250,
+                            lineNumber: 257,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -541,7 +547,7 @@ function AuthPage() {
                                     children: "電話 *"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 260,
+                                    lineNumber: 267,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -558,13 +564,13 @@ function AuthPage() {
                                     placeholder: "請輸入10位數電話號碼"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/auth/page.tsx",
-                                    lineNumber: 263,
+                                    lineNumber: 270,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 259,
+                            lineNumber: 266,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -574,24 +580,24 @@ function AuthPage() {
                             children: loading ? '註冊中...' : '註冊'
                         }, void 0, false, {
                             fileName: "[project]/src/app/auth/page.tsx",
-                            lineNumber: 268,
+                            lineNumber: 275,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/auth/page.tsx",
-                    lineNumber: 199,
+                    lineNumber: 206,
                     columnNumber: 21
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/auth/page.tsx",
-            lineNumber: 158,
+            lineNumber: 165,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/auth/page.tsx",
-        lineNumber: 157,
+        lineNumber: 164,
         columnNumber: 10
     }, this);
 }
