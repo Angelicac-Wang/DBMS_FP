@@ -1,0 +1,16 @@
+# Kprofiles.com 團體成員頁面 URL 列表
+# 每行一個 URL，以 # 開頭的行會被忽略
+# 
+# 如何找到正確的 URL：
+# 1. 訪問 https://kprofiles.com
+# 2. 搜尋或瀏覽找到您想要的團體
+# 3. 進入團體的「成員資料」或「Members Profile」頁面
+# 4. 複製瀏覽器地址欄的完整 URL
+# 5. 將 URL 加入到這個檔案中
+
+# 範例（請根據實際情況修改）：
+# https://kprofiles.com/blackpink-members-profile/
+# https://kprofiles.com/twice-members-profile/
+# https://kprofiles.com/bts-members-profile/
+
+

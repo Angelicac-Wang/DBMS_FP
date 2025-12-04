@@ -20,12 +20,55 @@ interface SongDetail {
   idols?: Array<{ idol_id: number; stage_name: string; stage_name_kr: string }>;
 }
 
+interface SpotifyTrackInfo {
+  id: string;
+  name: string;
+  artists: string[];
+  albumName: string;
+  albumImageUrl: string | null;
+  albumReleaseDate: string | null;
+  durationMs: number;
+  previewUrl: string | null;
+  spotifyUrl: string | null;
+  popularity: number | null;
+  explicit: boolean | null;
+}
+
+function extractSpotifyTrackId(url: string | null | undefined): string | null {
+  if (!url) return null;
+
+  // 常見格式：
+  // - https://open.spotify.com/track/{id}
+  // - https://open.spotify.com/track/{id}?si=...
+  // - spotify:track:{id}
+  // - 直接存 id
+
+  const trackUrlMatch = url.match(/track\/([a-zA-Z0-9]+)(\?|$)/);
+  if (trackUrlMatch) {
+    return trackUrlMatch[1];
+  }
+
+  const uriMatch = url.match(/spotify:track:([a-zA-Z0-9]+)/);
+  if (uriMatch) {
+    return uriMatch[1];
+  }
+
+  // 如果長度像 Spotify ID，就直接當作 ID
+  if (/^[a-zA-Z0-9]{10,}$/u.test(url)) {
+    return url;
+  }
+
+  return null;
+}
+
 export default function SongDetailPage() {
   const router = useRouter();
   const params = useParams();
   const songId = params.id as string;
   const [loading, setLoading] = useState(true);
   const [song, setSong] = useState<SongDetail | null>(null);
+  const [spotifyInfo, setSpotifyInfo] = useState<SpotifyTrackInfo | null>(null);
+  const [spotifyLoading, setSpotifyLoading] = useState(false);
 
   useEffect(() => {
     if (songId) {
@@ -94,15 +137,41 @@ export default function SongDetailPage() {
         }
       }
 
-      setSong({
+      const fullSong: SongDetail = {
         ...songData,
         groups,
         idols,
-      });
+      };
+
+      setSong(fullSong);
+
+      const trackId = extractSpotifyTrackId(fullSong.spotify_url);
+      if (trackId) {
+        fetchSpotifyTrack(trackId);
+      } else {
+        setSpotifyInfo(null);
+      }
     } catch (err) {
       console.error('Error fetching song detail:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSpotifyTrack = async (trackId: string) => {
+    try {
+      setSpotifyLoading(true);
+      const res = await fetch(`/api/spotify/track/${encodeURIComponent(trackId)}`);
+      if (!res.ok) {
+        console.error('Failed to fetch Spotify track info');
+        return;
+      }
+      const data: SpotifyTrackInfo = await res.json();
+      setSpotifyInfo(data);
+    } catch (error) {
+      console.error('Error fetching Spotify track info:', error);
+    } finally {
+      setSpotifyLoading(false);
     }
   };
 
@@ -186,6 +255,62 @@ export default function SongDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Spotify 歌曲資訊（若有 Spotify 連結） */}
+        {song.spotify_url && (
+          <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Spotify 歌曲資訊</h2>
+            {spotifyLoading && (
+              <p className="text-gray-600 text-sm">從 Spotify 載入中...</p>
+            )}
+            {!spotifyLoading && !spotifyInfo && (
+              <p className="text-gray-600 text-sm">無法從 Spotify 取得歌曲資訊。</p>
+            )}
+            {spotifyInfo && (
+              <div className="flex flex-col md:flex-row gap-4">
+                {spotifyInfo.albumImageUrl && (
+                  <img
+                    src={spotifyInfo.albumImageUrl}
+                    alt={spotifyInfo.name}
+                    className="w-32 h-32 rounded-lg object-cover shadow-md"
+                  />
+                )}
+                <div className="flex-1">
+                  <p className="text-lg font-semibold text-gray-900 mb-1">
+                    {spotifyInfo.name}
+                    {spotifyInfo.explicit && (
+                      <span className="ml-2 inline-block px-2 py-0.5 text-xs rounded bg-gray-800 text-white align-middle">
+                        E
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-sm text-gray-700 mb-1">
+                    演唱者：{spotifyInfo.artists.join(', ')}
+                  </p>
+                  <p className="text-sm text-gray-700 mb-1">
+                    專輯：{spotifyInfo.albumName}
+                  </p>
+                  {spotifyInfo.albumReleaseDate && (
+                    <p className="text-sm text-gray-500">
+                      專輯發行日：{new Date(spotifyInfo.albumReleaseDate).toLocaleDateString('zh-TW')}
+                    </p>
+                  )}
+                  {typeof spotifyInfo.popularity === 'number' && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      熱門度（0-100）：{spotifyInfo.popularity}
+                    </p>
+                  )}
+                  {spotifyInfo.previewUrl && (
+                    <div className="mt-3">
+                      <p className="text-sm text-gray-600 mb-1">30 秒預覽：</p>
+                      <audio controls src={spotifyInfo.previewUrl} className="w-full max-w-xs" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 關聯團體 */}
         {song.groups && song.groups.length > 0 && (

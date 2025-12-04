@@ -1,0 +1,2634 @@
+{
+  "AESPA MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Karina",
+        "stage_name_kr": "카리나",
+        "nationality": "South Korea",
+        "debut_date": "2020-11-17"
+      },
+      {
+        "stage_name": "Giselle",
+        "stage_name_kr": "지젤",
+        "nationality": "South Korea",
+        "debut_date": "2020-11-17"
+      },
+      {
+        "stage_name": "Winter",
+        "stage_name_kr": "윈터",
+        "nationality": "United States",
+        "debut_date": "2020-11-17"
+      },
+      {
+        "stage_name": "NingNing",
+        "stage_name_kr": "닝닝",
+        "nationality": "China",
+        "debut_date": "2020-11-17"
+      }
+    ],
+    "debut_date": "2020-11-17",
+    "group_namekr": "에스파",
+    "company": "SM Entertainment",
+    "group_type": "G",
+    "member_count": 4,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2020/10/aespa-logo.jpg"
+  },
+  "BABYMONSTER MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Ruka",
+        "stage_name_kr": "루카",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Pharita",
+        "stage_name_kr": "파리타",
+        "nationality": "Thailand"
+      },
+      {
+        "stage_name": "Asa",
+        "stage_name_kr": "아사",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Ahyeon",
+        "stage_name_kr": "아현",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Rora",
+        "stage_name_kr": "로라",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Chiquita",
+        "stage_name_kr": "치키타",
+        "nationality": "Thailand"
+      },
+      {
+        "stage_name": "Rami",
+        "stage_name_kr": "라미",
+        "nationality": "South Korea"
+      }
+    ],
+    "group_namekr": "베이비몬스터",
+    "company": "YG Entertainment",
+    "group_type": "G",
+    "member_count": 7
+  },
+  "BLACKPINK MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Jisoo",
+        "stage_name_kr": "지수",
+        "nationality": "South Korea",
+        "debut_date": "2016-08-08"
+      },
+      {
+        "stage_name": "Jennie",
+        "stage_name_kr": "제니",
+        "nationality": "South Korea",
+        "debut_date": "2016-08-08"
+      },
+      {
+        "stage_name": "Rosé",
+        "stage_name_kr": "로제",
+        "nationality": "New Zealand",
+        "debut_date": "2016-08-08"
+      },
+      {
+        "stage_name": "Lisa",
+        "stage_name_kr": "리사",
+        "nationality": "Thailand",
+        "debut_date": "2016-08-08"
+      }
+    ],
+    "debut_date": "2016-08-08",
+    "group_namekr": "블랙핑크",
+    "company": "YG Entertainment",
+    "group_type": "G",
+    "member_count": 4,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2016/08/BLACKPINK-logo.jpg"
+  },
+  "DREAMCATCHER MEMBERS": {
+    "members": [
+      {
+        "stage_name": "JiU",
+        "stage_name_kr": "지유",
+        "nationality": "South Korea",
+        "debut_date": "2017-01-13"
+      },
+      {
+        "stage_name": "SuA",
+        "stage_name_kr": "수아",
+        "nationality": "South Korea",
+        "debut_date": "2017-01-13"
+      },
+      {
+        "stage_name": "Siyeon",
+        "stage_name_kr": "시연",
+        "nationality": "South Korea",
+        "debut_date": "2017-01-13"
+      },
+      {
+        "stage_name": "Handong",
+        "stage_name_kr": "한동",
+        "nationality": "China",
+        "debut_date": "2017-01-13"
+      },
+      {
+        "stage_name": "Yoohyeon",
+        "stage_name_kr": "유현",
+        "nationality": "South Korea",
+        "debut_date": "2017-01-13"
+      },
+      {
+        "stage_name": "Dami",
+        "stage_name_kr": "다미",
+        "nationality": "South Korea",
+        "debut_date": "2017-01-13"
+      },
+      {
+        "stage_name": "Gahyun",
+        "stage_name_kr": "가현",
+        "nationality": "South Korea",
+        "debut_date": "2017-01-13"
+      }
+    ],
+    "debut_date": "2017-01-13",
+    "group_namekr": "드림캐쳐",
+    "company": "Dreamcatcher Company",
+    "group_type": "G",
+    "member_count": 7,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2017/01/Dreamcatcher-logo.jpg"
+  },
+  "EVERGLOW MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Sihyeon",
+        "stage_name_kr": "시현",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "E:U",
+        "stage_name_kr": "이유",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Onda",
+        "stage_name_kr": "온다",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Aisha",
+        "stage_name_kr": "아샤",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Mia",
+        "stage_name_kr": "미아",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Yiren",
+        "stage_name_kr": "이런",
+        "nationality": "China"
+      }
+    ],
+    "group_namekr": "에버글로우",
+    "company": "CHXXTA Company",
+    "group_type": "G",
+    "member_count": 6
+  },
+  "FIFTY FIFTY MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Keena",
+        "stage_name_kr": "키나",
+        "nationality": "South Korea",
+        "debut_date": "2022-11-18"
+      },
+      {
+        "stage_name": "Yewon",
+        "stage_name_kr": "예원",
+        "nationality": "South Korea",
+        "debut_date": "2022-11-18"
+      },
+      {
+        "stage_name": "Hana",
+        "stage_name_kr": "하나",
+        "nationality": "South Korea",
+        "debut_date": "2022-11-18"
+      },
+      {
+        "stage_name": "Athena",
+        "stage_name_kr": "아테나",
+        "nationality": "China",
+        "debut_date": "2022-11-18"
+      },
+      {
+        "stage_name": "Saena",
+        "stage_name_kr": "새나",
+        "nationality": "United States",
+        "debut_date": "2022-11-18"
+      },
+      {
+        "stage_name": "Sio",
+        "stage_name_kr": "시오",
+        "nationality": "China",
+        "debut_date": "2022-11-18"
+      },
+      {
+        "stage_name": "Aran",
+        "stage_name_kr": "아란",
+        "debut_date": "2022-11-18"
+      }
+    ],
+    "debut_date": "2022-11-18",
+    "group_namekr": "피프티 피프티",
+    "group_type": "G",
+    "member_count": 7
+  },
+  "FROMIS_9 MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Hayoung",
+        "stage_name_kr": "하영",
+        "nationality": "South Korea",
+        "debut_date": "2018-01-24"
+      },
+      {
+        "stage_name": "Jiwon",
+        "stage_name_kr": "지원",
+        "nationality": "South Korea",
+        "debut_date": "2018-01-24"
+      },
+      {
+        "stage_name": "Chaeyoung",
+        "stage_name_kr": "채영",
+        "nationality": "South Korea",
+        "debut_date": "2018-01-24"
+      },
+      {
+        "stage_name": "Nagyung",
+        "stage_name_kr": "나경",
+        "nationality": "South Korea",
+        "debut_date": "2018-01-24"
+      },
+      {
+        "stage_name": "Jiheon",
+        "stage_name_kr": "지헌",
+        "nationality": "South Korea",
+        "debut_date": "2018-01-24"
+      },
+      {
+        "stage_name": "Saerom",
+        "stage_name_kr": "새롬",
+        "nationality": "South Korea",
+        "debut_date": "2018-01-24"
+      },
+      {
+        "stage_name": "Gyuri",
+        "stage_name_kr": "규리",
+        "nationality": "South Korea",
+        "debut_date": "2018-01-24"
+      },
+      {
+        "stage_name": "Jisun",
+        "stage_name_kr": "지선",
+        "debut_date": "2018-01-24"
+      },
+      {
+        "stage_name": "Seoyeon",
+        "stage_name_kr": "서연",
+        "nationality": "South Korea",
+        "debut_date": "2018-01-24"
+      }
+    ],
+    "debut_date": "2018-01-24",
+    "group_namekr": "플로버",
+    "company": "Stone",
+    "group_type": "G",
+    "member_count": 9,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2017/11/fromis_9-logo-1.jpg"
+  },
+  "I-DLE MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Soyeon",
+        "stage_name_kr": "소연",
+        "nationality": "South Korea",
+        "debut_date": "2018-05-02"
+      },
+      {
+        "stage_name": "Miyeon",
+        "stage_name_kr": "미연",
+        "nationality": "South Korea",
+        "debut_date": "2018-05-02"
+      },
+      {
+        "stage_name": "Minnie",
+        "stage_name_kr": "민니",
+        "nationality": "Thailand",
+        "debut_date": "2018-05-02"
+      },
+      {
+        "stage_name": "Yuqi",
+        "stage_name_kr": "우기",
+        "nationality": "China",
+        "debut_date": "2018-05-02"
+      },
+      {
+        "stage_name": "Shuhua",
+        "stage_name_kr": "슈화",
+        "nationality": "Taiwan",
+        "debut_date": "2018-05-02"
+      },
+      {
+        "stage_name": "Soojin",
+        "stage_name_kr": "수진",
+        "nationality": "South Korea",
+        "debut_date": "2018-05-02"
+      }
+    ],
+    "debut_date": "2018-05-02",
+    "group_namekr": "아이들",
+    "company": "CUBE Entertainment",
+    "group_type": "G",
+    "member_count": 6,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2018/04/GI-DLE-logo.jpg"
+  },
+  "ILLIT MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Yunah",
+        "stage_name_kr": "윤아",
+        "nationality": "South Korea",
+        "debut_date": "2024-03-25"
+      },
+      {
+        "stage_name": "Minju",
+        "stage_name_kr": "민주",
+        "nationality": "South Korea",
+        "debut_date": "2024-03-25"
+      },
+      {
+        "stage_name": "Moka",
+        "stage_name_kr": "모카",
+        "nationality": "Japan",
+        "debut_date": "2024-03-25"
+      },
+      {
+        "stage_name": "Wonhee",
+        "stage_name_kr": "원희",
+        "nationality": "United States",
+        "debut_date": "2024-03-25"
+      },
+      {
+        "stage_name": "Iroha",
+        "stage_name_kr": "이로하",
+        "nationality": "Japan",
+        "debut_date": "2024-03-25"
+      }
+    ],
+    "debut_date": "2024-03-25",
+    "group_namekr": "아일릿",
+    "group_type": "G",
+    "member_count": 5
+  },
+  "ITZY MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Yeji",
+        "stage_name_kr": "예지",
+        "nationality": "China",
+        "debut_date": "2019-02-11"
+      },
+      {
+        "stage_name": "Lia",
+        "stage_name_kr": "리아",
+        "nationality": "China",
+        "debut_date": "2019-02-11"
+      },
+      {
+        "stage_name": "Ryujin",
+        "stage_name_kr": "류진",
+        "nationality": "United States",
+        "debut_date": "2019-02-11"
+      },
+      {
+        "stage_name": "Chaeryeong",
+        "stage_name_kr": "채령",
+        "nationality": "China",
+        "debut_date": "2019-02-11"
+      },
+      {
+        "stage_name": "Yuna",
+        "stage_name_kr": "유나",
+        "nationality": "South Korea",
+        "debut_date": "2019-02-11"
+      }
+    ],
+    "debut_date": "2019-02-11",
+    "group_namekr": "있지",
+    "company": "JYP Entertainment",
+    "group_type": "G",
+    "member_count": 5,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2019/01/Itzy-logo.png"
+  },
+  "IVE MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Gaeul",
+        "stage_name_kr": "가을",
+        "nationality": "South Korea",
+        "debut_date": "2021-12-01"
+      },
+      {
+        "stage_name": "Rei",
+        "stage_name_kr": "레이",
+        "nationality": "Japan",
+        "debut_date": "2021-12-01"
+      },
+      {
+        "stage_name": "Liz",
+        "stage_name_kr": "리즈",
+        "nationality": "South Korea",
+        "debut_date": "2021-12-01"
+      },
+      {
+        "stage_name": "Leeseo",
+        "stage_name_kr": "이서",
+        "nationality": "South Korea",
+        "debut_date": "2021-12-01"
+      }
+    ],
+    "debut_date": "2021-12-01",
+    "group_namekr": "아이브",
+    "company": "STARSHIP",
+    "group_type": "G",
+    "member_count": 4,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2021/11/IVE-logo-800x800.jpg"
+  },
+  "KEP1ER MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Yujin",
+        "stage_name_kr": "유진",
+        "nationality": "South Korea",
+        "debut_date": "2022-01-03"
+      },
+      {
+        "stage_name": "Xiaoting",
+        "stage_name_kr": "샤오팅",
+        "nationality": "China",
+        "debut_date": "2022-01-03"
+      },
+      {
+        "stage_name": "Chaehyun",
+        "stage_name_kr": "채현",
+        "nationality": "Japan",
+        "debut_date": "2022-01-03"
+      },
+      {
+        "stage_name": "Dayeon",
+        "stage_name_kr": "다연",
+        "nationality": "Japan",
+        "debut_date": "2022-01-03"
+      },
+      {
+        "stage_name": "Hikaru",
+        "stage_name_kr": "히카루",
+        "nationality": "Japan",
+        "debut_date": "2022-01-03"
+      },
+      {
+        "stage_name": "Huening Bahiyyih",
+        "stage_name_kr": "휴닝바히에",
+        "nationality": "South Korea",
+        "debut_date": "2022-01-03"
+      },
+      {
+        "stage_name": "Youngeun",
+        "stage_name_kr": "영은",
+        "nationality": "Japan",
+        "debut_date": "2022-01-03"
+      },
+      {
+        "stage_name": "Mashiro",
+        "stage_name_kr": "마시로",
+        "nationality": "Japan",
+        "debut_date": "2022-01-03"
+      },
+      {
+        "stage_name": "Yeseo",
+        "stage_name_kr": "예서",
+        "nationality": "South Korea",
+        "debut_date": "2022-01-03"
+      }
+    ],
+    "debut_date": "2022-01-03",
+    "group_namekr": "케플러",
+    "company": "SM Entertainment",
+    "group_type": "G",
+    "member_count": 9,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2021/10/Kep1er-logo-800x800.png"
+  },
+  "KISS OF LIFE MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Julie",
+        "stage_name_kr": "쥴리",
+        "nationality": "United States",
+        "debut_date": "2023-07-05"
+      },
+      {
+        "stage_name": "Natty",
+        "stage_name_kr": "나띠",
+        "nationality": "Thailand",
+        "debut_date": "2023-07-05"
+      },
+      {
+        "stage_name": "Belle",
+        "stage_name_kr": "벨",
+        "nationality": "United States",
+        "debut_date": "2023-07-05"
+      },
+      {
+        "stage_name": "Haneul",
+        "stage_name_kr": "하늘",
+        "nationality": "South Korea",
+        "debut_date": "2023-07-05"
+      }
+    ],
+    "debut_date": "2023-07-05",
+    "group_namekr": "키스 오브 라이프",
+    "company": "S2 Entertainment",
+    "group_type": "G",
+    "member_count": 4,
+    "logo_image": "https://preview.redd.it/kiss-of-life-logo-v0-15cnkyuxaqnc1.jpg?width=640&crop=smart&auto=webp&s=6b650f27bdbdeeabab15c851294e7f44243d1cb6"
+  },
+  "LE SSERAFIM MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Kim Chaewon",
+        "stage_name_kr": "김채원",
+        "nationality": "South Korea",
+        "debut_date": "2022-05-02"
+      },
+      {
+        "stage_name": "Sakura",
+        "stage_name_kr": "사쿠라",
+        "nationality": "Japan",
+        "debut_date": "2022-05-02"
+      },
+      {
+        "stage_name": "Huh Yunjin",
+        "stage_name_kr": "허윤진",
+        "nationality": "United States",
+        "debut_date": "2022-05-02"
+      },
+      {
+        "stage_name": "Kazuha",
+        "stage_name_kr": "카즈하",
+        "nationality": "Japan",
+        "debut_date": "2022-05-02"
+      },
+      {
+        "stage_name": "Hong Eunchae",
+        "stage_name_kr": "홍은채",
+        "nationality": "South Korea",
+        "debut_date": "2022-05-02"
+      },
+      {
+        "stage_name": "Kim Garam",
+        "stage_name_kr": "김가람",
+        "nationality": "South Korea",
+        "debut_date": "2022-05-02"
+      }
+    ],
+    "debut_date": "2022-05-02",
+    "group_namekr": "르세라핌",
+    "company": "Source Music",
+    "group_type": "G",
+    "member_count": 6,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2022/03/LE-SSERAFIM-logo-863x800.png"
+  },
+  "LOONA MEMBERS": {
+    "members": [
+      {
+        "stage_name": "HaSeul",
+        "stage_name_kr": "하슬",
+        "nationality": "Japan",
+        "debut_date": "2018-08-19"
+      },
+      {
+        "stage_name": "ViVi",
+        "stage_name_kr": "비비",
+        "nationality": "China",
+        "debut_date": "2018-08-19"
+      },
+      {
+        "stage_name": "Yves",
+        "stage_name_kr": "이브",
+        "nationality": "United States",
+        "debut_date": "2018-08-19"
+      },
+      {
+        "stage_name": "JinSoul",
+        "stage_name_kr": "진솔",
+        "nationality": "South Korea",
+        "debut_date": "2018-08-19"
+      },
+      {
+        "stage_name": "Kim Lip",
+        "stage_name_kr": "김립",
+        "nationality": "South Korea",
+        "debut_date": "2018-08-19"
+      },
+      {
+        "stage_name": "HeeJin",
+        "stage_name_kr": "희진",
+        "nationality": "Japan",
+        "debut_date": "2018-08-19"
+      },
+      {
+        "stage_name": "HyunJin",
+        "stage_name_kr": "현진",
+        "nationality": "Japan",
+        "debut_date": "2018-08-19"
+      },
+      {
+        "stage_name": "Go Won",
+        "stage_name_kr": "고원",
+        "nationality": "China",
+        "debut_date": "2018-08-19"
+      },
+      {
+        "stage_name": "Choerry",
+        "stage_name_kr": "최리",
+        "nationality": "South Korea",
+        "debut_date": "2018-08-19"
+      },
+      {
+        "stage_name": "HyeJu",
+        "stage_name_kr": "혜주",
+        "nationality": "South Korea",
+        "debut_date": "2018-08-19"
+      },
+      {
+        "stage_name": "YeoJin",
+        "stage_name_kr": "여진",
+        "nationality": "Japan",
+        "debut_date": "2018-08-19"
+      },
+      {
+        "stage_name": "Chuu",
+        "stage_name_kr": "츄",
+        "debut_date": "2018-08-19"
+      }
+    ],
+    "debut_date": "2018-08-19",
+    "group_namekr": "이달의 소녀",
+    "company": "NiNE Music",
+    "group_type": "G",
+    "member_count": 12,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2024/05/221217-loona-0-jinsoul-logo-removed-olivia-hye-image-teasers-v0-avvymr8woc6a1-600x800.webp"
+  },
+  "MAMAMOO MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Solar",
+        "stage_name_kr": "솔라",
+        "nationality": "South Korea",
+        "debut_date": "2014-06-18"
+      },
+      {
+        "stage_name": "Moonbyul",
+        "stage_name_kr": "문별",
+        "nationality": "South Korea",
+        "debut_date": "2014-06-18"
+      },
+      {
+        "stage_name": "Wheein",
+        "stage_name_kr": "휘인",
+        "nationality": "South Korea",
+        "debut_date": "2014-06-18"
+      },
+      {
+        "stage_name": "Hwasa",
+        "stage_name_kr": "화사",
+        "nationality": "South Korea",
+        "debut_date": "2014-06-18"
+      }
+    ],
+    "debut_date": "2014-06-18",
+    "group_namekr": "마마무",
+    "group_type": "G",
+    "member_count": 4
+  },
+  "NEWJEANS MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Minji",
+        "stage_name_kr": "민지",
+        "nationality": "South Korea",
+        "debut_date": "2022-08-01"
+      },
+      {
+        "stage_name": "Hanni",
+        "stage_name_kr": "하니",
+        "nationality": "Australia",
+        "debut_date": "2022-08-01"
+      },
+      {
+        "stage_name": "Danielle",
+        "stage_name_kr": "다니엘",
+        "nationality": "Australia",
+        "debut_date": "2022-08-01"
+      },
+      {
+        "stage_name": "Haerin",
+        "stage_name_kr": "해린",
+        "nationality": "South Korea",
+        "debut_date": "2022-08-01"
+      },
+      {
+        "stage_name": "Hyein",
+        "stage_name_kr": "혜인",
+        "nationality": "South Korea",
+        "debut_date": "2022-08-01"
+      }
+    ],
+    "debut_date": "2022-08-01",
+    "group_namekr": "뉴진스",
+    "company": "ADOR",
+    "group_type": "G",
+    "member_count": 5
+  },
+  "RED VELVET MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Irene",
+        "stage_name_kr": "아이린",
+        "nationality": "South Korea",
+        "debut_date": "2014-08-01"
+      },
+      {
+        "stage_name": "Seulgi",
+        "stage_name_kr": "슬기",
+        "nationality": "Japan",
+        "debut_date": "2014-08-01"
+      },
+      {
+        "stage_name": "Wendy",
+        "stage_name_kr": "웬디",
+        "nationality": "South Korea",
+        "debut_date": "2014-08-01"
+      },
+      {
+        "stage_name": "Joy",
+        "stage_name_kr": "조이",
+        "nationality": "South Korea",
+        "debut_date": "2014-08-01"
+      },
+      {
+        "stage_name": "Yeri",
+        "stage_name_kr": "예리",
+        "nationality": "South Korea",
+        "debut_date": "2014-08-01"
+      }
+    ],
+    "debut_date": "2014-08-01",
+    "group_namekr": "레드벨벳",
+    "company": "SM Entertainment",
+    "group_type": "G",
+    "member_count": 5
+  },
+  "STAYC MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Sumin",
+        "stage_name_kr": "수민",
+        "nationality": "South Korea",
+        "debut_date": "2020-11-12"
+      },
+      {
+        "stage_name": "Sieun",
+        "stage_name_kr": "시은",
+        "nationality": "South Korea",
+        "debut_date": "2020-11-12"
+      },
+      {
+        "stage_name": "Isa",
+        "stage_name_kr": "아이사",
+        "nationality": "United States",
+        "debut_date": "2020-11-12"
+      },
+      {
+        "stage_name": "Seeun",
+        "stage_name_kr": "세은",
+        "nationality": "South Korea",
+        "debut_date": "2020-11-12"
+      },
+      {
+        "stage_name": "Yoon",
+        "stage_name_kr": "윤",
+        "nationality": "South Korea",
+        "debut_date": "2020-11-12"
+      },
+      {
+        "stage_name": "J",
+        "stage_name_kr": "재이",
+        "nationality": "South Korea",
+        "debut_date": "2020-11-12"
+      }
+    ],
+    "debut_date": "2020-11-12",
+    "group_namekr": "스욋",
+    "company": "High",
+    "group_type": "G",
+    "member_count": 6
+  },
+  "TWICE MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Jihyo",
+        "stage_name_kr": "지효",
+        "nationality": "South Korea",
+        "debut_date": "2015-10-20"
+      },
+      {
+        "stage_name": "Nayeon",
+        "stage_name_kr": "나연",
+        "nationality": "South Korea",
+        "debut_date": "2015-10-20"
+      },
+      {
+        "stage_name": "Jeongyeon",
+        "stage_name_kr": "정연",
+        "nationality": "South Korea",
+        "debut_date": "2015-10-20"
+      },
+      {
+        "stage_name": "Momo",
+        "stage_name_kr": "모모",
+        "nationality": "Japan",
+        "debut_date": "2015-10-20"
+      },
+      {
+        "stage_name": "Sana",
+        "stage_name_kr": "사나",
+        "nationality": "Japan",
+        "debut_date": "2015-10-20"
+      },
+      {
+        "stage_name": "Mina",
+        "stage_name_kr": "미나",
+        "nationality": "United States",
+        "debut_date": "2015-10-20"
+      },
+      {
+        "stage_name": "Dahyun",
+        "stage_name_kr": "다현",
+        "nationality": "South Korea",
+        "debut_date": "2015-10-20"
+      },
+      {
+        "stage_name": "Chaeyoung",
+        "stage_name_kr": "채영",
+        "nationality": "South Korea",
+        "debut_date": "2015-10-20"
+      },
+      {
+        "stage_name": "Tzuyu",
+        "stage_name_kr": "쯔위",
+        "nationality": "Taiwan",
+        "debut_date": "2015-10-20"
+      }
+    ],
+    "debut_date": "2015-10-20",
+    "group_namekr": "트와이스",
+    "company": "JYP Entertainment",
+    "group_type": "G",
+    "member_count": 9
+  },
+  "X:IN MEMBERS": {
+    "members": [
+      {
+        "stage_name": "E.sha",
+        "stage_name_kr": "이샤",
+        "debut_date": "2023-04-11"
+      },
+      {
+        "stage_name": "Nizz",
+        "stage_name_kr": "니즈",
+        "nationality": "South Korea",
+        "debut_date": "2023-04-11"
+      },
+      {
+        "stage_name": "Nova",
+        "stage_name_kr": "노바",
+        "nationality": "United States",
+        "debut_date": "2023-04-11"
+      },
+      {
+        "stage_name": "Hannah",
+        "stage_name_kr": "한나",
+        "nationality": "South Korea",
+        "debut_date": "2023-04-11"
+      },
+      {
+        "stage_name": "Aria",
+        "stage_name_kr": "아리아",
+        "nationality": "South Korea",
+        "debut_date": "2023-04-11"
+      },
+      {
+        "stage_name": "Roa",
+        "stage_name_kr": "로아",
+        "nationality": "South Korea",
+        "debut_date": "2023-04-11"
+      },
+      {
+        "stage_name": "Chi.U",
+        "stage_name_kr": "치유",
+        "debut_date": "2023-04-11"
+      }
+    ],
+    "debut_date": "2023-04-11",
+    "group_namekr": "엑신",
+    "company": "ESCROW Entertainment",
+    "group_type": "G",
+    "member_count": 7
+  },
+  "AMPERS&ONE MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Kamden",
+        "stage_name_kr": "나캠든",
+        "nationality": "China",
+        "debut_date": "2023-11-15"
+      },
+      {
+        "stage_name": "Brian",
+        "stage_name_kr": "브라이언",
+        "nationality": "Canada",
+        "debut_date": "2023-11-15"
+      },
+      {
+        "stage_name": "Jiho",
+        "stage_name_kr": "지호",
+        "nationality": "South Korea",
+        "debut_date": "2023-11-15"
+      },
+      {
+        "stage_name": "Siyun",
+        "stage_name_kr": "시윤",
+        "nationality": "South Korea",
+        "debut_date": "2023-11-15"
+      },
+      {
+        "stage_name": "Kyrell",
+        "stage_name_kr": "카이렐",
+        "nationality": "United States",
+        "debut_date": "2023-11-15"
+      },
+      {
+        "stage_name": "Mackiah",
+        "stage_name_kr": "마카야",
+        "nationality": "Australia",
+        "debut_date": "2023-11-15"
+      },
+      {
+        "stage_name": "Seungmo",
+        "stage_name_kr": "승모",
+        "nationality": "United States",
+        "debut_date": "2023-11-15"
+      }
+    ],
+    "debut_date": "2023-11-15",
+    "group_namekr": "앰퍼샌드원",
+    "company": "FNC Entertainment",
+    "group_type": "G",
+    "member_count": 7,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2023/09/AMPERSONE-logo.jpg"
+  },
+  "ATEEZ MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Hongjoong",
+        "stage_name_kr": "홍중",
+        "nationality": "South Korea",
+        "debut_date": "2018-10-24"
+      },
+      {
+        "stage_name": "Seonghwa",
+        "stage_name_kr": "성화",
+        "nationality": "South Korea",
+        "debut_date": "2018-10-24"
+      },
+      {
+        "stage_name": "Yunho",
+        "stage_name_kr": "윤호",
+        "nationality": "South Korea",
+        "debut_date": "2018-10-24"
+      },
+      {
+        "stage_name": "Yeosang",
+        "stage_name_kr": "여상",
+        "nationality": "South Korea",
+        "debut_date": "2018-10-24"
+      },
+      {
+        "stage_name": "San",
+        "stage_name_kr": "산",
+        "nationality": "Japan",
+        "debut_date": "2018-10-24"
+      },
+      {
+        "stage_name": "Mingi",
+        "stage_name_kr": "민기",
+        "nationality": "South Korea",
+        "debut_date": "2018-10-24"
+      },
+      {
+        "stage_name": "Wooyoung",
+        "stage_name_kr": "우영",
+        "nationality": "South Korea",
+        "debut_date": "2018-10-24"
+      },
+      {
+        "stage_name": "Jongho",
+        "stage_name_kr": "종호",
+        "nationality": "South Korea",
+        "debut_date": "2018-10-24"
+      }
+    ],
+    "debut_date": "2018-10-24",
+    "group_namekr": "에이티즈",
+    "company": "KQ Entertainment",
+    "group_type": "G",
+    "member_count": 8,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2018/05/ATEEZ-logo-900x506.png"
+  },
+  "BOYNEXTDOOR MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Jaehyun",
+        "stage_name_kr": "재현",
+        "nationality": "United States",
+        "debut_date": "2023-05-30"
+      },
+      {
+        "stage_name": "Sungho",
+        "stage_name_kr": "성호",
+        "nationality": "South Korea",
+        "debut_date": "2023-05-30"
+      },
+      {
+        "stage_name": "Riwoo",
+        "stage_name_kr": "리우",
+        "nationality": "South Korea",
+        "debut_date": "2023-05-30"
+      },
+      {
+        "stage_name": "Taesan",
+        "stage_name_kr": "태산",
+        "nationality": "South Korea",
+        "debut_date": "2023-05-30"
+      },
+      {
+        "stage_name": "Leehan",
+        "stage_name_kr": "이한",
+        "nationality": "United States",
+        "debut_date": "2023-05-30"
+      },
+      {
+        "stage_name": "Woonhak",
+        "stage_name_kr": "운학",
+        "nationality": "South Korea",
+        "debut_date": "2023-05-30"
+      }
+    ],
+    "debut_date": "2023-05-30",
+    "group_namekr": "보이넥스트도어",
+    "company": "KOZ Entertainment",
+    "group_type": "G",
+    "member_count": 6,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2023/05/BOYNEXTDOOR-logo-1-800x800.jpg"
+  },
+  "BTS MEMBERS": {
+    "members": [
+      {
+        "stage_name": "RM",
+        "stage_name_kr": "아르엠",
+        "nationality": "South Korea",
+        "debut_date": "2013-06-13"
+      },
+      {
+        "stage_name": "Jin",
+        "stage_name_kr": "진",
+        "nationality": "South Korea",
+        "debut_date": "2013-06-13"
+      },
+      {
+        "stage_name": "Suga",
+        "stage_name_kr": "슈가",
+        "nationality": "South Korea",
+        "debut_date": "2013-06-13"
+      },
+      {
+        "stage_name": "J-Hope",
+        "stage_name_kr": "제이홉",
+        "nationality": "South Korea",
+        "debut_date": "2013-06-13"
+      },
+      {
+        "stage_name": "Jimin",
+        "stage_name_kr": "지민",
+        "nationality": "United States",
+        "debut_date": "2013-06-13"
+      },
+      {
+        "stage_name": "V",
+        "stage_name_kr": "뷔",
+        "nationality": "South Korea",
+        "debut_date": "2013-06-13"
+      },
+      {
+        "stage_name": "Jung Kook / Jungkook",
+        "stage_name_kr": "정국",
+        "debut_date": "2013-06-13"
+      }
+    ],
+    "debut_date": "2013-06-13",
+    "group_namekr": "방탄소년단",
+    "company": "BIGHIT Music",
+    "group_type": "G",
+    "member_count": 7
+  },
+  "CRAVITY MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Wonjin",
+        "stage_name_kr": "원진",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Hyeongjun",
+        "stage_name_kr": "형준",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Serim",
+        "stage_name_kr": "세림",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Allen",
+        "stage_name_kr": "앨런",
+        "nationality": "Taiwan"
+      },
+      {
+        "stage_name": "Jungmo",
+        "stage_name_kr": "정모",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Woobin",
+        "stage_name_kr": "우빈",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Minhee",
+        "stage_name_kr": "민희",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Taeyoung",
+        "stage_name_kr": "태영",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Seongmin",
+        "stage_name_kr": "성민",
+        "nationality": "South Korea"
+      }
+    ],
+    "group_namekr": "크래비티",
+    "company": "STARSHIP",
+    "group_type": "G",
+    "member_count": 9,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2020/01/ollogo.jpg"
+  },
+  "DAY6 MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Sungjin",
+        "stage_name_kr": "성진",
+        "nationality": "United States",
+        "debut_date": "2015-09-07"
+      },
+      {
+        "stage_name": "Young K",
+        "stage_name_kr": "영케이",
+        "nationality": "Canada",
+        "debut_date": "2015-09-07"
+      },
+      {
+        "stage_name": "Wonpil",
+        "stage_name_kr": "원필",
+        "nationality": "South Korea",
+        "debut_date": "2015-09-07"
+      },
+      {
+        "stage_name": "Dowoon",
+        "stage_name_kr": "도운",
+        "nationality": "United States",
+        "debut_date": "2015-09-07"
+      },
+      {
+        "stage_name": "Jae",
+        "stage_name_kr": "제이",
+        "nationality": "Canada",
+        "debut_date": "2015-09-07"
+      },
+      {
+        "stage_name": "Junhyeok",
+        "stage_name_kr": "준혁",
+        "nationality": "South Korea",
+        "debut_date": "2015-09-07"
+      }
+    ],
+    "debut_date": "2015-09-07",
+    "group_namekr": "데이식스",
+    "company": "JYP Entertainment",
+    "group_type": "G",
+    "member_count": 6,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2016/07/DAY6-logo.jpg"
+  },
+  "ENHYPEN MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Jungwon",
+        "stage_name_kr": "정원",
+        "nationality": "South Korea",
+        "debut_date": "2020-11-30"
+      },
+      {
+        "stage_name": "Heeseung",
+        "stage_name_kr": "희승",
+        "nationality": "South Korea",
+        "debut_date": "2020-11-30"
+      },
+      {
+        "stage_name": "Jay",
+        "stage_name_kr": "제이",
+        "nationality": "Australia",
+        "debut_date": "2020-11-30"
+      },
+      {
+        "stage_name": "Jake",
+        "stage_name_kr": "제이크",
+        "nationality": "Australia",
+        "debut_date": "2020-11-30"
+      },
+      {
+        "stage_name": "Sunghoon",
+        "stage_name_kr": "성훈",
+        "nationality": "South Korea",
+        "debut_date": "2020-11-30"
+      },
+      {
+        "stage_name": "Sunoo",
+        "stage_name_kr": "선우",
+        "nationality": "South Korea",
+        "debut_date": "2020-11-30"
+      },
+      {
+        "stage_name": "Ni-Ki",
+        "stage_name_kr": "니키",
+        "nationality": "Japan",
+        "debut_date": "2020-11-30"
+      }
+    ],
+    "debut_date": "2020-11-30",
+    "group_namekr": "엔하이픈",
+    "group_type": "G",
+    "member_count": 7,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2020/08/ENHYPEN-logo-1-800x800.jpg"
+  },
+  "EXO MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Suho",
+        "stage_name_kr": "수호",
+        "nationality": "China",
+        "debut_date": "2012-04-08"
+      },
+      {
+        "stage_name": "Xiumin",
+        "stage_name_kr": "시우민",
+        "nationality": "China",
+        "debut_date": "2012-04-08"
+      },
+      {
+        "stage_name": "Lay",
+        "stage_name_kr": "레이",
+        "nationality": "China",
+        "debut_date": "2012-04-08"
+      },
+      {
+        "stage_name": "Baekhyun",
+        "stage_name_kr": "백현",
+        "nationality": "China",
+        "debut_date": "2012-04-08"
+      },
+      {
+        "stage_name": "Chen",
+        "stage_name_kr": "첸",
+        "nationality": "China",
+        "debut_date": "2012-04-08"
+      },
+      {
+        "stage_name": "Chanyeol",
+        "stage_name_kr": "찬열",
+        "nationality": "China",
+        "debut_date": "2012-04-08"
+      },
+      {
+        "stage_name": "D.O.",
+        "stage_name_kr": "디오",
+        "nationality": "China",
+        "debut_date": "2012-04-08"
+      },
+      {
+        "stage_name": "Kai",
+        "stage_name_kr": "카이",
+        "nationality": "China",
+        "debut_date": "2012-04-08"
+      },
+      {
+        "stage_name": "Sehun",
+        "stage_name_kr": "세훈",
+        "nationality": "China",
+        "debut_date": "2012-04-08"
+      },
+      {
+        "stage_name": "Kris",
+        "stage_name_kr": "크리스",
+        "nationality": "China",
+        "debut_date": "2012-04-08"
+      },
+      {
+        "stage_name": "Luhan",
+        "stage_name_kr": "루한",
+        "nationality": "China",
+        "debut_date": "2012-04-08"
+      },
+      {
+        "stage_name": "Tao",
+        "stage_name_kr": "타오",
+        "nationality": "China",
+        "debut_date": "2012-04-08"
+      }
+    ],
+    "debut_date": "2012-04-08",
+    "group_namekr": "엑소",
+    "company": "SM Entertainment",
+    "group_type": "G",
+    "member_count": 12
+  },
+  "THE KINGDOM MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Dann",
+        "stage_name_kr": "단",
+        "nationality": "South Korea",
+        "debut_date": "2021-02-18"
+      },
+      {
+        "stage_name": "Arthur",
+        "stage_name_kr": "아서",
+        "nationality": "South Korea",
+        "debut_date": "2021-02-18"
+      },
+      {
+        "stage_name": "Mujin",
+        "stage_name_kr": "무진",
+        "nationality": "South Korea",
+        "debut_date": "2021-02-18"
+      },
+      {
+        "stage_name": "Louis",
+        "stage_name_kr": "루이",
+        "debut_date": "2021-02-18"
+      },
+      {
+        "stage_name": "Ivan",
+        "stage_name_kr": "아이반",
+        "nationality": "South Korea",
+        "debut_date": "2021-02-18"
+      },
+      {
+        "stage_name": "Jahan",
+        "stage_name_kr": "자한",
+        "nationality": "South Korea",
+        "debut_date": "2021-02-18"
+      },
+      {
+        "stage_name": "Chiwoo",
+        "stage_name_kr": "치우",
+        "debut_date": "2021-02-18"
+      },
+      {
+        "stage_name": "Hwon",
+        "stage_name_kr": "훤",
+        "nationality": "South Korea",
+        "debut_date": "2021-02-18"
+      }
+    ],
+    "debut_date": "2021-02-18",
+    "group_namekr": "더킹덤",
+    "company": "GF Entertainment",
+    "group_type": "G",
+    "member_count": 8,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2020/02/The-KingDom-new-logo.jpg"
+  },
+  "MONSTA X MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Shownu",
+        "stage_name_kr": "셔누",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-14"
+      },
+      {
+        "stage_name": "Minhyuk",
+        "stage_name_kr": "민혁",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-14"
+      },
+      {
+        "stage_name": "Kihyun",
+        "stage_name_kr": "기현",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-14"
+      },
+      {
+        "stage_name": "Hyungwon",
+        "stage_name_kr": "형원",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-14"
+      },
+      {
+        "stage_name": "I.M",
+        "stage_name_kr": "아이엠",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-14"
+      },
+      {
+        "stage_name": "Wonho",
+        "stage_name_kr": "원호",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-14"
+      }
+    ],
+    "debut_date": "2015-05-14",
+    "group_namekr": "몬스타엑스",
+    "company": "Starship",
+    "group_type": "G",
+    "member_count": 6,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2016/04/MONSTA-X-logo-800x800.jpg"
+  },
+  "NCT MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Taeyong",
+        "stage_name_kr": "태용",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Johnny",
+        "stage_name_kr": "쟈니",
+        "nationality": "United States"
+      },
+      {
+        "stage_name": "Yuta",
+        "stage_name_kr": "유타",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Kun",
+        "stage_name_kr": "쿤",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Doyoung",
+        "stage_name_kr": "도영",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Ten",
+        "stage_name_kr": "텐",
+        "nationality": "Thailand"
+      },
+      {
+        "stage_name": "Jaehyun",
+        "stage_name_kr": "재현",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Winwin",
+        "stage_name_kr": "윈윈",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Jungwoo",
+        "stage_name_kr": "정우",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Mark",
+        "stage_name_kr": "마크",
+        "nationality": "Canada"
+      },
+      {
+        "stage_name": "Xiaojun",
+        "stage_name_kr": "샤오쥔",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Hendery",
+        "stage_name_kr": "헨드리",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Renjun",
+        "stage_name_kr": "런쥔",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Jeno",
+        "stage_name_kr": "제노",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Haechan",
+        "stage_name_kr": "해찬"
+      },
+      {
+        "stage_name": "Jaemin",
+        "stage_name_kr": "재민"
+      },
+      {
+        "stage_name": "Yangyang",
+        "stage_name_kr": "양양",
+        "nationality": "Taiwan"
+      },
+      {
+        "stage_name": "Chenle",
+        "stage_name_kr": "천러",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Jisung",
+        "stage_name_kr": "지성",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Sion",
+        "stage_name_kr": "시온",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Riku",
+        "stage_name_kr": "리쿠",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Yushi",
+        "stage_name_kr": "유우시",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Jaehee",
+        "stage_name_kr": "재희",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Ryo",
+        "stage_name_kr": "료",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Sakuya",
+        "stage_name_kr": "사쿠야",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Lucas",
+        "stage_name_kr": "루카스",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Shotaro",
+        "stage_name_kr": "쇼타로",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Sungchan",
+        "stage_name_kr": "성찬",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Taeil",
+        "stage_name_kr": "태일",
+        "nationality": "South Korea"
+      }
+    ],
+    "group_namekr": "엔시티",
+    "company": "SM Entertainment",
+    "group_type": "G",
+    "member_count": 29,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2016/09/Nct_logo.webp"
+  },
+  "NCT U MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Kun",
+        "stage_name_kr": "쿤",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Xiaojun",
+        "stage_name_kr": "샤오쥔",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Renjun",
+        "stage_name_kr": "런쥔",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Chenle",
+        "stage_name_kr": "천러",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Taeyong",
+        "stage_name_kr": "태용",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Doyoung",
+        "stage_name_kr": "도영",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Ten",
+        "stage_name_kr": "텐",
+        "nationality": "Thailand"
+      },
+      {
+        "stage_name": "Jaehyun",
+        "stage_name_kr": "재현",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Mark",
+        "stage_name_kr": "마크",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Johnny",
+        "stage_name_kr": "쟈니",
+        "nationality": "United States"
+      },
+      {
+        "stage_name": "Yuta",
+        "stage_name_kr": "유타",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "WinWin",
+        "stage_name_kr": "윈윈"
+      },
+      {
+        "stage_name": "Jungwoo",
+        "stage_name_kr": "정우",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Hendery",
+        "stage_name_kr": "헨드리",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Jeno",
+        "stage_name_kr": "제노",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Haechan",
+        "stage_name_kr": "해찬",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Jaemin",
+        "stage_name_kr": "재민",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "YangYang",
+        "stage_name_kr": "양양",
+        "nationality": "Taiwan"
+      },
+      {
+        "stage_name": "Jisung",
+        "stage_name_kr": "지성",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Lucas",
+        "stage_name_kr": "루카스",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Shotaro",
+        "stage_name_kr": "쇼타로",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Sungchan",
+        "stage_name_kr": "성찬",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Taeil",
+        "stage_name_kr": "태일",
+        "nationality": "South Korea"
+      }
+    ],
+    "group_namekr": "엔씨티 유",
+    "company": "SM Entertainment",
+    "group_type": "G",
+    "member_count": 23,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2016/09/NCT-U-logo.png"
+  },
+  "NCT 127 MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Taeyong",
+        "stage_name_kr": "태용",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Johnny",
+        "stage_name_kr": "쟈니",
+        "nationality": "United States"
+      },
+      {
+        "stage_name": "Yuta",
+        "stage_name_kr": "유타",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Doyoung",
+        "stage_name_kr": "도영",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Jaehyun",
+        "stage_name_kr": "재현",
+        "nationality": "South Korea"
+      },
+      {
+        "stage_name": "Jungwoo",
+        "stage_name_kr": "정우",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Mark",
+        "stage_name_kr": "마크",
+        "nationality": "Canada"
+      },
+      {
+        "stage_name": "Haechan",
+        "stage_name_kr": "해찬",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Winwin",
+        "stage_name_kr": "윈윈",
+        "nationality": "China"
+      },
+      {
+        "stage_name": "Taeil",
+        "stage_name_kr": "태일",
+        "nationality": "South Korea"
+      }
+    ],
+    "group_namekr": "태용",
+    "company": "SM Entertainment",
+    "group_type": "G",
+    "member_count": 10,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2016/09/NCT-127-logo.jpg"
+  },
+  "NCT DREAM MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Mark",
+        "stage_name_kr": "마크",
+        "nationality": "Canada",
+        "debut_date": "2016-08-25"
+      },
+      {
+        "stage_name": "Renjun",
+        "stage_name_kr": "런쥔",
+        "nationality": "China",
+        "debut_date": "2016-08-25"
+      }
+    ],
+    "debut_date": "2016-08-25",
+    "group_namekr": "마크",
+    "company": "SM Entertainment",
+    "group_type": "G",
+    "member_count": 2,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2016/09/NCT-DREAM-logo.png"
+  },
+  "NCT WISH MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Sion",
+        "stage_name_kr": "시온",
+        "nationality": "South Korea",
+        "debut_date": "2024-02-21"
+      },
+      {
+        "stage_name": "Riku",
+        "stage_name_kr": "리쿠",
+        "nationality": "Japan",
+        "debut_date": "2024-02-21"
+      },
+      {
+        "stage_name": "Yushi",
+        "stage_name_kr": "유우시",
+        "nationality": "China",
+        "debut_date": "2024-02-21"
+      },
+      {
+        "stage_name": "Jaehee",
+        "stage_name_kr": "재희",
+        "nationality": "Japan",
+        "debut_date": "2024-02-21"
+      },
+      {
+        "stage_name": "Ryo",
+        "stage_name_kr": "료",
+        "nationality": "Japan",
+        "debut_date": "2024-02-21"
+      },
+      {
+        "stage_name": "Sakuya",
+        "stage_name_kr": "사쿠야",
+        "nationality": "Japan",
+        "debut_date": "2024-02-21"
+      }
+    ],
+    "debut_date": "2024-02-21",
+    "group_namekr": "시온",
+    "company": "SM Entertainment",
+    "group_type": "G",
+    "member_count": 6,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2023/09/NCT-WISH-logo-800x800.jpg"
+  },
+  "NEXZ MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Tomoya",
+        "stage_name_kr": "トモヤ / 토모야",
+        "nationality": "Japan",
+        "debut_date": "2024-05-20"
+      },
+      {
+        "stage_name": "Yu",
+        "stage_name_kr": "ユウ / 유우",
+        "nationality": "Japan",
+        "debut_date": "2024-05-20"
+      },
+      {
+        "stage_name": "Haru",
+        "stage_name_kr": "ハル / 하루",
+        "nationality": "Japan",
+        "debut_date": "2024-05-20"
+      },
+      {
+        "stage_name": "So Geon",
+        "stage_name_kr": "ソ ゴン / 소건",
+        "nationality": "Japan",
+        "debut_date": "2024-05-20"
+      },
+      {
+        "stage_name": "Seita",
+        "stage_name_kr": "セイタ / 세이타",
+        "nationality": "Japan",
+        "debut_date": "2024-05-20"
+      },
+      {
+        "stage_name": "Hyui",
+        "stage_name_kr": "ヒュイ / 휴이",
+        "nationality": "Japan",
+        "debut_date": "2024-05-20"
+      },
+      {
+        "stage_name": "Yuki",
+        "stage_name_kr": "ユウキ / 유키",
+        "nationality": "Japan",
+        "debut_date": "2024-05-20"
+      }
+    ],
+    "debut_date": "2024-05-20",
+    "group_namekr": "넥스티",
+    "company": "JYP",
+    "group_type": "G",
+    "member_count": 7,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2023/12/NEXZ-logo-800x800.jpg"
+  },
+  "ONE PACT MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Jongwoo",
+        "stage_name_kr": "종우",
+        "nationality": "South Korea",
+        "debut_date": "2023-11-30"
+      },
+      {
+        "stage_name": "Jay Chang",
+        "stage_name_kr": "제이창",
+        "nationality": "United States",
+        "debut_date": "2023-11-30"
+      },
+      {
+        "stage_name": "Seongmin",
+        "stage_name_kr": "성민",
+        "nationality": "South Korea",
+        "debut_date": "2023-11-30"
+      },
+      {
+        "stage_name": "TAG",
+        "stage_name_kr": "태그",
+        "nationality": "South Korea",
+        "debut_date": "2023-11-30"
+      },
+      {
+        "stage_name": "Yedam",
+        "stage_name_kr": "예담",
+        "nationality": "South Korea",
+        "debut_date": "2023-11-30"
+      }
+    ],
+    "debut_date": "2023-11-30",
+    "group_namekr": "원팩트",
+    "company": "Armada Entertainment",
+    "group_type": "G",
+    "member_count": 5,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2023/10/onepactlogo.png"
+  },
+  "RIIZE MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Shotaro",
+        "stage_name_kr": "쇼타로",
+        "nationality": "Japan",
+        "debut_date": "2023-09-04"
+      },
+      {
+        "stage_name": "Eunseok",
+        "stage_name_kr": "은석",
+        "nationality": "China",
+        "debut_date": "2023-09-04"
+      },
+      {
+        "stage_name": "Sungchan",
+        "stage_name_kr": "성찬",
+        "nationality": "China",
+        "debut_date": "2023-09-04"
+      },
+      {
+        "stage_name": "Wonbin",
+        "stage_name_kr": "원빈",
+        "nationality": "South Korea",
+        "debut_date": "2023-09-04"
+      },
+      {
+        "stage_name": "Sohee",
+        "stage_name_kr": "소희",
+        "nationality": "South Korea",
+        "debut_date": "2023-09-04"
+      },
+      {
+        "stage_name": "Anton",
+        "stage_name_kr": "앤톤",
+        "nationality": "China",
+        "debut_date": "2023-09-04"
+      },
+      {
+        "stage_name": "Seunghan",
+        "stage_name_kr": "승한",
+        "nationality": "South Korea",
+        "debut_date": "2023-09-04"
+      }
+    ],
+    "debut_date": "2023-09-04",
+    "group_namekr": "라이즈",
+    "company": "SM Entertainment",
+    "group_type": "G",
+    "member_count": 7,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2023/07/RIIZE-logo-2-800x800.jpg"
+  },
+  "SEVENTEEN MEMBERS": {
+    "members": [
+      {
+        "stage_name": "S.Coups",
+        "stage_name_kr": "에스쿱스",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-26"
+      },
+      {
+        "stage_name": "Joshua",
+        "stage_name_kr": "조슈아",
+        "nationality": "United States",
+        "debut_date": "2015-05-26"
+      },
+      {
+        "stage_name": "Jun",
+        "stage_name_kr": "준",
+        "nationality": "China",
+        "debut_date": "2015-05-26"
+      },
+      {
+        "stage_name": "DK / Dokyeom",
+        "stage_name_kr": "도겸",
+        "debut_date": "2015-05-26"
+      },
+      {
+        "stage_name": "Mingyu",
+        "stage_name_kr": "민규",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-26"
+      },
+      {
+        "stage_name": "The8",
+        "stage_name_kr": "디에잇",
+        "nationality": "China",
+        "debut_date": "2015-05-26"
+      },
+      {
+        "stage_name": "Seungkwan",
+        "stage_name_kr": "승관",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-26"
+      },
+      {
+        "stage_name": "Vernon",
+        "stage_name_kr": "버논",
+        "nationality": "United States",
+        "debut_date": "2015-05-26"
+      },
+      {
+        "stage_name": "Dino",
+        "stage_name_kr": "디노",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-26"
+      },
+      {
+        "stage_name": "Jeonghan",
+        "stage_name_kr": "정한",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-26"
+      },
+      {
+        "stage_name": "Wonwoo",
+        "stage_name_kr": "원우",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-26"
+      },
+      {
+        "stage_name": "Hoshi",
+        "stage_name_kr": "호시",
+        "nationality": "South Korea",
+        "debut_date": "2015-05-26"
+      },
+      {
+        "stage_name": "Woozi",
+        "stage_name_kr": "우지",
+        "nationality": "United States",
+        "debut_date": "2015-05-26"
+      }
+    ],
+    "debut_date": "2015-05-26",
+    "group_namekr": "세븐틴",
+    "company": "Pledis Entertainment",
+    "group_type": "G",
+    "member_count": 13
+  },
+  "SHINEE MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Onew",
+        "stage_name_kr": "온유",
+        "nationality": "South Korea",
+        "debut_date": "2008-05-25"
+      },
+      {
+        "stage_name": "Key",
+        "stage_name_kr": "키",
+        "nationality": "South Korea",
+        "debut_date": "2008-05-25"
+      },
+      {
+        "stage_name": "Minho",
+        "stage_name_kr": "민호",
+        "nationality": "South Korea",
+        "debut_date": "2008-05-25"
+      },
+      {
+        "stage_name": "Taemin",
+        "stage_name_kr": "태민",
+        "nationality": "South Korea",
+        "debut_date": "2008-05-25"
+      },
+      {
+        "stage_name": "Jonghyun",
+        "stage_name_kr": "종현",
+        "nationality": "South Korea",
+        "debut_date": "2008-05-25"
+      }
+    ],
+    "debut_date": "2008-05-25",
+    "group_namekr": "샤이니",
+    "company": "SM Entertainment",
+    "group_type": "G",
+    "member_count": 5
+  },
+  "STRAY KIDS MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Bang Chan",
+        "stage_name_kr": "방찬",
+        "nationality": "Australia",
+        "debut_date": "2018-03-25"
+      },
+      {
+        "stage_name": "Lee Know",
+        "stage_name_kr": "리노",
+        "nationality": "South Korea",
+        "debut_date": "2018-03-25"
+      },
+      {
+        "stage_name": "Changbin",
+        "stage_name_kr": "창빈",
+        "nationality": "South Korea",
+        "debut_date": "2018-03-25"
+      },
+      {
+        "stage_name": "Hyunjin",
+        "stage_name_kr": "현진",
+        "nationality": "South Korea",
+        "debut_date": "2018-03-25"
+      },
+      {
+        "stage_name": "Han",
+        "stage_name_kr": "한",
+        "nationality": "South Korea",
+        "debut_date": "2018-03-25"
+      },
+      {
+        "stage_name": "Felix",
+        "stage_name_kr": "필릭스",
+        "nationality": "Australia",
+        "debut_date": "2018-03-25"
+      },
+      {
+        "stage_name": "Seungmin",
+        "stage_name_kr": "승민",
+        "nationality": "South Korea",
+        "debut_date": "2018-03-25"
+      },
+      {
+        "stage_name": "I.N",
+        "stage_name_kr": "아이엔",
+        "nationality": "United States",
+        "debut_date": "2018-03-25"
+      }
+    ],
+    "debut_date": "2018-03-25",
+    "group_namekr": "스트레이 키즈",
+    "company": "JYP Entertainment",
+    "group_type": "G",
+    "member_count": 8,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2017/11/Stray-Kids-logo-1.jpg"
+  },
+  "THE BOYZ MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Sangyeon",
+        "stage_name_kr": "상연",
+        "nationality": "South Korea",
+        "debut_date": "2017-12-06"
+      },
+      {
+        "stage_name": "Jacob",
+        "stage_name_kr": "제이콥",
+        "nationality": "Canada",
+        "debut_date": "2017-12-06"
+      },
+      {
+        "stage_name": "Younghoon",
+        "stage_name_kr": "영훈",
+        "nationality": "South Korea",
+        "debut_date": "2017-12-06"
+      },
+      {
+        "stage_name": "Hyunjae",
+        "stage_name_kr": "현재",
+        "nationality": "South Korea",
+        "debut_date": "2017-12-06"
+      },
+      {
+        "stage_name": "Juyeon",
+        "stage_name_kr": "주연",
+        "nationality": "South Korea",
+        "debut_date": "2017-12-06"
+      },
+      {
+        "stage_name": "Kevin",
+        "stage_name_kr": "케빈",
+        "nationality": "Canada",
+        "debut_date": "2017-12-06"
+      },
+      {
+        "stage_name": "New",
+        "stage_name_kr": "뉴",
+        "nationality": "South Korea",
+        "debut_date": "2017-12-06"
+      },
+      {
+        "stage_name": "Q",
+        "stage_name_kr": "큐",
+        "nationality": "China",
+        "debut_date": "2017-12-06"
+      },
+      {
+        "stage_name": "Sunwoo",
+        "stage_name_kr": "선우",
+        "nationality": "South Korea",
+        "debut_date": "2017-12-06"
+      },
+      {
+        "stage_name": "Eric",
+        "stage_name_kr": "에릭",
+        "nationality": "United States",
+        "debut_date": "2017-12-06"
+      },
+      {
+        "stage_name": "Hwall",
+        "stage_name_kr": "활",
+        "nationality": "China",
+        "debut_date": "2017-12-06"
+      },
+      {
+        "stage_name": "JuHaknyeon",
+        "stage_name_kr": "주학년",
+        "nationality": "South Korea",
+        "debut_date": "2017-12-06"
+      }
+    ],
+    "debut_date": "2017-12-06",
+    "group_namekr": "더보이즈",
+    "company": "Blossom",
+    "group_type": "G",
+    "member_count": 12,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2017/08/THE-BOYZ-logo-800x800.png"
+  },
+  "TREASURE MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Junkyu",
+        "stage_name_kr": "준규",
+        "nationality": "South Korea",
+        "debut_date": "2020-08-07"
+      },
+      {
+        "stage_name": "Asahi",
+        "stage_name_kr": "아사히",
+        "nationality": "China",
+        "debut_date": "2020-08-07"
+      },
+      {
+        "stage_name": "Jihoon",
+        "stage_name_kr": "지훈",
+        "nationality": "Japan",
+        "debut_date": "2020-08-07"
+      },
+      {
+        "stage_name": "Yoshi",
+        "stage_name_kr": "요시",
+        "nationality": "Japan",
+        "debut_date": "2020-08-07"
+      },
+      {
+        "stage_name": "Doyoung",
+        "stage_name_kr": "도영",
+        "nationality": "Japan",
+        "debut_date": "2020-08-07"
+      },
+      {
+        "stage_name": "Haruto",
+        "stage_name_kr": "하루토",
+        "nationality": "Japan",
+        "debut_date": "2020-08-07"
+      },
+      {
+        "stage_name": "Mashiho",
+        "stage_name_kr": "마시호",
+        "nationality": "Japan",
+        "debut_date": "2020-08-07"
+      }
+    ],
+    "debut_date": "2020-08-07",
+    "group_namekr": "트레저",
+    "company": "YG Entertainment",
+    "group_type": "G",
+    "member_count": 7,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2019/02/TREASURE-logo-800x800.jpg"
+  },
+  "TWS MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Shinyu",
+        "stage_name_kr": "신유",
+        "nationality": "South Korea",
+        "debut_date": "2024-01-22"
+      },
+      {
+        "stage_name": "Dohoon",
+        "stage_name_kr": "도훈",
+        "nationality": "South Korea",
+        "debut_date": "2024-01-22"
+      },
+      {
+        "stage_name": "Youngjae",
+        "stage_name_kr": "영재",
+        "nationality": "China",
+        "debut_date": "2024-01-22"
+      },
+      {
+        "stage_name": "Hanjin",
+        "stage_name_kr": "한진",
+        "nationality": "China",
+        "debut_date": "2024-01-22"
+      },
+      {
+        "stage_name": "Jihoon",
+        "stage_name_kr": "지훈",
+        "nationality": "South Korea",
+        "debut_date": "2024-01-22"
+      },
+      {
+        "stage_name": "Kyungmin",
+        "stage_name_kr": "경민",
+        "nationality": "South Korea",
+        "debut_date": "2024-01-22"
+      }
+    ],
+    "debut_date": "2024-01-22",
+    "group_namekr": "투어스",
+    "company": "PLEDIS Entertainment",
+    "group_type": "G",
+    "member_count": 6,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2023/04/TWS-logo.jpg"
+  },
+  "TXT MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Soobin",
+        "stage_name_kr": "수빈",
+        "nationality": "China",
+        "debut_date": "2019-03-04"
+      },
+      {
+        "stage_name": "Yeonjun",
+        "stage_name_kr": "연준",
+        "nationality": "South Korea",
+        "debut_date": "2019-03-04"
+      },
+      {
+        "stage_name": "Beomgyu",
+        "stage_name_kr": "범규",
+        "nationality": "South Korea",
+        "debut_date": "2019-03-04"
+      },
+      {
+        "stage_name": "Taehyun",
+        "stage_name_kr": "태현",
+        "nationality": "China",
+        "debut_date": "2019-03-04"
+      },
+      {
+        "stage_name": "Hueningkai",
+        "stage_name_kr": "휴닝카이",
+        "nationality": "China",
+        "debut_date": "2019-03-04"
+      }
+    ],
+    "debut_date": "2019-03-04",
+    "group_namekr": "투모로우바이투게더",
+    "group_type": "G",
+    "member_count": 5,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2019/01/TXT-logo-1-900x506.jpg"
+  },
+  "XDINARY HEROES MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Gunil",
+        "stage_name_kr": "건일",
+        "nationality": "South Korea",
+        "debut_date": "2021-12-06"
+      },
+      {
+        "stage_name": "Jungsu",
+        "stage_name_kr": "정수",
+        "nationality": "South Korea",
+        "debut_date": "2021-12-06"
+      },
+      {
+        "stage_name": "Gaon",
+        "stage_name_kr": "가온",
+        "nationality": "South Korea",
+        "debut_date": "2021-12-06"
+      },
+      {
+        "stage_name": "O.de",
+        "stage_name_kr": "오드",
+        "nationality": "South Korea",
+        "debut_date": "2021-12-06"
+      },
+      {
+        "stage_name": "Jun Han",
+        "stage_name_kr": "준한",
+        "nationality": "South Korea",
+        "debut_date": "2021-12-06"
+      },
+      {
+        "stage_name": "Jooyeon",
+        "stage_name_kr": "주연",
+        "debut_date": "2021-12-06"
+      }
+    ],
+    "debut_date": "2021-12-06",
+    "group_namekr": "엑스디너리 히어로즈",
+    "group_type": "G",
+    "member_count": 6
+  },
+  "XIKERS MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Minjae",
+        "stage_name_kr": "민재",
+        "nationality": "South Korea",
+        "debut_date": "2023-03-30"
+      },
+      {
+        "stage_name": "Junmin",
+        "stage_name_kr": "준민",
+        "nationality": "South Korea",
+        "debut_date": "2023-03-30"
+      },
+      {
+        "stage_name": "Sumin",
+        "stage_name_kr": "수민",
+        "nationality": "South Korea",
+        "debut_date": "2023-03-30"
+      },
+      {
+        "stage_name": "Jinsik",
+        "stage_name_kr": "진식",
+        "nationality": "South Korea",
+        "debut_date": "2023-03-30"
+      },
+      {
+        "stage_name": "Hyunwoo",
+        "stage_name_kr": "현우",
+        "nationality": "South Korea",
+        "debut_date": "2023-03-30"
+      },
+      {
+        "stage_name": "Junghoon",
+        "stage_name_kr": "정훈",
+        "nationality": "South Korea",
+        "debut_date": "2023-03-30"
+      },
+      {
+        "stage_name": "Seeun",
+        "stage_name_kr": "세은",
+        "nationality": "South Korea",
+        "debut_date": "2023-03-30"
+      },
+      {
+        "stage_name": "Yujun",
+        "stage_name_kr": "유준",
+        "nationality": "Thailand",
+        "debut_date": "2023-03-30"
+      },
+      {
+        "stage_name": "Hunter",
+        "stage_name_kr": "헌터",
+        "nationality": "Thailand",
+        "debut_date": "2023-03-30"
+      },
+      {
+        "stage_name": "Yechan",
+        "stage_name_kr": "예찬",
+        "nationality": "South Korea",
+        "debut_date": "2023-03-30"
+      }
+    ],
+    "debut_date": "2023-03-30",
+    "group_namekr": "싸이커스",
+    "company": "KQ Entertainment",
+    "group_type": "G",
+    "member_count": 10,
+    "logo_image": "https://pbs.twimg.com/media/G3T0TJZbMAAG70h?format=jpg&name=small"
+  },
+  "ZEROBASEONE (ZB1) MEMBERS": {
+    "members": [
+      {
+        "stage_name": "Ricky",
+        "stage_name_kr": "리키",
+        "nationality": "China",
+        "debut_date": "2023-07-10"
+      }
+    ],
+    "debut_date": "2023-07-10",
+    "group_namekr": "제로베이스원",
+    "group_type": "G",
+    "member_count": 1
+  },
+  "&TEAM MEMBERS": {
+    "members": [
+      {
+        "stage_name": "EJ",
+        "stage_name_kr": "의주 / ウィジュ",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Fuma",
+        "stage_name_kr": "フウマ / 후마",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "K",
+        "stage_name_kr": "ケイ / 케이",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Nicholas",
+        "stage_name_kr": "ニコラス / 니콜라스",
+        "nationality": "Taiwan"
+      },
+      {
+        "stage_name": "Yuma",
+        "stage_name_kr": "ユウマ / 유마",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Jo",
+        "stage_name_kr": "ジョウ / 조",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Harua",
+        "stage_name_kr": "ハルア / 하루아",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Taki",
+        "stage_name_kr": "タキ / 타키",
+        "nationality": "Japan"
+      },
+      {
+        "stage_name": "Maki",
+        "stage_name_kr": "マキ / 마키",
+        "nationality": "Japan"
+      }
+    ],
+    "group_namekr": "리키 빌헬름 마우스",
+    "company": "YX LABELS",
+    "group_type": "G",
+    "member_count": 9,
+    "logo_image": "https://kprofiles.com/wp-content/uploads/2020/12/TEAM-logo.png"
+  }
+}
