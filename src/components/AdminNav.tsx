@@ -83,6 +83,12 @@ export default function AdminNav() {
               >
                 統計數據
               </Link>
+              <Link
+                href="/admin/analytics"
+                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                行為分析
+              </Link>
             </div>
           </div>
           <div className="flex items-center space-x-4">

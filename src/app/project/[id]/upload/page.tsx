@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import BottomNav from '@/components/BottomNav';
 
 export default function UploadProjectPage() {
   const router = useRouter();
@@ -169,7 +168,6 @@ export default function UploadProjectPage() {
             )}
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -291,7 +289,6 @@ export default function UploadProjectPage() {
         </form>
       </div>
 
-      <BottomNav />
     </div>
   );
 }

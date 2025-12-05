@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import BottomNav from '@/components/BottomNav';
 import { getStatusText, getStatusColor } from '@/lib/utils';
 
 interface Project {
@@ -185,7 +184,6 @@ export default function MyProjectsPage() {
             <p className="mt-4 text-gray-600">載入中...</p>
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -316,7 +314,6 @@ export default function MyProjectsPage() {
         </div>
       </div>
 
-      <BottomNav />
     </div>
   );
 }

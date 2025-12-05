@@ -62,4 +62,29 @@ src/
 │   └── ProjectCard.tsx  # 專案卡片
 └── lib/              # 工具函數
     └── supabase.ts   # Supabase 客戶端配置
+
+docs/
+├── behavior-analytics/  # 行為分析系統文件
+│   ├── behavior_analytics_schema.sql
+│   ├── behavior_analytics_rls_safe.sql
+│   ├── BEHAVIOR_ANALYTICS_README.md
+│   └── ...
+└── data-scraping/      # 資料爬蟲文件
+    ├── fetch-kprofiles-groups.ts
+    ├── fetch-spotify-songs.ts
+    └── ...
 ```
+
+## 文件說明
+
+### 行為分析系統
+所有行為分析相關的文件已整理至 `docs/behavior-analytics/` 資料夾：
+- 資料庫 Schema 和 RLS 策略
+- 使用文件和說明
+- 詳細說明請參考 [行為分析文件](./docs/behavior-analytics/README.md)
+
+### 資料爬蟲
+所有爬蟲相關的文件已整理至 `docs/data-scraping/` 資料夾：
+- Kprofiles 和 Spotify 爬蟲腳本
+- 資料文件和連結列表
+- 詳細說明請參考 [資料爬蟲文件](./docs/data-scraping/README.md)

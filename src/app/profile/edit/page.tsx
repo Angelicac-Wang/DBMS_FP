@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import BottomNav from '@/components/BottomNav';
 
 interface UserProfile {
   name: string;
@@ -166,7 +165,6 @@ export default function EditProfilePage() {
             <p className="mt-4 text-gray-600">載入中...</p>
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -382,7 +380,6 @@ export default function EditProfilePage() {
         </div>
       </div>
 
-      <BottomNav />
     </div>
   );
 }

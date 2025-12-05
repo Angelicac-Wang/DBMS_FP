@@ -63,14 +63,24 @@ export default function GroupDetailPage() {
       if (groupError) throw groupError;
       setGroup(groupData);
 
-      // 獲取成員列表
-      const { data: idolsData } = await supabase
-        .from('kpop_idols')
-        .select('idol_id, stage_name, stage_name_kr, nationality, debut_date')
-        .eq('group_id', parseInt(groupId))
-        .order('idol_id');
-
-      if (idolsData) setIdols(idolsData);
+      // 獲取成員列表（透過 GROUP_IDOL 關聯表）
+      const { data: groupIdols } = await supabase
+        .from('group_idol')
+        .select('idol_id')
+        .eq('group_id', parseInt(groupId));
+      
+      if (groupIdols && groupIdols.length > 0) {
+        const idolIds = groupIdols.map(gi => gi.idol_id);
+        const { data: idolsData } = await supabase
+          .from('kpop_idols')
+          .select('idol_id, stage_name, stage_name_kr, nationality, debut_date')
+          .in('idol_id', idolIds)
+          .order('idol_id');
+        
+        if (idolsData) setIdols(idolsData);
+      } else {
+        setIdols([]);
+      }
 
       // 獲取歌曲列表
       const { data: songGroups } = await supabase

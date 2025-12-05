@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
 import { formatDuration } from '@/lib/utils';
 
@@ -185,7 +184,6 @@ export default function SongDetailPage() {
             <p className="mt-4 text-gray-600">載入中...</p>
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -204,7 +202,6 @@ export default function SongDetailPage() {
             </button>
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -384,7 +381,6 @@ export default function SongDetailPage() {
         </div>
       </div>
 
-      <BottomNav />
     </div>
   );
 }

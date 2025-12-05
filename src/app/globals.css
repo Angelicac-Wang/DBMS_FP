@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --container-7xl: 80rem;
 }
 
 @theme inline {

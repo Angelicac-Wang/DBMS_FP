@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import BottomNav from '@/components/BottomNav';
 
 interface Application {
   appli_id: number;
@@ -304,7 +303,6 @@ export default function ManageProjectPage() {
             <p className="mt-4 text-gray-600">載入中...</p>
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -323,7 +321,6 @@ export default function ManageProjectPage() {
             </button>
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -548,7 +545,6 @@ export default function ManageProjectPage() {
         </div>
       </div>
 
-      <BottomNav />
     </div>
   );
 }

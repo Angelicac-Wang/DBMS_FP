@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
 
 interface IdolDetail {
@@ -12,11 +11,11 @@ interface IdolDetail {
   stage_name_kr: string;
   nationality: string;
   debut_date: string;
-  group?: {
+  groups?: Array<{
     group_id: number;
     group_name: string;
     group_namekr?: string;
-  };
+  }>;
   songs?: Array<{ song_id: number; title: string; title_kr: string }>;
 }
 
@@ -46,17 +45,21 @@ export default function IdolDetailPage() {
 
       if (error) throw error;
 
-      // 獲取所屬團體
-      let groupInfo = null;
-      if (idolData.group_id) {
-        const { data: group } = await supabase
+      // 獲取所屬團體（透過 GROUP_IDOL 關聯表，可能有多個團體）
+      const { data: groupIdols } = await supabase
+        .from('group_idol')
+        .select('group_id')
+        .eq('idol_id', id);
+      
+      let groups: Array<{ group_id: number; group_name: string; group_namekr?: string }> = [];
+      if (groupIdols && groupIdols.length > 0) {
+        const groupIds = groupIdols.map(gi => gi.group_id);
+        const { data: groupsData } = await supabase
           .from('kpop_groups')
           .select('group_id, group_name, group_namekr')
-          .eq('group_id', idolData.group_id)
-          .single();
-        if (group) {
-          groupInfo = group;
-        }
+          .in('group_id', groupIds)
+          .order('group_name');
+        groups = groupsData || [];
       }
 
       // 獲取參與的歌曲
@@ -85,7 +88,7 @@ export default function IdolDetailPage() {
 
       setIdol({
         ...idolData,
-        group: groupInfo || undefined,
+        groups: groups.length > 0 ? groups : undefined,
         songs,
       });
     } catch (err) {
@@ -104,7 +107,6 @@ export default function IdolDetailPage() {
             <p className="mt-4 text-gray-600">載入中...</p>
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -123,7 +125,6 @@ export default function IdolDetailPage() {
             </button>
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -162,18 +163,23 @@ export default function IdolDetailPage() {
         </div>
 
         {/* 所屬團體 */}
-        {idol.group && (
+        {idol.groups && idol.groups.length > 0 && (
           <div className="bg-white rounded-xl shadow-md p-6 mb-6">
             <h2 className="text-2xl font-bold text-gray-800 mb-3">所屬團體</h2>
-            <Link
-              href={`/group/${idol.group.group_id}`}
-              className="bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors block"
-            >
-              <p className="font-medium text-gray-800 text-lg">{idol.group.group_name}</p>
-              {idol.group.group_namekr && (
-                <p className="text-sm text-gray-600 mt-1">{idol.group.group_namekr}</p>
-              )}
-            </Link>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {idol.groups.map((group) => (
+                <Link
+                  key={group.group_id}
+                  href={`/group/${group.group_id}`}
+                  className="bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors block"
+                >
+                  <p className="font-medium text-gray-800 text-lg">{group.group_name}</p>
+                  {group.group_namekr && (
+                    <p className="text-sm text-gray-600 mt-1">{group.group_namekr}</p>
+                  )}
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 
@@ -199,7 +205,6 @@ export default function IdolDetailPage() {
         )}
       </div>
 
-      <BottomNav />
     </div>
   );
 }

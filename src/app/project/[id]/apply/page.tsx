@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import BottomNav from '@/components/BottomNav';
 
 export default function ApplyProjectPage() {
   const router = useRouter();
@@ -118,7 +117,6 @@ export default function ApplyProjectPage() {
             <p className="text-gray-600">載入中...</p>
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -201,7 +199,6 @@ export default function ApplyProjectPage() {
         </form>
       </div>
 
-      <BottomNav />
     </div>
   );
 }

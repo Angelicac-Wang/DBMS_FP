@@ -111,15 +111,10 @@ CREATE TABLE KPOP_GROUPS (
 
 CREATE TABLE KPOP_IDOLS (
     idol_id BIGINT PRIMARY KEY,
-    group_id BIGINT,
-    nationality VARCHAR(20) NOT NULL,
+    nationality VARCHAR(20),
     stage_name VARCHAR(30) NOT NULL,
     stage_name_kr VARCHAR(30) NOT NULL,
-    debut_date DATE NOT NULL,
-    FOREIGN KEY (group_id)
-        REFERENCES KPOP_GROUPS(group_id)
-        ON DELETE SET NULL
-        ON UPDATE CASCADE
+    debut_date DATE NOT NULL
 );
 
 CREATE TABLE SONG_GROUP (
@@ -142,6 +137,20 @@ CREATE TABLE SONG_IDOL (
     PRIMARY KEY (song_id, idol_id),
     FOREIGN KEY (song_id)
         REFERENCES KPOP_SONGS(song_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (idol_id)
+        REFERENCES KPOP_IDOLS(idol_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE GROUP_IDOL (
+    group_id BIGINT NOT NULL,
+    idol_id BIGINT NOT NULL,
+    PRIMARY KEY (group_id, idol_id),
+    FOREIGN KEY (group_id)
+        REFERENCES KPOP_GROUPS(group_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
     FOREIGN KEY (idol_id)

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { formatDate, formatTime } from '@/lib/utils';
+import { useBehaviorTracking } from '@/hooks/useBehaviorTracking';
 
 interface PracticeSchedule {
   date: string;
@@ -32,6 +33,7 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project }: ProjectCardProps) {
   const router = useRouter();
+  const { trackProjectView, trackClick } = useBehaviorTracking();
   const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
   const isCreator = userId && project.creator_id && project.creator_id.toString() === userId;
   const canApply = !isCreator && !project.is_member && project.missing_positions && project.missing_positions.length > 0;
@@ -141,7 +143,14 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       <div className="px-5 pb-5 pt-4 border-t border-gray-100 bg-gray-50/50">
         <div className="flex justify-between items-center gap-3">
           <button
-            onClick={() => router.push(`/project/${project.p_id}`)}
+            onClick={() => {
+              trackProjectView(project.p_id, project.porject_title, project.song?.title ? undefined : undefined);
+              trackClick('project-detail-button', '查看详情', {
+                project_id: project.p_id,
+                project_title: project.porject_title,
+              });
+              router.push(`/project/${project.p_id}`);
+            }}
             className="text-purple-600 hover:text-purple-700 font-semibold text-sm flex items-center gap-1.5 transition-colors group"
           >
             <span className="group-hover:translate-x-0.5 transition-transform">&gt; Q</span>
@@ -159,7 +168,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           </button>
         ) : canApply ? (
           <button
-            onClick={() => router.push(`/project/${project.p_id}/apply`)}
+            onClick={() => {
+              trackClick('project-apply-button', '申請加入', {
+                project_id: project.p_id,
+                project_title: project.porject_title,
+              });
+              router.push(`/project/${project.p_id}/apply`);
+            }}
             className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg text-sm font-semibold hover:from-pink-600 hover:to-rose-600 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
           >
             申請加入

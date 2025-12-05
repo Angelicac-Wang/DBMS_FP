@@ -109,6 +109,13 @@ export default function AdminDashboard() {
       icon: '📊',
       color: 'bg-pink-500',
     },
+    {
+      title: '行為分析',
+      description: '查看用戶行為數據',
+      href: '/admin/analytics',
+      icon: '📈',
+      color: 'bg-indigo-500',
+    },
   ];
 
   return (

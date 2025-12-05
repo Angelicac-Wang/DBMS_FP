@@ -3,429 +3,362 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import ProjectCard from '@/components/ProjectCard';
-import BottomNav from '@/components/BottomNav';
+import { useBehaviorTracking } from '@/hooks/useBehaviorTracking';
 
-interface Project {
-  p_id: number;
-  porject_title: string;
-  practice_location: string;
-  performance_location: string;
-  status: string;
-  creator_id?: number;
-  is_member?: boolean;
-  song_id?: number;
-  song?: {
+interface NewestProject {
+  id: number;
     title: string;
-    difficulty_level?: number;
-    group?: {
-      group_name: string;
-    };
-  };
-  practice_schedules?: Array<{
-    date: string;
-    start_time: string;
-    end_time: string;
-  }>;
-  missing_positions?: string[];
-  region?: string;
+  groupName: string;
+  songTitle: string;
+  region: string;
+  targetCount: number;
+  memberCount: number;
+  thumbnail: string;
+  groupLogoUrl?: string;
+  practiceMonthRange: string;
+  createdAt?: string;
+  creatorName?: string;
+}
+
+const heroSlides = [
+  {
+    title: 'Find Your Stage',
+    subtitle: 'Join dancers who love K-POP covers as much as you do.',
+    image:
+      'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=1600&q=80',
+  },
+  {
+    title: 'From Practice Room to Spotlight',
+    subtitle: 'Connect with crews, rehearse, and shine on stage together.',
+    image:
+      'https://images.unsplash.com/photo-1486591038957-19e7c73bdc41?auto=format&fit=crop&w=1600&q=80',
+  },
+  {
+    title: 'Cover Your Favorite Tracks',
+    subtitle: 'Match with projects that fit your style and schedule.',
+    image:
+      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=1600&q=80',
+  },
+];
+
+function extractYoutubeId(url?: string | null): string | null {
+  if (!url) return null;
+  const match = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{6,})/);
+  return match ? match[1] : null;
+}
+
+function getRegionFromLocation(location?: string): string {
+  if (!location) return '未指定';
+  if (location.includes('雙連') || location.includes('台北') || location.includes('新北')) return '雙北';
+  if (location.includes('台中')) return '台中';
+  if (location.includes('高雄')) return '高雄';
+  if (location.includes('桃園')) return '桃園';
+  if (location.includes('新竹')) return '新竹';
+  if (location.includes('台南')) return '台南';
+  return '未指定';
+}
+
+function formatPracticeMonthRange(dates: Array<{ date: string }>): string {
+  if (!dates || dates.length === 0) return '待定';
+  const parsed = dates
+    .map((d) => new Date(d.date))
+    .filter((d) => !Number.isNaN(d.getTime()))
+    .sort((a, b) => a.getTime() - b.getTime());
+
+  if (!parsed.length) return '待定';
+  const first = parsed[0];
+  const last = parsed[parsed.length - 1];
+  const toLabel = (dt: Date) => `${dt.getFullYear()}/${String(dt.getMonth() + 1).padStart(2, '0')}`;
+  const firstLabel = toLabel(first);
+  const lastLabel = toLabel(last);
+  return firstLabel === lastLabel ? firstLabel : `${firstLabel} ~ ${lastLabel}`;
 }
 
 export default function Home() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    group: '',
-    song: '',
-    difficulty: '',
-    region: '',
-  });
-  const [filterOptions, setFilterOptions] = useState({
-    groups: [] as Array<{ group_id: number; group_name: string }>,
-    songs: [] as Array<{ song_id: number; title: string; difficulty_level: number }>,
-    regions: [] as string[],
-  });
+  const { trackPageView, trackClick } = useBehaviorTracking();
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [newestProjects, setNewestProjects] = useState<NewestProject[]>([]);
+  const [loadingNewest, setLoadingNewest] = useState(true);
 
   useEffect(() => {
-    // 檢查是否已登入
-    const userId = localStorage.getItem('userId');
-    const userRole = localStorage.getItem('userRole');
-    
-    if (!userId) {
-      router.push('/auth');
-      return;
-    }
-
-    // 如果是管理員，導向管理頁面
-    if (userRole === 'A') {
-      router.push('/admin');
-      return;
-    }
-
-    fetchFilterOptions();
-    fetchProjects();
-  }, [router]);
-
-  const fetchFilterOptions = async () => {
-    // 獲取所有團體
-    const { data: groupsData } = await supabase
-      .from('kpop_groups')
-      .select('group_id, group_name')
-      .order('group_name');
-
-    // 獲取所有歌曲
-    const { data: songsData } = await supabase
-      .from('kpop_songs')
-      .select('song_id, title, difficulty_level')
-      .order('title');
-
-    setFilterOptions({
-      groups: groupsData || [],
-      songs: songsData || [],
-      regions: ['雙北', '台中', '高雄', '桃園', '新竹', '台南'],
-    });
-  };
+    trackPageView('/', '舞告Match - 首頁');
+    fetchNewestProjects();
+  }, []);
 
   useEffect(() => {
-    // 搜尋和篩選邏輯
-    let filtered = projects;
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5200);
+    return () => clearInterval(timer);
+  }, []);
 
-    // 搜尋專案標題
-    if (searchQuery) {
-      filtered = filtered.filter((project) =>
-        project.porject_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.song?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.song?.group?.group_name?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // 篩選團體
-    if (filters.group) {
-      filtered = filtered.filter((project) =>
-        project.song?.group?.group_name === filters.group
-      );
-    }
-
-    // 篩選歌曲
-    if (filters.song) {
-      filtered = filtered.filter((project) =>
-        project.song?.title === filters.song
-      );
-    }
-
-    // 篩選難度
-    if (filters.difficulty) {
-      const difficultyLevel = parseInt(filters.difficulty);
-      filtered = filtered.filter((project) => {
-        if (!project.song?.difficulty_level) return false;
-        const level = project.song.difficulty_level;
-        if (difficultyLevel === 1) return level >= 1 && level <= 3;
-        if (difficultyLevel === 2) return level >= 4 && level <= 6;
-        if (difficultyLevel === 3) return level >= 7 && level <= 10;
-        return true;
-      });
-    }
-
-    // 篩選地區
-    if (filters.region) {
-      filtered = filtered.filter((project) =>
-        project.region === filters.region
-      );
-    }
-
-    setFilteredProjects(filtered);
-  }, [searchQuery, filters, projects]);
-
-  const fetchProjects = async () => {
+  const fetchNewestProjects = async () => {
     try {
-      setLoading(true);
-      
-      // 獲取所有活躍的專案
-      const { data: projectsData, error: projectsError } = await supabase
+      setLoadingNewest(true);
+      const { data: projectsData, error } = await supabase
         .from('project')
-        .select(`
-          p_id,
-          porject_title,
-          practice_location,
-          performance_location,
-          status,
-          song_id,
-          creator_id
-        `)
+        .select('p_id, porject_title, target_cnt, practice_location, performance_location, song_id, create_at, creator_id')
         .eq('status', 'A')
         .order('create_at', { ascending: false })
-        .limit(100);
+        .limit(8);
 
-      if (projectsError) throw projectsError;
+      if (error) throw error;
 
-      // 獲取每個專案的詳細資訊
       const projectsWithDetails = await Promise.all(
         (projectsData || []).map(async (project) => {
-          // 獲取練習時間
-          const { data: schedules } = await supabase
-            .from('practice_schedule')
-            .select('date, start_time, end_time')
-            .eq('p_id', project.p_id)
-            .order('date', { ascending: true });
+          let songTitle = '未命名歌曲';
+          let groupName = '未知團體';
+          let thumbnail = '';
+          let groupLogoUrl = '';
+          let practiceMonthRange = '待定';
 
-          // 獲取缺少的位置
-          const { data: targets } = await supabase
-            .from('project_target')
-            .select('target_seq, idol_id, status')
-            .eq('project_id', project.p_id)
-            .eq('status', 'I');
-
-          // 獲取對應的偶像名稱
-          const missingPositions: string[] = [];
-          if (targets && targets.length > 0) {
-            for (const target of targets) {
-              if (target.idol_id) {
-                const { data: idol } = await supabase
-                  .from('kpop_idols')
-                  .select('stage_name')
-                  .eq('idol_id', target.idol_id)
-                  .single();
-                
-                if (idol) {
-                  missingPositions.push(idol.stage_name);
-                } else {
-                  missingPositions.push(`位置 ${target.target_seq}`);
-                }
-              } else {
-                // idol_id 為 NULL 代表是伴舞
-                missingPositions.push(`伴舞 ${target.target_seq}`);
-              }
-            }
-          }
-
-          // 獲取歌曲資訊
-          let songInfo = null;
           if (project.song_id) {
             const { data: song } = await supabase
               .from('kpop_songs')
-              .select('title, difficulty_level')
+              .select('title, youtube_original_url')
               .eq('song_id', project.song_id)
               .single();
 
-            if (song) {
-              // 獲取歌曲對應的團體
+            if (song?.title) songTitle = song.title;
+            const youtubeId = extractYoutubeId(song?.youtube_original_url);
+            if (youtubeId) {
+              thumbnail = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+            }
+
               const { data: songGroups } = await supabase
                 .from('song_group')
                 .select('group_id')
                 .eq('song_id', project.song_id)
                 .limit(1);
 
-              let groupName = null;
-              if (songGroups && songGroups.length > 0) {
+            if (songGroups?.length) {
                 const { data: group } = await supabase
                   .from('kpop_groups')
-                  .select('group_name')
+                .select('group_name, logo_image')
                   .eq('group_id', songGroups[0].group_id)
                   .single();
-                
-                if (group) {
-                  groupName = group.group_name;
-                }
+              if (group?.group_name) groupName = group.group_name;
+              if (group?.logo_image) {
+                groupLogoUrl = group.logo_image;
               }
-
-              songInfo = {
-                title: song.title,
-                difficulty_level: song.difficulty_level,
-                group: groupName ? { group_name: groupName } : undefined,
-              };
+              // 如果沒有 YouTube 縮圖，使用團體 logo
+              if (!thumbnail && groupLogoUrl) {
+                thumbnail = groupLogoUrl;
+              }
             }
           }
 
-          // 從 practice_location 推斷地區
-          const region = project.practice_location.includes('雙連') || project.practice_location.includes('台北') || project.practice_location.includes('新北')
-            ? '雙北'
-            : project.practice_location.includes('台中')
-            ? '台中'
-            : project.practice_location.includes('高雄')
-            ? '高雄'
-            : project.practice_location.includes('桃園')
-            ? '桃園'
-            : project.practice_location.includes('新竹')
-            ? '新竹'
-            : project.practice_location.includes('台南')
-            ? '台南'
-            : '';
+          const { data: schedules } = await supabase
+            .from('practice_schedule')
+            .select('date')
+            .eq('p_id', project.p_id);
 
-          // 檢查用戶是否為專案成員
-          let userIsMember = false;
-          const userId = localStorage.getItem('userId');
-          if (userId) {
-            const { data: memberCheck } = await supabase
+          if (schedules) {
+            practiceMonthRange = formatPracticeMonthRange(schedules);
+          }
+
+          const { count: memberCount } = await supabase
               .from('project_members')
-              .select('member_id')
+            .select('*', { count: 'exact', head: true })
               .eq('p_id', project.p_id)
-              .eq('member_id', userId)
-              .eq('status', 'Y')
+            .eq('status', 'Y');
+
+          // 獲取發文者名稱
+          let creatorName = '舞者';
+          if (project.creator_id) {
+            const { data: creator } = await supabase
+              .from('users')
+              .select('name')
+              .eq('u_id', project.creator_id)
               .single();
-            userIsMember = !!memberCheck;
+            if (creator?.name) {
+              creatorName = creator.name;
+            }
           }
 
           return {
-            ...project,
-            practice_schedules: schedules || [],
-            missing_positions: missingPositions,
-            song: songInfo || undefined,
-            region,
-            creator_id: project.creator_id,
-            is_member: userIsMember,
+            id: project.p_id,
+            title: project.porject_title,
+            songTitle,
+            groupName,
+            region: project.practice_location || '未指定',
+            targetCount: project.target_cnt ?? 0,
+            memberCount: memberCount || 0,
+            thumbnail: thumbnail || groupLogoUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+',
+            groupLogoUrl: groupLogoUrl || undefined,
+            practiceMonthRange,
+            createdAt: project.create_at,
+            creatorName,
           };
         })
       );
 
-      setProjects(projectsWithDetails);
-      setFilteredProjects(projectsWithDetails);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
+      setNewestProjects(projectsWithDetails);
+    } catch (err) {
+      console.error('Failed to load newest projects', err);
     } finally {
-      setLoading(false);
+      setLoadingNewest(false);
     }
   };
 
+  const progressPercent = (project: NewestProject) => {
+    if (!project.targetCount) return 0;
+    return Math.min(Math.round((project.memberCount / project.targetCount) * 100), 100);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-5xl font-bold text-purple-600 mb-4 flex items-center justify-center gap-4">
-            <span className="text-4xl">👨</span>
-            <span>舞告Match</span>
-            <span className="text-4xl">👩</span>
-          </h1>
-          <button
-            onClick={() => router.push('/project/create')}
-            className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
-          >
-            + 建立新專案
-          </button>
-        </div>
-
-        {/* Search and Filter */}
-        <div className="mb-6 space-y-4">
-          {/* 搜尋欄 */}
-          <div className="relative">
-            <svg
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜尋團名、歌曲..."
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
-
-          {/* 篩選器 */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <select
-              value={filters.group}
-              onChange={(e) => setFilters({ ...filters, group: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm"
-            >
-              <option value="">全部團體</option>
-              {filterOptions.groups.map((group) => (
-                <option key={group.group_id} value={group.group_name}>
-                  {group.group_name}
-                </option>
+    <div className="min-h-screen bg-[#fff6ec] text-gray-900">
+      <div className="mx-auto px-4 pb-16" style={{ maxWidth: 'var(--container-7xl)' }}>
+        {/* Hero with carousel */}
+        <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#fff4e6] via-[#ffe1d2] to-[#ffd2ec] shadow-lg">
+          <div className="grid gap-6 p-6 md:grid-cols-2 md:p-10">
+            <div className="relative h-64 overflow-hidden rounded-2xl shadow-xl md:h-full">
+              {heroSlides.map((slide, index) => (
+                <img
+                  key={slide.title}
+                  src={slide.image}
+                  alt={slide.title}
+                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+                    index === activeSlide ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
               ))}
-            </select>
-
-            <select
-              value={filters.song}
-              onChange={(e) => setFilters({ ...filters, song: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm"
-            >
-              <option value="">全部歌曲</option>
-              {filterOptions.songs.map((song) => (
-                <option key={song.song_id} value={song.title}>
-                  {song.title}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={filters.difficulty}
-              onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm"
-            >
-              <option value="">全部難度</option>
-              <option value="1">難度 1-3</option>
-              <option value="2">難度 4-6</option>
-              <option value="3">難度 7-10</option>
-            </select>
-
-            <select
-              value={filters.region}
-              onChange={(e) => setFilters({ ...filters, region: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm"
-            >
-              <option value="">全部地區</option>
-              {filterOptions.regions.map((region) => (
-                <option key={region} value={region}>
-                  {region}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* 清除篩選 */}
-          {(filters.group || filters.song || filters.difficulty || filters.region || searchQuery) && (
-            <button
-              onClick={() => {
-                setFilters({ group: '', song: '', difficulty: '', region: '' });
-                setSearchQuery('');
-              }}
-              className="text-sm text-purple-600 hover:text-purple-700"
-            >
-              清除所有篩選
-            </button>
-          )}
-
-          <div className="flex justify-end items-center gap-2">
-            <span className="text-gray-600">✨</span>
-            <span className="text-gray-700 font-medium">找到 {filteredProjects.length} 個團體</span>
-          </div>
-        </div>
-
-        {/* Projects List */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loading ? (
-            <div className="col-span-full text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-              <p className="mt-4 text-gray-600">載入中...</p>
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                {heroSlides.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveSlide(index)}
+                    className={`h-2 w-8 rounded-full transition-all ${
+                      index === activeSlide ? 'bg-white shadow-lg' : 'bg-white/60'
+                    }`}
+                    aria-label={`slide-${index}`}
+                  />
+                ))}
+              </div>
             </div>
-          ) : filteredProjects.length === 0 ? (
-            <div className="col-span-full text-center py-12">
-              <p className="text-gray-600">目前沒有找到符合條件的專案</p>
+            <div className="flex flex-col justify-center gap-5">
+              <p className="rounded-full bg-white/80 px-4 py-1 text-xs font-semibold text-[#7a2d81] shadow-sm w-fit">
+                K-POP Cover Community
+              </p>
+              <h1 className="text-4xl font-extrabold leading-tight text-[#7a2d81] md:text-5xl">
+                找到你的舞台，加入最懂你的 K-POP Cover 團！
+              </h1>
+              <p className="text-lg text-gray-700">
+                用專案快速媒合、一起練習與拍攝，讓每一次 cover 都成為亮點。
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => {
+                    trackClick('cta-browse-projects', '立即開始尋找專案');
+                    router.push('/projects');
+                  }}
+                  className="rounded-full bg-[#eca382] px-6 py-3 text-sm font-semibold text-white shadow-md hover:bg-[#e08f6f] transition-transform hover:-translate-y-0.5"
+                >
+                  立即開始尋找合適專案！
+                </button>
+                <div className="flex items-center gap-2 text-sm font-semibold text-[#7a2d81]">
+                  <span className="h-2 w-2 rounded-full bg-[#eca382]" />
+                  隨時更新最新專案
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Newest Projects */}
+        <section className="mt-10">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-[#eca382]">Newest Cover Projects</p>
+              <h2 className="text-2xl font-bold text-gray-900">最新招募中的專案</h2>
+            </div>
+            <button
+              onClick={() => router.push('/projects')}
+              className="text-sm font-semibold text-[#7a2d81] hover:text-[#eca382]"
+            >
+              瀏覽全部 &rarr;
+            </button>
+          </div>
+          {loadingNewest ? (
+            <div className="flex justify-center py-12">
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#eca382] border-t-transparent" />
+            </div>
+          ) : newestProjects.length === 0 ? (
+            <div className="rounded-2xl bg-white py-12 text-center text-gray-600 shadow-sm ring-1 ring-amber-100">
+              尚未有新的 cover 專案，快來成為第一個發起人吧！
             </div>
           ) : (
-            filteredProjects.map((project) => (
-              <ProjectCard key={project.p_id} project={project} />
-            ))
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {newestProjects.map((project) => (
+                <div
+                  key={project.id}
+                  onClick={() => router.push(`/project/${project.id}`)}
+                  className="cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-amber-100 transition hover:-translate-y-1 hover:shadow-md"
+                >
+                  <div className="relative h-52 w-full overflow-hidden">
+                    <img
+                      src={project.thumbnail}
+                      alt={project.songTitle}
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        const currentSrc = target.src;
+                        // 如果當前是 YouTube 縮圖且失敗，嘗試使用團體 logo
+                        if (currentSrc.includes('youtube.com') && project.groupLogoUrl) {
+                          target.src = project.groupLogoUrl;
+                        } else {
+                          // 如果團體 logo 也失敗或沒有，使用全黑圖片
+                          target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+';
+                        }
+                      }}
+                    />
+                    <div className="absolute left-3 top-3 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold text-[#7a2d81] shadow-sm">
+                      {project.groupName}
+                    </div>
+                  </div>
+                  <div className="space-y-4 p-5">
+                    <div>
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-[#eca382]">
+                          {project.creatorName || '舞者'}
+                        </p>
+                        <span className="flex-shrink-0 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-[#7a2d81] whitespace-nowrap">
+                          {project.region}
+                        </span>
+                      </div>
+                      <h3 className="mt-1 text-lg font-bold text-black">
+                        {project.songTitle} · {project.groupName}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#fff2e6] text-[#eca382]">
+                        🗓️
+                      </span>
+                      <div>
+                        <p className="font-semibold text-gray-800">練習時間</p>
+                        <p>{project.practiceMonthRange}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between text-sm font-semibold text-gray-700">
+                        <span>進度 {project.memberCount}/{project.targetCount}</span>
+                        <span>{progressPercent(project)}%</span>
+                      </div>
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-[#f0b89a] to-[#eca382] transition-all"
+                          style={{ width: `${progressPercent(project)}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
-        </div>
+        </section>
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNav />
     </div>
   );
 }

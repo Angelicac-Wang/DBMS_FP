@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
 import { getGroupTypeText } from '@/lib/utils';
 
@@ -47,12 +46,22 @@ export default function GroupDetailPage() {
 
       if (error) throw error;
 
-      // 獲取團體成員
-      const { data: idols } = await supabase
-        .from('kpop_idols')
-        .select('idol_id, stage_name, stage_name_kr')
-        .eq('group_id', id)
-        .order('idol_id');
+      // 獲取團體成員（透過 GROUP_IDOL 關聯表）
+      const { data: groupIdols } = await supabase
+        .from('group_idol')
+        .select('idol_id')
+        .eq('group_id', id);
+      
+      let idols: any[] = [];
+      if (groupIdols && groupIdols.length > 0) {
+        const idolIds = groupIdols.map(gi => gi.idol_id);
+        const { data: idolsData } = await supabase
+          .from('kpop_idols')
+          .select('idol_id, stage_name, stage_name_kr')
+          .in('idol_id', idolIds)
+          .order('idol_id');
+        idols = idolsData || [];
+      }
 
       // 獲取團體的歌曲
       const { data: songGroups } = await supabase
@@ -100,7 +109,6 @@ export default function GroupDetailPage() {
             <p className="mt-4 text-gray-600">載入中...</p>
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -119,7 +127,6 @@ export default function GroupDetailPage() {
             </button>
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -218,7 +225,6 @@ export default function GroupDetailPage() {
         )}
       </div>
 
-      <BottomNav />
     </div>
   );
 }
