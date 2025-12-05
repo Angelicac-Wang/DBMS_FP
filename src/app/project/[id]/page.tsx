@@ -306,15 +306,23 @@ export default function ProjectDetailPage() {
         )}
 
             <div className="space-y-2">
-                <h3 className="text-xl font-bold text-gray-900">{project.song?.title || '未指定歌曲'}</h3>
+                {project.song?.title && project.song_id ? (
+                  <Link href={`/song/${project.song_id}`}>
+                    <h3 className="text-xl font-bold text-gray-900 hover:text-[#eca382] hover:underline cursor-pointer transition-colors">
+                      {project.song.title}
+                    </h3>
+                  </Link>
+                ) : (
+                  <h3 className="text-xl font-bold text-gray-900">{project.song?.title || '未指定歌曲'}</h3>
+                )}
                 <div className="flex items-center gap-4 text-gray-600">
                   {project.song?.group && (
                     <span className="font-medium">
-                  {project.song.group.group_id ? (
+                      {project.song.group.group_id ? (
                         <Link href={`/group/${project.song.group.group_id}`} className="hover:text-[#eca382] hover:underline">
-                      {project.song.group.group_name}
-                    </Link>
-                  ) : (
+                          {project.song.group.group_name}
+                        </Link>
+                      ) : (
                         project.song.group.group_name
                       )}
                     </span>
@@ -324,8 +332,8 @@ export default function ProjectDetailPage() {
                       {formatDurationToMinutes(project.song.duration)}
                     </span>
                   )}
-                  </div>
                 </div>
+            </div>
             </div>
 
             {/* 右半邊：專案資訊 */}
