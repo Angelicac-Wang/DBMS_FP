@@ -36,6 +36,7 @@ export default function ManageProjectPage() {
   const [error, setError] = useState('');
   const [showScheduleForm, setShowScheduleForm] = useState(false);
   const [newSchedule, setNewSchedule] = useState({ date: '', start_time: '', end_time: '' });
+  const [songInfo, setSongInfo] = useState<{ title: string; group_name?: string } | null>(null);
 
   useEffect(() => {
     const id = localStorage.getItem('userId');
@@ -69,6 +70,36 @@ export default function ManageProjectPage() {
       }
 
       setProject(projectData);
+
+      // 獲取歌曲資訊
+      if (projectData.song_id) {
+        const { data: song } = await supabase
+          .from('kpop_songs')
+          .select('title')
+          .eq('song_id', projectData.song_id)
+          .single();
+
+        if (song) {
+          const { data: songGroups } = await supabase
+            .from('song_group')
+            .select('group_id')
+            .eq('song_id', projectData.song_id)
+            .limit(1);
+
+          let groupName = null;
+          if (songGroups && songGroups.length > 0) {
+            const { data: group } = await supabase
+              .from('kpop_groups')
+              .select('group_name')
+              .eq('group_id', songGroups[0].group_id)
+              .single();
+
+            if (group) groupName = group.group_name;
+          }
+
+          setSongInfo({ title: song.title, group_name: groupName });
+        }
+      }
 
       // 獲取練習時間表
       const { data: schedules } = await supabase
@@ -349,6 +380,12 @@ export default function ManageProjectPage() {
         {/* 專案資訊 */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">{project.porject_title}</h2>
+          {songInfo && (
+            <p className="text-sm text-gray-600 mb-4">
+              歌曲：{songInfo.title}
+              {songInfo.group_name && ` (${songInfo.group_name})`}
+            </p>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <span className="text-gray-600">狀態：</span>

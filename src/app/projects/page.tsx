@@ -494,7 +494,7 @@ export default function ProjectsPage() {
               {filteredProjects.map((project) => (
                 <div
                   key={project.p_id}
-                  className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:-translate-y-1 hover:shadow-md"
+                  className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:-translate-y-1 hover:shadow-md h-full"
                 >
                   <div className="flex items-center justify-between bg-white px-4 py-3 border-b border-gray-100">
                     <div className="flex items-center gap-3">
@@ -536,7 +536,7 @@ export default function ProjectsPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-3 p-5">
+                  <div className="space-y-3 p-5 flex-grow">
                     <div>
                       {/* <div className="flex items-center justify-between gap-3">
                         <p className="text-xs font-semibold uppercase tracking-wide text-[#eca382]">
@@ -582,7 +582,7 @@ export default function ProjectsPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-5 py-3">
+                  <div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-5 py-3 mt-auto">
                     <button
                       onClick={() => router.push(`/project/${project.p_id}`)}
                       className="rounded-full border border-[#7a2d81] px-4 py-2 text-sm font-semibold text-[#7a2d81] hover:bg-[#7a2d81] hover:text-white transition-colors"

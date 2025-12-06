@@ -56,6 +56,7 @@ export default function ProfilePage() {
   const [songSearchQuery, setSongSearchQuery] = useState('');
   const [showSongDropdown, setShowSongDropdown] = useState(false);
   const [error, setError] = useState('');
+  const [isOwnProfile, setIsOwnProfile] = useState(true);
   const [formData, setFormData] = useState({
     video_url: '',
     title: '',
@@ -65,14 +66,28 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    const userId = localStorage.getItem('userId');
-    if (!userId) {
+    const currentUserId = localStorage.getItem('userId');
+    if (!currentUserId) {
       router.push('/auth');
       return;
     }
 
-    fetchUserProfile(userId);
-    fetchPortfolios(userId);
+    // 檢查 URL 中是否有 userId 參數
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUserId = urlParams.get('userId');
+
+    if (targetUserId) {
+      // 查看其他用戶的個人資料
+      setIsOwnProfile(targetUserId === currentUserId);
+      fetchUserProfile(targetUserId);
+      fetchPortfolios(targetUserId);
+    } else {
+      // 查看自己的個人資料
+      setIsOwnProfile(true);
+      fetchUserProfile(currentUserId);
+      fetchPortfolios(currentUserId);
+    }
+
     fetchSongs();
   }, [router]);
 
@@ -354,15 +369,17 @@ export default function ProfilePage() {
         {/* 暱稱和修改 icon */}
         <div className="flex items-center justify-center gap-3 mb-6" style={{ marginTop: '4rem' }}>
           <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
-          <Link
-            href="/profile/edit"
-            className="p-2 rounded-full bg-white shadow-sm hover:bg-gray-50 transition-colors"
-            aria-label="編輯個人資訊"
-          >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </Link>
+          {isOwnProfile && (
+            <Link
+              href="/profile/edit"
+              className="p-2 rounded-full bg-white shadow-sm hover:bg-gray-50 transition-colors"
+              aria-label="編輯個人資訊"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </Link>
+          )}
         </div>
 
         {/* Skills */}
@@ -386,12 +403,14 @@ export default function ProfilePage() {
         <div className="pb-12">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-900">My Cover Portfolio</h2>
-            <button
-              onClick={handleAddPortfolio}
-              className="px-4 py-2 bg-[#eca382] text-white rounded-lg hover:bg-[#e08f6f] transition-colors text-sm font-semibold"
-            >
-              + 新增作品
-            </button>
+            {isOwnProfile && (
+              <button
+                onClick={handleAddPortfolio}
+                className="px-4 py-2 bg-[#eca382] text-white rounded-lg hover:bg-[#e08f6f] transition-colors text-sm font-semibold"
+              >
+                + 新增作品
+              </button>
+            )}
           </div>
           {portfolios.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-2xl shadow-sm ring-1 ring-gray-200">
@@ -406,7 +425,11 @@ export default function ProfilePage() {
                   : null;
 
                 return (
-                  <div key={index} className="relative aspect-video rounded-lg overflow-hidden bg-gray-200 group cursor-pointer">
+                  <Link
+                    key={index}
+                    href={`/portfolio/${encodeURIComponent(portfolio.video_url)}`}
+                    className="relative aspect-video rounded-lg overflow-hidden bg-gray-200 group cursor-pointer block"
+                  >
                     {thumbnailUrl ? (
                       <img
                         src={thumbnailUrl}
@@ -426,7 +449,11 @@ export default function ProfilePage() {
                         </svg>
                       </div>
                     </div>
-                  </div>
+                    {/* Title overlay at bottom */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                      <p className="text-white text-sm font-semibold truncate">{portfolio.title}</p>
+                    </div>
+                  </Link>
                 );
               })}
             </div>

@@ -111,7 +111,7 @@ export default function ApplyProjectPage() {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-[#fff6ec] pb-20">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center py-12">
             <p className="text-gray-600">載入中...</p>
@@ -122,10 +122,10 @@ export default function ApplyProjectPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+    <div className="min-h-screen bg-[#fff6ec] pb-20">
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-purple-600">申請加入專案</h1>
+          <h1 className="text-3xl font-bold text-[#eca382]">申請加入專案</h1>
           <button
             onClick={() => router.back()}
             className="text-gray-600 hover:text-gray-800"
@@ -157,7 +157,7 @@ export default function ApplyProjectPage() {
               {targets.map((target) => (
                 <label
                   key={target.target_seq}
-                  className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50"
+                  className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-[#fff2e6]"
                 >
                   <input
                     type="radio"
@@ -168,7 +168,7 @@ export default function ApplyProjectPage() {
                     className="mr-3"
                   />
                   <div>
-                    <span className="font-medium">位置 {target.target_seq}</span>
+                    <span className="font-medium text-black">位置 {target.target_seq}</span>
                     {target.kpop_idols && (
                       <span className="text-gray-600 ml-2">
                         ({target.kpop_idols.stage_name})
@@ -191,7 +191,7 @@ export default function ApplyProjectPage() {
             <button
               type="submit"
               disabled={loading || targets.length === 0 || !selectedTarget}
-              className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50"
+              className="flex-1 bg-[#eca382] text-white py-3 rounded-lg font-medium hover:bg-[#e08f6f] disabled:opacity-50"
             >
               {loading ? '申請中...' : '提交申請'}
             </button>
