@@ -177,10 +177,10 @@ export default function MyProjectsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-[#fff6ec] pb-20">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
             <p className="mt-4 text-gray-600">載入中...</p>
           </div>
         </div>
@@ -189,10 +189,10 @@ export default function MyProjectsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+    <div className="min-h-screen bg-[#fff6ec] pb-20">
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-purple-600">我的專案</h1>
+          <h1 className="text-3xl font-bold text-[#eca382]">我的專案</h1>
           <button
             onClick={() => router.back()}
             className="text-gray-600 hover:text-gray-800"
@@ -207,7 +207,7 @@ export default function MyProjectsPage() {
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === 'all'
-                ? 'bg-purple-600 text-white'
+                ? 'bg-[#eca382] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
           >
@@ -217,7 +217,7 @@ export default function MyProjectsPage() {
             onClick={() => setFilter('created')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === 'created'
-                ? 'bg-purple-600 text-white'
+                ? 'bg-[#eca382] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
           >
@@ -227,7 +227,7 @@ export default function MyProjectsPage() {
             onClick={() => setFilter('joined')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === 'joined'
-                ? 'bg-purple-600 text-white'
+                ? 'bg-[#eca382] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
           >
@@ -242,7 +242,7 @@ export default function MyProjectsPage() {
               <p className="text-gray-500 mb-4">目前沒有專案記錄</p>
               <button
                 onClick={() => router.push('/project/create')}
-                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                className="px-6 py-2 bg-[#eca382] text-white rounded-lg hover:bg-[#e08f6f]"
               >
                 建立新專案
               </button>
@@ -276,14 +276,14 @@ export default function MyProjectsPage() {
                     {project.creator_id.toString() === userId ? (
                       <button
                         onClick={() => router.push(`/project/manage/${project.p_id}`)}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+                        className="px-4 py-2 bg-[#eca382] text-white rounded-lg text-sm hover:bg-[#e08f6f]"
                       >
                         管理
                       </button>
                     ) : (
                       <button
                         onClick={() => router.push(`/project/${project.p_id}`)}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600"
+                        className="px-4 py-2 bg-[#eca382] text-white rounded-lg text-sm hover:bg-[#e08f6f]"
                       >
                         查看
                       </button>
@@ -291,7 +291,7 @@ export default function MyProjectsPage() {
                     {project.status === 'F' && project.creator_id.toString() === userId && (
                       <button
                         onClick={() => router.push(`/project/${project.p_id}/upload`)}
-                        className="px-4 py-2 bg-pink-500 text-white rounded-lg text-sm hover:bg-pink-600"
+                        className="px-4 py-2 bg-[#f0b89a] text-white rounded-lg text-sm hover:bg-[#eca382]"
                       >
                         上傳作品
                       </button>

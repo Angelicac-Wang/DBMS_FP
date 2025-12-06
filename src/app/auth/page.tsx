@@ -185,11 +185,11 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-white">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-white">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-purple-600 mb-2">舞告Match</h1>
-          <p className="text-gray-600">K-pop 舞蹈翻跳媒合平台</p>
+          <h1 className="text-4xl font-bold mb-2" style={{ color: '#eaa583' }}>舞告Match</h1>
+          <p className="text-gray-700 font-medium">K-pop 舞蹈翻跳媒合平台</p>
         </div>
 
         <div className="flex gap-4 mb-6">
@@ -197,9 +197,10 @@ export default function AuthPage() {
             onClick={() => setIsLogin(true)}
             className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
               isLogin
-                ? 'bg-purple-600 text-white'
+                ? 'text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
+            style={isLogin ? { backgroundColor: 'rgb(250,215,185)' } : {}}
           >
             登入
           </button>
@@ -207,9 +208,10 @@ export default function AuthPage() {
             onClick={() => setIsLogin(false)}
             className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
               !isLogin
-                ? 'bg-purple-600 text-white'
+                ? 'text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
+            style={!isLogin ? { backgroundColor: 'rgb(250,215,185)' } : {}}
           >
             註冊
           </button>
@@ -224,7 +226,7 @@ export default function AuthPage() {
         {isLogin ? (
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 用戶名稱
               </label>
               <input
@@ -232,12 +234,12 @@ export default function AuthPage() {
                 value={loginData.name}
                 onChange={(e) => setLoginData({ ...loginData, name: e.target.value })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:border-transparent placeholder:text-gray-600 placeholder:font-medium text-black"
                 placeholder="請輸入用戶名稱"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 密碼
               </label>
               <input
@@ -245,14 +247,17 @@ export default function AuthPage() {
                 value={loginData.password}
                 onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:border-transparent placeholder:text-gray-600 placeholder:font-medium text-black"
                 placeholder="請輸入密碼"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: 'rgb(250,215,185)' }}
+              onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = 'rgb(240,205,175)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgb(250,215,185)')}
             >
               {loading ? '登入中...' : '登入'}
             </button>
@@ -260,7 +265,7 @@ export default function AuthPage() {
         ) : (
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 用戶名稱 *
               </label>
               <input
@@ -269,13 +274,13 @@ export default function AuthPage() {
                 onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                 required
                 maxLength={15}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:border-transparent placeholder:text-gray-600 placeholder:font-medium text-black"
                 placeholder="請輸入用戶名稱（最多15字）"
               />
-              <p className="mt-1 text-xs text-gray-500">用戶ID將由系統自動生成</p>
+              <p className="mt-1 text-xs text-gray-600 font-medium">用戶ID將由系統自動生成</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 Email *
               </label>
               <input
@@ -284,12 +289,12 @@ export default function AuthPage() {
                 onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                 required
                 maxLength={30}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:border-transparent placeholder:text-gray-600 placeholder:font-medium text-black"
                 placeholder="請輸入Email"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 密碼 *
               </label>
               <input
@@ -298,12 +303,12 @@ export default function AuthPage() {
                 onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                 required
                 maxLength={15}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:border-transparent placeholder:text-gray-600 placeholder:font-medium text-black"
                 placeholder="請輸入密碼（最多15字）"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 生日 *
               </label>
               <input
@@ -311,26 +316,26 @@ export default function AuthPage() {
                 value={registerData.birthdate}
                 onChange={(e) => setRegisterData({ ...registerData, birthdate: e.target.value })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-black"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 性別 *
               </label>
               <select
                 value={registerData.gender}
                 onChange={(e) => setRegisterData({ ...registerData, gender: e.target.value })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-black"
               >
-                <option value="">請選擇性別</option>
+                <option value="" className="text-gray-600">請選擇性別</option>
                 <option value="B">男</option>
                 <option value="G">女</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 地區 *
               </label>
               <input
@@ -339,12 +344,12 @@ export default function AuthPage() {
                 onChange={(e) => setRegisterData({ ...registerData, region: e.target.value })}
                 required
                 maxLength={20}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:border-transparent placeholder:text-gray-600 placeholder:font-medium text-black"
                 placeholder="請輸入地區（如：雙北、台中）"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 電話 *
               </label>
               <input
@@ -354,14 +359,17 @@ export default function AuthPage() {
                 required
                 maxLength={10}
                 pattern="[0-9]{10}"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:border-transparent placeholder:text-gray-600 placeholder:font-medium text-black"
                 placeholder="請輸入10位數電話號碼"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: 'rgb(250,215,185)' }}
+              onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = 'rgb(240,205,175)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgb(250,215,185)')}
             >
               {loading ? '註冊中...' : '註冊'}
             </button>

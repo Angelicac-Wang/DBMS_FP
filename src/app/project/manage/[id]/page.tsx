@@ -296,10 +296,10 @@ export default function ManageProjectPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-[#fff6ec] pb-20">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
             <p className="mt-4 text-gray-600">載入中...</p>
           </div>
         </div>
@@ -309,13 +309,13 @@ export default function ManageProjectPage() {
 
   if (!project || error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-[#fff6ec] pb-20">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center py-12">
             <p className="text-gray-600">{error || '專案不存在或無權限訪問'}</p>
             <button
               onClick={() => router.push('/profile/projects')}
-              className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg"
+              className="mt-4 px-4 py-2 bg-[#eca382] text-white rounded-lg hover:bg-[#e08f6f]"
             >
               返回
             </button>
@@ -326,10 +326,10 @@ export default function ManageProjectPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+    <div className="min-h-screen bg-[#fff6ec] pb-20">
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-purple-600">專案管理</h1>
+          <h1 className="text-3xl font-bold text-[#eca382]">專案管理</h1>
           <div className="flex gap-3">
             <button
               onClick={handleDeleteProject}
@@ -383,7 +383,7 @@ export default function ManageProjectPage() {
             <h2 className="text-xl font-bold text-gray-800">練習時間</h2>
             <button
               onClick={() => setShowScheduleForm(!showScheduleForm)}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+              className="px-4 py-2 bg-[#eca382] text-white rounded-lg text-sm hover:bg-[#e08f6f]"
             >
               + 新增時間
             </button>
@@ -396,25 +396,25 @@ export default function ManageProjectPage() {
                   type="date"
                   value={newSchedule.date}
                   onChange={(e) => setNewSchedule({ ...newSchedule, date: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg"
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-black"
                 />
                 <input
                   type="time"
                   value={newSchedule.start_time}
                   onChange={(e) => setNewSchedule({ ...newSchedule, start_time: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg"
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-black"
                 />
                 <input
                   type="time"
                   value={newSchedule.end_time}
                   onChange={(e) => setNewSchedule({ ...newSchedule, end_time: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg"
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-black"
                 />
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={handleAddSchedule}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+                  className="px-4 py-2 bg-[#eca382] text-white rounded-lg text-sm hover:bg-[#e08f6f]"
                 >
                   確認
                 </button>
@@ -530,7 +530,7 @@ export default function ManageProjectPage() {
                             href={portfolio.video_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block text-sm text-purple-600 hover:text-purple-700"
+                            className="block text-sm text-[#eca382] hover:text-[#e08f6f]"
                           >
                             {portfolio.title}
                           </a>

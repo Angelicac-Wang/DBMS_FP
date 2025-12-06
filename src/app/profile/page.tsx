@@ -76,6 +76,21 @@ export default function ProfilePage() {
     fetchSongs();
   }, [router]);
 
+  // 點擊外部關閉下拉選單
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.song-dropdown-container')) {
+        setShowSongDropdown(false);
+      }
+    };
+
+    if (showSongDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showSongDropdown]);
+
   const fetchSongs = async () => {
     try {
       const { data: songsData } = await supabase
@@ -456,7 +471,7 @@ export default function ProfilePage() {
                     type="url"
                     value={formData.video_url}
                     onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
                     placeholder="https://www.youtube.com/watch?v=..."
                     required
                   />
@@ -468,11 +483,11 @@ export default function ProfilePage() {
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     maxLength={20}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
                     required
                   />
                 </div>
-                <div className="relative">
+                <div className="relative song-dropdown-container">
                   <label className="block text-sm font-medium text-gray-700 mb-2">翻跳歌曲（選填）</label>
                   <input
                     type="text"
@@ -480,7 +495,7 @@ export default function ProfilePage() {
                     onChange={(e) => handleSongSearch(e.target.value)}
                     onFocus={() => setShowSongDropdown(true)}
                     placeholder="搜尋歌曲..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
                   />
                   {showSongDropdown && filteredSongs.length > 0 && (
                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -489,7 +504,7 @@ export default function ProfilePage() {
                           key={song.song_id}
                           type="button"
                           onClick={() => handleSelectSong(song)}
-                          className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors"
+                          className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors text-black"
                         >
                           {song.displayName}
                         </button>
@@ -504,7 +519,7 @@ export default function ProfilePage() {
                     onChange={(e) => setFormData({ ...formData, discription: e.target.value })}
                     maxLength={500}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
                     placeholder="作品描述..."
                   />
                 </div>
