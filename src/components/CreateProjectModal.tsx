@@ -550,7 +550,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                     value={formData.porject_title}
                     onChange={(e) => setFormData({ ...formData, porject_title: e.target.value })}
                     maxLength={50}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382]"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
                     required
                   />
                 </div>
@@ -562,7 +562,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                     onChange={(e) => handleSongSearch(e.target.value)}
                     onFocus={() => setShowSongDropdown(true)}
                     placeholder="搜尋歌曲..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
                   />
                   {showSongDropdown && filteredSongs.length > 0 && (
                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -587,7 +587,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                     onChange={(e) => handlePracticeLocationChange(e.target.value)}
                     onFocus={() => setShowLocationDropdown(true)}
                     placeholder="選擇或輸入練習地點..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382]"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
                     required
                   />
                   {showLocationDropdown && practiceLocationTags.length > 0 && (
@@ -624,7 +624,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                     value={formData.performance_location}
                     onChange={(e) => setFormData({ ...formData, performance_location: e.target.value })}
                     maxLength={50}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382]"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
                     required
                   />
                 </div>
@@ -635,7 +635,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                     onChange={(e) => setFormData({ ...formData, discription: e.target.value })}
                     maxLength={500}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382]"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
                   />
                 </div>
               </div>
@@ -667,7 +667,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                           type="date"
                           value={schedule.date || ''}
                           onChange={(e) => updatePracticeSchedule(index, 'date', e.target.value || '')}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black"
                           required
                         />
                       </div>
@@ -677,7 +677,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                           <select
                             value={parseTime(schedule.start_time).hour}
                             onChange={(e) => updateTime(index, 'start_time', 'hour', e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-black"
                             required
                           >
                             <option value="">時</option>
@@ -688,7 +688,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                           <select
                             value={parseTime(schedule.start_time).minute}
                             onChange={(e) => updateTime(index, 'start_time', 'minute', e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-black"
                             required
                           >
                             <option value="">分</option>
@@ -704,7 +704,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                           <select
                             value={parseTime(schedule.end_time).hour}
                             onChange={(e) => updateTime(index, 'end_time', 'hour', e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-black"
                             required
                           >
                             <option value="">時</option>
@@ -715,7 +715,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                           <select
                             value={parseTime(schedule.end_time).minute}
                             onChange={(e) => updateTime(index, 'end_time', 'minute', e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-black"
                             required
                           >
                             <option value="">分</option>
@@ -772,7 +772,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                   value={dancerCount}
                   onChange={(e) => setDancerCount(e.target.value)}
                   min="0"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382]"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
                 />
               </div>
               <p className="mt-2 text-sm text-gray-600">

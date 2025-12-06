@@ -111,7 +111,7 @@ export default function CreateGroupPage() {
               value={formData.group_name}
               onChange={(e) => setFormData({ ...formData, group_name: e.target.value })}
               maxLength={20}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -125,7 +125,7 @@ export default function CreateGroupPage() {
               value={formData.group_namekr}
               onChange={(e) => setFormData({ ...formData, group_namekr: e.target.value })}
               maxLength={20}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
             />
           </div>
 
@@ -137,7 +137,7 @@ export default function CreateGroupPage() {
               type="date"
               value={formData.debut_date}
               onChange={(e) => setFormData({ ...formData, debut_date: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -151,7 +151,7 @@ export default function CreateGroupPage() {
               value={formData.company}
               onChange={(e) => setFormData({ ...formData, company: e.target.value })}
               maxLength={20}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -163,7 +163,7 @@ export default function CreateGroupPage() {
             <select
               value={formData.group_type}
               onChange={(e) => setFormData({ ...formData, group_type: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             >
               <option value="">請選擇</option>
@@ -182,7 +182,7 @@ export default function CreateGroupPage() {
               value={formData.member_count}
               onChange={(e) => setFormData({ ...formData, member_count: e.target.value })}
               min="1"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -196,7 +196,7 @@ export default function CreateGroupPage() {
               value={formData.logo_image}
               onChange={(e) => setFormData({ ...formData, logo_image: e.target.value })}
               maxLength={100}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
             />
           </div>
         </div>
@@ -210,7 +210,7 @@ export default function CreateGroupPage() {
             onChange={(e) => setFormData({ ...formData, discription: e.target.value })}
             maxLength={500}
             rows={4}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
           />
         </div>
 
@@ -225,7 +225,7 @@ export default function CreateGroupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50"
+            className="flex-1 bg-[#eca382] text-white py-3 rounded-lg font-medium hover:bg-[#e08f6f] disabled:opacity-50"
           >
             {loading ? '建立中...' : '建立團體'}
           </button>

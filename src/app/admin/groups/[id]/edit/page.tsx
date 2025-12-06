@@ -143,7 +143,7 @@ export default function EditGroupPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
         <p className="mt-4 text-gray-600">載入中...</p>
       </div>
     );
@@ -178,7 +178,7 @@ export default function EditGroupPage() {
               value={formData.group_name}
               onChange={(e) => setFormData({ ...formData, group_name: e.target.value })}
               maxLength={20}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -192,7 +192,7 @@ export default function EditGroupPage() {
               value={formData.group_namekr}
               onChange={(e) => setFormData({ ...formData, group_namekr: e.target.value })}
               maxLength={20}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
             />
           </div>
 
@@ -204,7 +204,7 @@ export default function EditGroupPage() {
               type="date"
               value={formData.debut_date}
               onChange={(e) => setFormData({ ...formData, debut_date: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -218,7 +218,7 @@ export default function EditGroupPage() {
               value={formData.company}
               onChange={(e) => setFormData({ ...formData, company: e.target.value })}
               maxLength={20}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -230,7 +230,7 @@ export default function EditGroupPage() {
             <select
               value={formData.group_type}
               onChange={(e) => setFormData({ ...formData, group_type: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             >
               <option value="">請選擇</option>
@@ -249,7 +249,7 @@ export default function EditGroupPage() {
               value={formData.member_count}
               onChange={(e) => setFormData({ ...formData, member_count: e.target.value })}
               min="1"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -263,7 +263,7 @@ export default function EditGroupPage() {
               value={formData.logo_image}
               onChange={(e) => setFormData({ ...formData, logo_image: e.target.value })}
               maxLength={100}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
             />
           </div>
         </div>
@@ -277,7 +277,7 @@ export default function EditGroupPage() {
             onChange={(e) => setFormData({ ...formData, discription: e.target.value })}
             maxLength={500}
             rows={4}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
           />
         </div>
 
@@ -299,7 +299,7 @@ export default function EditGroupPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50"
+            className="flex-1 bg-[#eca382] text-white py-3 rounded-lg font-medium hover:bg-[#e08f6f] disabled:opacity-50"
           >
             {saving ? '儲存中...' : '儲存變更'}
           </button>

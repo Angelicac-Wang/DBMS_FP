@@ -79,42 +79,42 @@ export default function AdminDashboard() {
       description: '管理 Kpop 團體資料',
       href: '/admin/groups',
       icon: '👥',
-      color: 'bg-blue-500',
+      color: 'bg-[#eca382]',
     },
     {
       title: '歌曲管理',
       description: '管理歌曲資料',
       href: '/admin/songs',
       icon: '🎵',
-      color: 'bg-purple-500',
+      color: 'bg-[#f0b89a]',
     },
     {
       title: '使用者管理',
       description: '查詢使用者資訊',
       href: '/admin/users',
       icon: '👤',
-      color: 'bg-green-500',
+      color: 'bg-[#eca382]',
     },
     {
       title: '專案管理',
       description: '查詢專案資訊',
       href: '/admin/projects',
       icon: '📋',
-      color: 'bg-orange-500',
+      color: 'bg-[#f0b89a]',
     },
     {
       title: '統計數據',
       description: '查看平台統計',
       href: '/admin/statistics',
       icon: '📊',
-      color: 'bg-pink-500',
+      color: 'bg-[#eca382]',
     },
     {
       title: '行為分析',
       description: '查看用戶行為數據',
       href: '/admin/analytics',
       icon: '📈',
-      color: 'bg-indigo-500',
+      color: 'bg-[#f0b89a]',
     },
   ];
 
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
                 <p className="mt-2 text-3xl font-bold text-gray-900">{stats.totalUsers}</p>
               )}
             </div>
-            <div className="bg-blue-100 rounded-full p-3">
+            <div className="bg-[#fff2e6] rounded-full p-3">
               <span className="text-2xl">👥</span>
             </div>
           </div>
@@ -153,7 +153,7 @@ export default function AdminDashboard() {
                 <p className="mt-2 text-3xl font-bold text-gray-900">{stats.totalProjects}</p>
               )}
             </div>
-            <div className="bg-purple-100 rounded-full p-3">
+            <div className="bg-[#fff2e6] rounded-full p-3">
               <span className="text-2xl">📋</span>
             </div>
           </div>
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
                 <p className="mt-2 text-3xl font-bold text-gray-900">{stats.activeProjects}</p>
               )}
             </div>
-            <div className="bg-green-100 rounded-full p-3">
+            <div className="bg-[#fff2e6] rounded-full p-3">
               <span className="text-2xl">✅</span>
             </div>
           </div>
@@ -185,7 +185,7 @@ export default function AdminDashboard() {
                 <p className="mt-2 text-3xl font-bold text-gray-900">{stats.todayProjects}</p>
               )}
             </div>
-            <div className="bg-orange-100 rounded-full p-3">
+            <div className="bg-[#fff2e6] rounded-full p-3">
               <span className="text-2xl">🆕</span>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
               className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
             >
               <div className="flex items-center space-x-4">
-                <div className={`${link.color} rounded-full p-4 text-white text-2xl`}>
+                <div className={`${link.color} rounded-full w-14 h-14 flex items-center justify-center text-2xl flex-shrink-0`}>
                   {link.icon}
                 </div>
                 <div>

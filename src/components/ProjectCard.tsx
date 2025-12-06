@@ -47,7 +47,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100 h-full flex flex-col">
       {/* Header with gradient */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4">
+      <div className="bg-gradient-to-r from-orange-500 to-pink-500 p-4">
         <div className="flex items-start justify-between">
           <h3 className="text-lg font-bold text-white flex-1 pr-2 leading-tight">
             {project.porject_title}
@@ -128,8 +128,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
 
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
-              <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-6 h-6 rounded-full bg-[#fff2e6] flex items-center justify-center">
+              <svg className="w-4 h-4 text-[#eca382]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
             </div>
@@ -151,7 +151,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               });
               router.push(`/project/${project.p_id}`);
             }}
-            className="text-purple-600 hover:text-purple-700 font-semibold text-sm flex items-center gap-1.5 transition-colors group"
+            className="text-[#eca382] hover:text-[#e08f6f] font-semibold text-sm flex items-center gap-1.5 transition-colors group"
           >
             <span className="group-hover:translate-x-0.5 transition-transform">&gt; Q</span>
             <span>詳情</span>
@@ -162,7 +162,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         {isCreator ? (
           <button
             onClick={() => router.push(`/project/manage/${project.p_id}`)}
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm font-semibold hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
+            className="px-4 py-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg text-sm font-semibold hover:from-orange-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
           >
             管理專案
           </button>

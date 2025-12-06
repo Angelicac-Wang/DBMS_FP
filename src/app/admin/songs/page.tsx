@@ -174,7 +174,7 @@ export default function SongsPage() {
         <h1 className="text-3xl font-bold text-gray-900">歌曲管理</h1>
         <Link
           href="/admin/songs/create"
-          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+          className="bg-[#eca382] text-white px-4 py-2 rounded-lg hover:bg-[#e08f6f] transition-colors"
         >
           + 新增歌曲
         </Link>
@@ -190,7 +190,7 @@ export default function SongsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="輸入歌曲名稱..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
             />
           </div>
           <div>
@@ -198,7 +198,7 @@ export default function SongsPage() {
             <select
               value={filterGroup}
               onChange={(e) => setFilterGroup(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
             >
               <option value="">全部</option>
               {allGroups.map((group) => (
@@ -213,7 +213,7 @@ export default function SongsPage() {
             <select
               value={filterDifficulty}
               onChange={(e) => setFilterDifficulty(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
             >
               <option value="">全部</option>
               <option value="1">難度 1-3</option>
@@ -227,7 +227,7 @@ export default function SongsPage() {
       {/* 歌曲列表 */}
       {loading ? (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
           <p className="mt-4 text-gray-600">載入中...</p>
         </div>
       ) : songs.length === 0 ? (
@@ -279,7 +279,7 @@ export default function SongsPage() {
                     {new Date(song.release_date).toLocaleDateString('zh-TW')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-[#fff2e6] text-gray-700">
                       {song.difficulty_level}/10
                     </span>
                   </td>
@@ -289,7 +289,7 @@ export default function SongsPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                     <Link
                       href={`/admin/songs/${song.song_id}`}
-                      className="text-purple-600 hover:text-purple-900"
+                      className="text-[#eca382] hover:text-[#e08f6f]"
                     >
                       查看
                     </Link>

@@ -158,10 +158,10 @@ export default function EditProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
             <p className="mt-4 text-gray-600">載入中...</p>
           </div>
         </div>
@@ -170,10 +170,10 @@ export default function EditProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-purple-600">編輯個人資料</h1>
+          <h1 className="text-3xl font-bold text-[#eca382]">編輯個人資料</h1>
           <button
             onClick={() => router.back()}
             className="text-gray-600 hover:text-gray-800"
@@ -199,7 +199,7 @@ export default function EditProfilePage() {
                 value={profile.name}
                 onChange={(e) => setProfile({ ...profile, name: e.target.value })}
                 maxLength={15}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
               />
             </div>
             <div>
@@ -209,7 +209,7 @@ export default function EditProfilePage() {
                 value={profile.region}
                 onChange={(e) => setProfile({ ...profile, region: e.target.value })}
                 maxLength={20}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
                 placeholder="如：雙北、台中"
               />
             </div>
@@ -222,7 +222,7 @@ export default function EditProfilePage() {
             <h2 className="text-xl font-bold text-gray-800">技能</h2>
             <button
               onClick={addSkill}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+              className="px-4 py-2 bg-[#eca382] text-white rounded-lg text-sm hover:bg-[#e08f6f]"
             >
               + 新增技能
             </button>
@@ -247,7 +247,7 @@ export default function EditProfilePage() {
                       value={skill.skill_type}
                       onChange={(e) => updateSkill(index, 'skill_type', e.target.value)}
                       maxLength={15}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
                       placeholder="如：舞蹈、編舞"
                     />
                   </div>
@@ -260,7 +260,7 @@ export default function EditProfilePage() {
                         onChange={(e) => updateSkill(index, 'proficiency_level', parseInt(e.target.value) || 0)}
                         min="0"
                         max="100"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
                       />
                     </div>
                     <div>
@@ -270,7 +270,7 @@ export default function EditProfilePage() {
                         value={skill.years_of_experience}
                         onChange={(e) => updateSkill(index, 'years_of_experience', parseInt(e.target.value) || 0)}
                         min="0"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
                       />
                     </div>
                   </div>
@@ -281,7 +281,7 @@ export default function EditProfilePage() {
                       onChange={(e) => updateSkill(index, 'discription', e.target.value)}
                       maxLength={200}
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
                       placeholder="技能描述..."
                     />
                   </div>
@@ -300,7 +300,7 @@ export default function EditProfilePage() {
             <h2 className="text-xl font-bold text-gray-800">社群連結</h2>
             <button
               onClick={addSocialLink}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+              className="px-4 py-2 bg-[#eca382] text-white rounded-lg text-sm hover:bg-[#e08f6f]"
             >
               + 新增連結
             </button>
@@ -323,7 +323,7 @@ export default function EditProfilePage() {
                     <select
                       value={link.platform}
                       onChange={(e) => updateSocialLink(index, 'platform', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
                     >
                       <option value="">請選擇平台</option>
                       <option value="Instagram">Instagram</option>
@@ -339,7 +339,7 @@ export default function EditProfilePage() {
                       type="url"
                       value={link.url}
                       onChange={(e) => updateSocialLink(index, 'url', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
                       placeholder="https://..."
                     />
                   </div>
@@ -350,7 +350,7 @@ export default function EditProfilePage() {
                       value={link.follower_cnt}
                       onChange={(e) => updateSocialLink(index, 'follower_cnt', parseInt(e.target.value) || 0)}
                       min="0"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
                     />
                   </div>
                 </div>
@@ -373,7 +373,7 @@ export default function EditProfilePage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50"
+            className="flex-1 bg-[#eca382] text-white py-3 rounded-lg font-medium hover:bg-[#e08f6f] transition-colors disabled:opacity-50"
           >
             {saving ? '儲存中...' : '儲存'}
           </button>

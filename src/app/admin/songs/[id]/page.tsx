@@ -118,7 +118,7 @@ export default function SongDetailPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
         <p className="mt-4 text-gray-600">載入中...</p>
       </div>
     );
@@ -130,7 +130,7 @@ export default function SongDetailPage() {
         <p className="text-gray-600">歌曲不存在</p>
         <button
           onClick={() => router.push('/admin/songs')}
-          className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg"
+          className="mt-4 px-4 py-2 bg-[#eca382] text-white rounded-lg"
         >
           返回列表
         </button>
@@ -192,7 +192,7 @@ export default function SongDetailPage() {
                   href={song.spotify_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-purple-600 hover:text-purple-700"
+                  className="text-[#eca382] hover:text-[#e08f6f]"
                 >
                   開啟連結
                 </a>
@@ -206,7 +206,7 @@ export default function SongDetailPage() {
                 href={song.youtube_original_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-600 hover:text-purple-700"
+                className="text-[#eca382] hover:text-[#e08f6f]"
               >
                 開啟連結
               </a>

@@ -150,7 +150,7 @@ export default function UploadProjectPage() {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center py-12">
             {error ? (
@@ -158,7 +158,7 @@ export default function UploadProjectPage() {
                 <p className="text-red-600 mb-4">{error}</p>
                 <button
                   onClick={() => router.back()}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg"
+                  className="px-4 py-2 bg-[#eca382] text-white rounded-lg"
                 >
                   返回
                 </button>
@@ -173,10 +173,10 @@ export default function UploadProjectPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
       <div className="max-w-3xl mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-purple-600">上傳完成作品</h1>
+          <h1 className="text-3xl font-bold text-[#eca382]">上傳完成作品</h1>
           <button
             onClick={() => router.back()}
             className="text-gray-600 hover:text-gray-800"
@@ -208,7 +208,7 @@ export default function UploadProjectPage() {
               value={formData.video_url}
               onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
               placeholder="https://www.youtube.com/watch?v=..."
             />
           </div>
@@ -223,7 +223,7 @@ export default function UploadProjectPage() {
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
               maxLength={20}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
               placeholder="請輸入作品標題"
             />
           </div>
@@ -237,7 +237,7 @@ export default function UploadProjectPage() {
               onChange={(e) => setFormData({ ...formData, discription: e.target.value })}
               maxLength={500}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
               placeholder="描述這個翻跳作品..."
             />
           </div>
@@ -250,13 +250,13 @@ export default function UploadProjectPage() {
               {members.map((member) => (
                 <label
                   key={member.member_id}
-                  className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 transition-colors"
+                  className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-orange-50 transition-colors"
                 >
                   <input
                     type="checkbox"
                     checked={formData.team_members.includes(member.member_id.toString())}
                     onChange={() => toggleTeamMember(member.member_id.toString())}
-                    className="mr-3 w-4 h-4 text-purple-600 focus:ring-purple-500"
+                    className="mr-3 w-4 h-4 text-[#eca382] focus:ring-[#eca382]"
                   />
                   <span className="text-gray-800">{(member.users as any)?.name}</span>
                 </label>
@@ -281,7 +281,7 @@ export default function UploadProjectPage() {
             <button
               type="submit"
               disabled={loading || formData.team_members.length === 0}
-              className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-[#eca382] text-white py-3 rounded-lg font-medium hover:bg-[#e08f6f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? '上傳中...' : '上傳作品'}
             </button>

@@ -100,10 +100,10 @@ export default function IdolDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
             <p className="mt-4 text-gray-600">載入中...</p>
           </div>
         </div>
@@ -113,13 +113,13 @@ export default function IdolDetailPage() {
 
   if (!idol) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="text-center py-12">
             <p className="text-gray-600">偶像不存在</p>
             <button
               onClick={() => router.back()}
-              className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg"
+              className="mt-4 px-4 py-2 bg-[#eca382] text-white rounded-lg"
             >
               返回
             </button>
@@ -130,7 +130,7 @@ export default function IdolDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <button

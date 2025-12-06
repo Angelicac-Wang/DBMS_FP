@@ -21,7 +21,7 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center gap-1 py-2 px-4 rounded-lg transition-colors ${
-                isActive ? 'text-purple-600' : 'text-gray-600 hover:text-gray-800'
+                isActive ? 'text-[#eca382]' : 'text-gray-600 hover:text-gray-800'
               }`}
             >
               <span className="text-2xl">{item.icon}</span>

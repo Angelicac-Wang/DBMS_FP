@@ -233,7 +233,7 @@ export default function EditSongPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
         <p className="mt-4 text-gray-600">載入中...</p>
       </div>
     );
@@ -268,7 +268,7 @@ export default function EditSongPage() {
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               maxLength={50}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -282,7 +282,7 @@ export default function EditSongPage() {
               value={formData.title_kr}
               onChange={(e) => setFormData({ ...formData, title_kr: e.target.value })}
               maxLength={50}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -295,7 +295,7 @@ export default function EditSongPage() {
               type="date"
               value={formData.release_date}
               onChange={(e) => setFormData({ ...formData, release_date: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -309,7 +309,7 @@ export default function EditSongPage() {
               value={formData.duration}
               onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
               min="1"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -324,7 +324,7 @@ export default function EditSongPage() {
               onChange={(e) => setFormData({ ...formData, difficulty_level: e.target.value })}
               min="0"
               max="10"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -338,7 +338,7 @@ export default function EditSongPage() {
               value={formData.spotify_url}
               onChange={(e) => setFormData({ ...formData, spotify_url: e.target.value })}
               maxLength={100}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
             />
           </div>
 
@@ -351,7 +351,7 @@ export default function EditSongPage() {
               value={formData.youtube_original_url}
               onChange={(e) => setFormData({ ...formData, youtube_original_url: e.target.value })}
               maxLength={100}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />
           </div>
@@ -373,7 +373,7 @@ export default function EditSongPage() {
                       type="checkbox"
                       checked={selectedGroups.includes(group.group_id)}
                       onChange={() => toggleGroup(group.group_id)}
-                      className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      className="rounded border-gray-300 text-[#eca382] focus:ring-[#eca382]"
                     />
                     <span className="text-sm text-gray-900">{group.group_name}</span>
                   </label>
@@ -399,7 +399,7 @@ export default function EditSongPage() {
                       type="checkbox"
                       checked={selectedIdols.includes(idol.idol_id)}
                       onChange={() => toggleIdol(idol.idol_id)}
-                      className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      className="rounded border-gray-300 text-[#eca382] focus:ring-[#eca382]"
                     />
                     <span className="text-sm text-gray-900">
                       {idol.stage_name} ({idol.group_name})
@@ -429,7 +429,7 @@ export default function EditSongPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50"
+            className="flex-1 bg-[#eca382] text-white py-3 rounded-lg font-medium hover:bg-[#e08f6f] disabled:opacity-50"
           >
             {saving ? '儲存中...' : '儲存變更'}
           </button>

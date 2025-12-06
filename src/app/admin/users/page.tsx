@@ -136,7 +136,7 @@ export default function UsersPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="輸入名稱或 Email..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
             />
           </div>
           <div>
@@ -144,7 +144,7 @@ export default function UsersPage() {
             <select
               value={filterRegion}
               onChange={(e) => setFilterRegion(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
             >
               <option value="">全部</option>
               {allRegions.map((region) => (
@@ -159,7 +159,7 @@ export default function UsersPage() {
             <select
               value={filterGender}
               onChange={(e) => setFilterGender(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
             >
               <option value="">全部</option>
               <option value="B">男</option>
@@ -171,7 +171,7 @@ export default function UsersPage() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
             >
               <option value="">全部</option>
               <option value="A">啟用</option>
@@ -184,7 +184,7 @@ export default function UsersPage() {
       {/* 使用者列表 */}
       {loading ? (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
           <p className="mt-4 text-gray-600">載入中...</p>
         </div>
       ) : users.length === 0 ? (
@@ -259,7 +259,7 @@ export default function UsersPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Link
                       href={`/admin/users/${user.u_id}`}
-                      className="text-purple-600 hover:text-purple-900"
+                      className="text-[#eca382] hover:text-[#e08f6f]"
                     >
                       查看詳情
                     </Link>

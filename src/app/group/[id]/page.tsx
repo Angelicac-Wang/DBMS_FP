@@ -102,10 +102,10 @@ export default function GroupDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
             <p className="mt-4 text-gray-600">載入中...</p>
           </div>
         </div>
@@ -115,13 +115,13 @@ export default function GroupDetailPage() {
 
   if (!group) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="text-center py-12">
             <p className="text-gray-600">團體不存在</p>
             <button
               onClick={() => router.back()}
-              className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg"
+              className="mt-4 px-4 py-2 bg-[#eca382] text-white rounded-lg"
             >
               返回
             </button>
@@ -132,7 +132,7 @@ export default function GroupDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <button
@@ -144,7 +144,7 @@ export default function GroupDetailPage() {
         </div>
 
         {/* 標題區 */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl p-8 mb-6 text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-pink-500 rounded-2xl p-8 mb-6 text-white">
           <h1 className="text-4xl font-bold mb-2">{group.group_name}</h1>
           {group.group_namekr && (
             <p className="text-xl text-white/90">{group.group_namekr}</p>

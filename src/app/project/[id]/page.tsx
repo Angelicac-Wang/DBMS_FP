@@ -388,7 +388,7 @@ export default function ProjectDetailPage() {
               {isCreator && (
                 <button
                   onClick={() => router.push(`/project/manage/${projectId}`)}
-                  className="w-full rounded-full bg-[#7a2d81] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#641c6c] transition-colors"
+                  className="w-full rounded-full bg-[#eca382] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
                 >
                   管理專案
                 </button>
@@ -408,7 +408,7 @@ export default function ProjectDetailPage() {
                   <span className="text-sm text-gray-600">發起人：</span>
                   <Link
                     href={`/profile?userId=${project.creator_id}`}
-                    className="ml-2 text-sm font-medium text-[#7a2d81] hover:text-[#eca382] hover:underline"
+                    className="ml-2 text-sm font-medium text-[#eca382] hover:text-[#e08f6f] hover:underline"
                   >
                     {project.creator_name || '未知'}
                   </Link>

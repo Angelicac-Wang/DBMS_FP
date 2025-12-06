@@ -43,49 +43,49 @@ export default function AdminNav() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
-            <Link href="/admin" className="text-xl font-bold text-purple-600">
+            <Link href="/admin" className="text-xl font-bold text-[#eca382]">
               管理後台
             </Link>
             <div className="hidden md:flex space-x-4">
               <Link
                 href="/admin"
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-[#eca382] px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 儀表板
               </Link>
               <Link
                 href="/admin/groups"
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-[#eca382] px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 團體管理
               </Link>
               <Link
                 href="/admin/songs"
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-[#eca382] px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 歌曲管理
               </Link>
               <Link
                 href="/admin/users"
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-[#eca382] px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 使用者管理
               </Link>
               <Link
                 href="/admin/projects"
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-[#eca382] px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 專案管理
               </Link>
               <Link
                 href="/admin/statistics"
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-[#eca382] px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 統計數據
               </Link>
               <Link
                 href="/admin/analytics"
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-[#eca382] px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 行為分析
               </Link>

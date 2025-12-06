@@ -223,7 +223,7 @@ export default function StatisticsPage() {
 
       {loading ? (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
           <p className="mt-4 text-gray-600">載入中...</p>
         </div>
       ) : (
@@ -246,15 +246,27 @@ export default function StatisticsPage() {
             {stats.regionDistribution.length > 0 && (
               <div className="mt-6">
                 <h3 className="text-lg font-semibold text-gray-700 mb-3">地區分布</h3>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {stats.regionDistribution
                     .sort((a, b) => b.count - a.count)
-                    .map((item) => (
-                      <div key={item.region} className="flex items-center justify-between">
-                        <span className="text-sm text-gray-700">{item.region}</span>
-                        <span className="text-sm font-medium text-gray-900">{item.count} 人</span>
-                      </div>
-                    ))}
+                    .map((item) => {
+                      const maxCount = Math.max(...stats.regionDistribution.map(r => r.count));
+                      const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                      return (
+                        <div key={item.region}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm text-gray-700">{item.region}</span>
+                            <span className="text-sm font-medium text-gray-900">{item.count} 人</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-[#eca382] h-2 rounded-full transition-all"
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
             )}
@@ -263,13 +275,25 @@ export default function StatisticsPage() {
             {stats.genderDistribution.length > 0 && (
               <div className="mt-6">
                 <h3 className="text-lg font-semibold text-gray-700 mb-3">性別分布</h3>
-                <div className="space-y-2">
-                  {stats.genderDistribution.map((item) => (
-                    <div key={item.gender} className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700">{item.gender}</span>
-                      <span className="text-sm font-medium text-gray-900">{item.count} 人</span>
-                    </div>
-                  ))}
+                <div className="space-y-3">
+                  {stats.genderDistribution.map((item) => {
+                    const maxCount = Math.max(...stats.genderDistribution.map(g => g.count));
+                    const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                    return (
+                      <div key={item.gender}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm text-gray-700">{item.gender}</span>
+                          <span className="text-sm font-medium text-gray-900">{item.count} 人</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-[#eca382] h-2 rounded-full transition-all"
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -319,7 +343,7 @@ export default function StatisticsPage() {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="bg-purple-600 h-2 rounded-full"
+                  className="bg-[#eca382] h-2 rounded-full"
                   style={{ width: `${stats.completionRate}%` }}
                 ></div>
               </div>
@@ -329,13 +353,25 @@ export default function StatisticsPage() {
             {stats.sizeDistribution.length > 0 && (
               <div className="mt-6">
                 <h3 className="text-lg font-semibold text-gray-700 mb-3">人數規模分布</h3>
-                <div className="space-y-2">
-                  {stats.sizeDistribution.map((item) => (
-                    <div key={item.size} className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700">{item.size} 人</span>
-                      <span className="text-sm font-medium text-gray-900">{item.count} 個專案</span>
-                    </div>
-                  ))}
+                <div className="space-y-3">
+                  {stats.sizeDistribution.map((item) => {
+                    const maxCount = Math.max(...stats.sizeDistribution.map(s => s.count));
+                    const percentage = (item.count / maxCount) * 100;
+                    return (
+                      <div key={item.size}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm text-gray-700">{item.size} 人</span>
+                          <span className="text-sm font-medium text-gray-900">{item.count} 個專案</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-[#eca382] h-2 rounded-full transition-all"
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -352,7 +388,7 @@ export default function StatisticsPage() {
                     className="flex items-center justify-between border border-gray-200 rounded-lg p-4"
                   >
                     <div className="flex items-center space-x-4">
-                      <span className="text-2xl font-bold text-purple-600 w-8">
+                      <span className="text-2xl font-bold text-[#eca382] w-8">
                         {index + 1}
                       </span>
                       <span className="text-lg font-medium text-gray-900">{song.title}</span>

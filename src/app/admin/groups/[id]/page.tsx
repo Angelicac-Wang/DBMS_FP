@@ -148,7 +148,7 @@ export default function GroupDetailPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
         <p className="mt-4 text-gray-600">載入中...</p>
       </div>
     );
@@ -160,7 +160,7 @@ export default function GroupDetailPage() {
         <p className="text-gray-600">團體不存在</p>
         <button
           onClick={() => router.push('/admin/groups')}
-          className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg"
+          className="mt-4 px-4 py-2 bg-[#eca382] text-white rounded-lg"
         >
           返回列表
         </button>

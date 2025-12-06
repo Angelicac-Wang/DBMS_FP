@@ -406,7 +406,7 @@ export default function ProjectsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="搜尋專案、團體或歌曲..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-sm"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-sm text-black"
               />
             </div>
 
@@ -509,7 +509,7 @@ export default function ProjectsPage() {
                       </div>
                     </div>
                     {project.practice_location && (
-                      <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-[#7a2d81]">
+                      <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
                         {project.practice_location}
                       </span>
                     )}
@@ -543,7 +543,7 @@ export default function ProjectsPage() {
                           {project.creator_name || '舞者'}
                         </p>
                         {project.region && (
-                          <span className="flex-shrink-0 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-[#7a2d81] whitespace-nowrap">
+                          <span className="flex-shrink-0 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-gray-700 whitespace-nowrap">
                             {project.region}
                           </span>
                         )}
@@ -572,7 +572,7 @@ export default function ProjectsPage() {
                           {project.missing_positions.map((pos, idx) => (
                             <span
                               key={`${pos}-${idx}`}
-                              className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-[#7a2d81]"
+                              className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-gray-700"
                             >
                               {pos}
                             </span>
@@ -585,7 +585,7 @@ export default function ProjectsPage() {
                   <div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-5 py-3 mt-auto">
                     <button
                       onClick={() => router.push(`/project/${project.p_id}`)}
-                      className="rounded-full border border-[#7a2d81] px-4 py-2 text-sm font-semibold text-[#7a2d81] hover:bg-[#7a2d81] hover:text-white transition-colors"
+                      className="rounded-full border border-[#eca382] px-4 py-2 text-sm font-semibold text-[#eca382] hover:bg-[#eca382] hover:text-white transition-colors"
                     >
                       詳細資訊
                     </button>

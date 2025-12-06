@@ -151,7 +151,7 @@ export default function AnalyticsPage() {
               type="date"
               value={dateRange.start}
               onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-              className="border border-gray-300 rounded px-3 py-2"
+              className="border border-gray-300 rounded px-3 py-2 text-black"
             />
           </div>
           <div>
@@ -160,7 +160,7 @@ export default function AnalyticsPage() {
               type="date"
               value={dateRange.end}
               onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-              className="border border-gray-300 rounded px-3 py-2"
+              className="border border-gray-300 rounded px-3 py-2 text-black"
             />
           </div>
           <div>
@@ -168,7 +168,7 @@ export default function AnalyticsPage() {
             <select
               value={selectedEventType}
               onChange={(e) => setSelectedEventType(e.target.value as EventType | 'all')}
-              className="border border-gray-300 rounded px-3 py-2"
+              className="border border-gray-300 rounded px-3 py-2 text-black"
             >
               <option value="all">全部</option>
               <option value="page_view">頁面瀏覽</option>
@@ -190,7 +190,7 @@ export default function AnalyticsPage() {
 
       {analytics.loading ? (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
           <p className="mt-4 text-gray-600">載入中...</p>
         </div>
       ) : (
@@ -234,7 +234,7 @@ export default function AnalyticsPage() {
                       {analytics.stats.unique_sessions}
                     </p>
                   </div>
-                  <div className="bg-purple-100 rounded-full p-3">
+                  <div className="bg-[#fff2e6] rounded-full p-3">
                     <span className="text-2xl">🔄</span>
                   </div>
                 </div>
@@ -282,7 +282,7 @@ export default function AnalyticsPage() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-purple-600 h-2 rounded-full"
+                          className="bg-[#eca382] h-2 rounded-full"
                           style={{ width: `${percentage}%` }}
                         ></div>
                       </div>
@@ -311,7 +311,7 @@ export default function AnalyticsPage() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-blue-600 h-2 rounded-full"
+                          className="bg-[#eca382] h-2 rounded-full"
                           style={{ width: `${percentage}%` }}
                         ></div>
                       </div>
@@ -417,7 +417,7 @@ export default function AnalyticsPage() {
                           {formatDate(event.event_timestamp)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded">
+                          <span className="px-2 py-1 text-xs font-medium bg-[#fff2e6] text-gray-700 rounded">
                             {getEventTypeLabel(event.event_type)}
                           </span>
                         </td>

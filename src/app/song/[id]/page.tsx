@@ -177,10 +177,10 @@ export default function SongDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#eca382]"></div>
             <p className="mt-4 text-gray-600">載入中...</p>
           </div>
         </div>
@@ -190,13 +190,13 @@ export default function SongDetailPage() {
 
   if (!song) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="text-center py-12">
             <p className="text-gray-600">歌曲不存在</p>
             <button
               onClick={() => router.back()}
-              className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg"
+              className="mt-4 px-4 py-2 bg-[#eca382] text-white rounded-lg"
             >
               返回
             </button>
@@ -207,7 +207,7 @@ export default function SongDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-white pb-20">
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <button
@@ -219,7 +219,7 @@ export default function SongDetailPage() {
         </div>
 
         {/* 標題區 */}
-        <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-8 mb-6 text-white">
+        <div className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-2xl p-8 mb-6 text-white">
           <h1 className="text-4xl font-bold mb-2">{song.title}</h1>
           {song.title_kr && (
             <p className="text-xl text-white/90">{song.title_kr}</p>
@@ -244,7 +244,7 @@ export default function SongDetailPage() {
                 <span className="font-medium text-gray-800">{song.difficulty_level}/10</span>
                 <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-32">
                   <div
-                    className="bg-purple-600 h-2 rounded-full"
+                    className="bg-[#eca382] h-2 rounded-full"
                     style={{ width: `${(song.difficulty_level / 10) * 100}%` }}
                   ></div>
                 </div>
