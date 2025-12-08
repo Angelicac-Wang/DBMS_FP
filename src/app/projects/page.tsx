@@ -228,7 +228,7 @@ export default function ProjectsPage() {
       const to = from + ITEMS_PER_PAGE - 1;
       
       const { data: projectsData, error: projectsError } = await supabase
-        .from('project')
+        .from('project_agg_view')
         .select(`
           p_id:p_id::text,
           porject_title,
@@ -241,6 +241,8 @@ export default function ProjectsPage() {
         `)
         .eq('status', 'A')
         .order('create_at', { ascending: false })
+        // 加入次要排序，避免相同 create_at 分頁時取到重複/跳號
+        .order('p_id', { ascending: false })
         .range(from, to);
 
       if (projectsError) throw projectsError;
@@ -486,13 +488,12 @@ export default function ProjectsPage() {
         };
       });
 
-      if (reset) {
-        setProjects(projectsWithDetails);
-        setFilteredProjects(projectsWithDetails);
-      } else {
-        setProjects((prev) => [...prev, ...projectsWithDetails]);
-        setFilteredProjects((prev) => [...prev, ...projectsWithDetails]);
-      }
+      setProjects((prev) => {
+        const base = reset ? [] : prev;
+        const merged = mergeUniqueProjects(base, projectsWithDetails);
+        setFilteredProjects(merged);
+        return merged;
+      });
       
       setCurrentPage(page + 1);
     } catch (error) {
@@ -528,6 +529,15 @@ export default function ProjectsPage() {
       const exists = prev.groupTypes.includes(value);
       return { ...prev, groupTypes: exists ? prev.groupTypes.filter((g) => g !== value) : [...prev.groupTypes, value] };
     });
+  };
+
+  // 將兩批專案合併並去除重複 p_id，避免 key 衝突
+  const mergeUniqueProjects = (existing: ProjectItem[], incoming: ProjectItem[]) => {
+    const map = new Map<string, ProjectItem>();
+    [...existing, ...incoming].forEach((p) => {
+      map.set(p.p_id, p);
+    });
+    return Array.from(map.values());
   };
 
   const clearFilters = () => {

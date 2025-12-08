@@ -28,6 +28,13 @@ export default function MyProjectsPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [filter, setFilter] = useState<'all' | 'created' | 'joined'>('all');
+  const [membershipMap, setMembershipMap] = useState<Record<number, { target_seq: number }>>({});
+
+  const mergeUniqueProjects = (existing: Project[], incoming: Project[]) => {
+    const map = new Map<number, Project>();
+    [...existing, ...incoming].forEach((p) => map.set(p.p_id, p));
+    return Array.from(map.values());
+  };
 
   useEffect(() => {
     const id = localStorage.getItem('userId');
@@ -48,7 +55,7 @@ export default function MyProjectsPage() {
 
       // 獲取我創建的專案
       const { data: createdData } = await supabase
-        .from('project')
+        .from('project_agg_view')
         .select('*')
         .eq('creator_id', id)
         .order('create_at', { ascending: false });
@@ -56,18 +63,26 @@ export default function MyProjectsPage() {
       // 獲取我參與的專案
       const { data: membersData } = await supabase
         .from('project_members')
-        .select('p_id')
-        .eq('member_id', id);
+        .select('p_id, target_seq')
+        .eq('member_id', id)
+        .eq('status', 'Y');
 
       let joinedData: any[] = [];
       if (membersData && membersData.length > 0) {
         const projectIds = membersData.map((m) => m.p_id);
         const { data } = await supabase
-          .from('project')
+          .from('project_agg_view')
           .select('*')
           .in('p_id', projectIds)
           .order('create_at', { ascending: false });
         joinedData = data || [];
+        const membershipInfo: Record<number, { target_seq: number }> = {};
+        membersData.forEach((m) => {
+          membershipInfo[Number(m.p_id)] = { target_seq: Number(m.target_seq) };
+        });
+        setMembershipMap(membershipInfo);
+      } else {
+        setMembershipMap({});
       }
 
       // 合併所有專案
@@ -75,7 +90,9 @@ export default function MyProjectsPage() {
         ...(createdData || []),
         ...joinedData
       ];
-      const uniqueProjectIds = [...new Set(allProjects.map(p => p.p_id))];
+      const uniqueProjectIds = [
+        ...new Set(allProjects.map((p) => Number(p.p_id)).filter((id) => !Number.isNaN(id)))
+      ];
 
       if (uniqueProjectIds.length === 0) {
         setProjects([]);
@@ -87,12 +104,36 @@ export default function MyProjectsPage() {
         allProjects.map(p => p.song_id).filter(Boolean)
       )];
 
+      // 批次查詢所有待審核申請
+      const applicationsCountMap = new Map<number, number>();
+      if (uniqueProjectIds.length > 0) {
+        const { data: applicationsData, error: appError } = await supabase
+          .from('project_applications')
+          .select('p_id')
+          .in('p_id', uniqueProjectIds)
+          .eq('status', 'W');
+        
+        // 只有在真的有錯誤訊息時才記錄錯誤
+        if (appError && appError.message) {
+          console.error('fetch pending count error', appError);
+        }
+        
+        // 處理查詢結果
+        if (applicationsData && Array.isArray(applicationsData)) {
+          applicationsData.forEach((a) => {
+            const pid = typeof a.p_id === 'string' ? Number(a.p_id) : a.p_id;
+            if (!Number.isNaN(pid)) {
+              applicationsCountMap.set(pid, (applicationsCountMap.get(pid) || 0) + 1);
+            }
+          });
+        }
+      }
+
       // 批次查詢所有專案的詳細資訊
       const [
         songGroupsData,
         groupsData,
-        membersDataBatch,
-        applicationsDataBatch
+        membersDataBatch
       ] = await Promise.all([
         // 批次查詢所有歌曲-團體關聯
         songIds.length > 0
@@ -125,14 +166,7 @@ export default function MyProjectsPage() {
           .from('project_members')
           .select('p_id, member_id')
           .in('p_id', uniqueProjectIds)
-          .eq('status', 'Y'),
-        
-        // 批次查詢所有申請
-        supabase
-          .from('project_applications')
-          .select('p_id, appli_id')
-          .in('p_id', uniqueProjectIds)
-          .eq('status', 'W')
+          .eq('status', 'Y')
       ]);
 
       // 獲取所有歌曲資訊
@@ -145,7 +179,9 @@ export default function MyProjectsPage() {
 
       // 建立查找映射表
       const projectSongMap = new Map(
-        allProjects.map(p => [p.p_id, p.song_id])
+        allProjects
+          .map((p) => [Number(p.p_id), p.song_id] as const)
+          .filter(([id]) => !Number.isNaN(id))
       );
       
       const songsMap = new Map(
@@ -165,16 +201,15 @@ export default function MyProjectsPage() {
       
       const membersCountMap = new Map<number, number>();
       (membersDataBatch.data || []).forEach(m => {
-        membersCountMap.set(m.p_id, (membersCountMap.get(m.p_id) || 0) + 1);
+        const pid = Number(m.p_id);
+        if (!Number.isNaN(pid)) {
+          membersCountMap.set(pid, (membersCountMap.get(pid) || 0) + 1);
+        }
       });
       
-      const applicationsCountMap = new Map<number, number>();
-      (applicationsDataBatch.data || []).forEach(a => {
-        applicationsCountMap.set(a.p_id, (applicationsCountMap.get(a.p_id) || 0) + 1);
-      });
-
       // 組裝專案詳細資訊的函數
-      const getProjectDetails = (projectId: number) => {
+      const getProjectDetails = (project: any) => {
+        const projectId = Number(project.p_id);
         const songId = projectSongMap.get(projectId);
         let songInfo = null;
 
@@ -190,45 +225,52 @@ export default function MyProjectsPage() {
           }
         }
 
+        const memberCount =
+          membersCountMap.get(projectId) ??
+          Number(project.member_count ?? 0);
+
+        const applicationCount = applicationsCountMap.has(projectId)
+          ? applicationsCountMap.get(projectId) || 0
+          : Number(project.application_count ?? 0);
+
         return {
           song: songInfo,
-          member_count: membersCountMap.get(projectId) || 0,
-          application_count: applicationsCountMap.get(projectId) || 0,
+          member_count: memberCount || 0,
+          application_count: applicationCount || 0,
         };
       };
 
       // 組裝創建的專案
       if (createdData) {
         createdProjects = createdData.map((project) => {
-          const details = getProjectDetails(project.p_id);
+          const details = getProjectDetails(project);
           return { ...project, ...details };
+        });
+
+        createdProjects.sort((a, b) => {
+          const aPending = (a.application_count || 0) > 0 ? 1 : 0;
+          const bPending = (b.application_count || 0) > 0 ? 1 : 0;
+          if (aPending !== bPending) return bPending - aPending;
+          return new Date(b.create_at).getTime() - new Date(a.create_at).getTime();
         });
       }
 
       // 組裝參與的專案
       if (joinedData.length > 0) {
         joinedProjects = joinedData.map((project) => {
-          const details = getProjectDetails(project.p_id);
+          const details = getProjectDetails(project);
           return { ...project, ...details };
         });
       }
 
-      // 根據篩選條件合併專案
-      let allProjects: Project[] = [];
+      // 根據篩選條件合併專案，並用 p_id 去重
       if (filter === 'all') {
-        // 合併並去重
-        const projectMap = new Map();
-        [...createdProjects, ...joinedProjects].forEach((p) => {
-          projectMap.set(p.p_id, p);
-        });
-        allProjects = Array.from(projectMap.values());
+        setProjects(mergeUniqueProjects(createdProjects, joinedProjects));
       } else if (filter === 'created') {
-        allProjects = createdProjects;
+        setProjects(createdProjects);
       } else if (filter === 'joined') {
-        allProjects = joinedProjects;
+        setProjects(joinedProjects);
       }
-
-      setProjects(allProjects);
     } catch (err) {
       console.error('Error fetching projects:', err);
     } finally {
@@ -241,6 +283,66 @@ export default function MyProjectsPage() {
       fetchProjects(userId);
     }
   }, [filter, userId]);
+
+  const handleLeaveProject = async (projectId: number) => {
+    if (!userId) return;
+    const membership = membershipMap[projectId];
+    if (!membership) {
+      alert('未找到您的成員資料，無法退出專案');
+      return;
+    }
+
+    if (!confirm('確定要退出此專案嗎？')) return;
+
+    try {
+      // 標記為離開，保留紀錄
+      const { error: updateMemberError } = await supabase
+        .from('project_members')
+        .update({ status: 'N' })
+        .eq('p_id', projectId)
+        .eq('member_id', userId);
+
+      if (updateMemberError) throw updateMemberError;
+
+      await supabase
+        .from('project_target')
+        .update({ status: 'I' })
+        .eq('project_id', projectId)
+        .eq('target_seq', membership.target_seq);
+
+      const { count: memberCount, error: countError } = await supabase
+        .from('project_members')
+        .select('member_id', { count: 'exact', head: true })
+        .eq('p_id', projectId)
+        .eq('status', 'Y');
+
+      if (countError) throw countError;
+
+      const { data: projectInfo, error: projectError } = await supabase
+        .from('project')
+        .select('target_cnt, status')
+        .eq('p_id', projectId)
+        .single();
+
+      if (projectError) throw projectError;
+
+      if (
+        memberCount !== null &&
+        projectInfo?.target_cnt !== undefined &&
+        memberCount < projectInfo.target_cnt &&
+        projectInfo.status === 'F'
+      ) {
+        await supabase
+          .from('project')
+          .update({ status: 'A', update_at: new Date().toISOString() })
+          .eq('p_id', projectId);
+      }
+
+      fetchProjects(userId);
+    } catch (err: any) {
+      alert('退出失敗：' + (err.message || '未知錯誤'));
+    }
+  };
 
 
   if (loading) {
@@ -321,7 +423,12 @@ export default function MyProjectsPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h2 className="text-xl font-bold text-gray-800">{project.porject_title}</h2>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-gray-800">{project.porject_title}</h2>
+                        {project.creator_id.toString() === userId && (project.application_count || 0) > 0 && (
+                          <span className="w-2 h-2 rounded-full bg-red-500 inline-block" title="有待審核申請"></span>
+                        )}
+                      </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
                         {getStatusText(project.status)}
                       </span>
@@ -349,12 +456,22 @@ export default function MyProjectsPage() {
                         管理
                       </button>
                     ) : (
-                      <button
-                        onClick={() => router.push(`/project/${project.p_id}`)}
-                        className="px-4 py-2 bg-[#eca382] text-white rounded-lg text-sm hover:bg-[#e08f6f]"
-                      >
-                        查看
-                      </button>
+                      <>
+                        <button
+                          onClick={() => router.push(`/project/${project.p_id}`)}
+                          className="px-4 py-2 bg-[#eca382] text-white rounded-lg text-sm hover:bg-[#e08f6f]"
+                        >
+                          查看
+                        </button>
+                        {membershipMap[project.p_id] && (
+                          <button
+                            onClick={() => handleLeaveProject(project.p_id)}
+                            className="px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm hover:bg-red-200"
+                          >
+                            退出專案
+                          </button>
+                        )}
+                      </>
                     )}
                     {project.status === 'F' && project.creator_id.toString() === userId && (
                       <button

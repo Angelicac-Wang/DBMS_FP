@@ -12,11 +12,11 @@ interface PracticeSchedule {
 
 interface ProjectCardProps {
   project: {
-    p_id: number;
+    p_id: string;
     porject_title: string;
     practice_location: string;
     status: string;
-    creator_id?: number;
+    creator_id?: string;
     is_member?: boolean;
     song?: {
       title: string;
@@ -34,7 +34,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   const router = useRouter();
   const { trackProjectView, trackClick } = useBehaviorTracking();
   const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
-  const isCreator = userId && project.creator_id && project.creator_id.toString() === userId;
+  const isCreator = userId && project.creator_id && project.creator_id === userId;
   const canApply = !isCreator && !project.is_member && project.missing_positions && project.missing_positions.length > 0;
 
   const getRegionColor = (region?: string) => {

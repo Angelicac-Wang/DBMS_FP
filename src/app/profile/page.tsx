@@ -33,6 +33,24 @@ interface Portfolio {
   view_cnt: number;
 }
 
+async function fetchSongsInBatches(pageSize = 1000) {
+  const all: { song_id: number; title: string }[] = [];
+  let offset = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from('kpop_songs')
+      .select('song_id, title')
+      .order('song_id', { ascending: true })
+      .range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all.push(...data);
+    offset += data.length;
+    if (data.length < pageSize) break;
+  }
+  return all;
+}
+
 function extractYoutubeId(url: string): string | null {
   const match = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
   return match ? match[1] : null;
@@ -51,9 +69,10 @@ export default function ProfilePage() {
   const [skills, setSkills] = useState<UserSkill[]>([]);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [songs, setSongs] = useState<Array<{ song_id: number; title: string; displayName: string }>>([]);
-  const [filteredSongs, setFilteredSongs] = useState<Array<{ song_id: number; title: string; displayName: string }>>([]);
+  const [songs, setSongs] = useState<Array<{ song_id: number; title: string; displayName: string; displayNameLower: string }>>([]);
+  const [filteredSongs, setFilteredSongs] = useState<Array<{ song_id: number; title: string; displayName: string; displayNameLower: string }>>([]);
   const [songSearchQuery, setSongSearchQuery] = useState('');
+  const [debouncedSongQuery, setDebouncedSongQuery] = useState('');
   const [showSongDropdown, setShowSongDropdown] = useState(false);
   const [error, setError] = useState('');
   const [isOwnProfile, setIsOwnProfile] = useState(true);
@@ -108,12 +127,8 @@ export default function ProfilePage() {
 
   const fetchSongs = async () => {
     try {
-      const { data: songsData } = await supabase
-        .from('kpop_songs')
-        .select('song_id, title')
-        .limit(500);
-
-      if (!songsData) return;
+      const songsData = await fetchSongsInBatches(1000);
+      if (!songsData || songsData.length === 0) return;
 
       // 為每首歌獲取團體或偶像資訊
       const songsWithInfo = await Promise.all(
@@ -133,10 +148,12 @@ export default function ProfilePage() {
               .single();
 
             if (group) {
+              const displayName = `${song.title} - ${group.group_name}`;
               return {
                 song_id: song.song_id,
                 title: song.title,
-                displayName: `${song.title} - ${group.group_name}`,
+                displayName,
+                displayNameLower: displayName.toLowerCase().trim(),
               };
             }
           }
@@ -156,25 +173,29 @@ export default function ProfilePage() {
               .single();
 
             if (idol) {
+              const displayName = `${song.title} - ${idol.stage_name}`;
               return {
                 song_id: song.song_id,
                 title: song.title,
-                displayName: `${song.title} - ${idol.stage_name}`,
+                displayName,
+                displayNameLower: displayName.toLowerCase().trim(),
               };
             }
           }
 
           // 如果都沒有，只顯示歌曲名稱
+          const displayName = song.title;
           return {
             song_id: song.song_id,
             title: song.title,
-            displayName: song.title,
+            displayName,
+            displayNameLower: displayName.toLowerCase().trim(),
           };
         })
       );
 
       setSongs(songsWithInfo);
-      setFilteredSongs(songsWithInfo);
+      setFilteredSongs(songsWithInfo.slice(0, 50));
     } catch (err) {
       console.error('Error fetching songs:', err);
     }
@@ -241,22 +262,36 @@ export default function ProfilePage() {
   const handleAddPortfolio = () => {
     setFormData({ video_url: '', title: '', discription: '', cover_song_id: '', cover_song_display: '' });
     setSongSearchQuery('');
-    setFilteredSongs(songs);
+    setFilteredSongs(songs.slice(0, 50));
     setShowSongDropdown(false);
     setError('');
     setShowModal(true);
   };
 
-  const handleSongSearch = (query: string) => {
-    setSongSearchQuery(query);
-    if (query.trim() === '') {
-      setFilteredSongs(songs);
+  // 搜尋輸入加上 debounce，減少頻繁篩選
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSongQuery(songSearchQuery), 200);
+    return () => clearTimeout(id);
+  }, [songSearchQuery]);
+
+  // 根據 debounce 後的輸入篩選，僅顯示前 50 筆結果
+  useEffect(() => {
+    if (debouncedSongQuery.trim() === '') {
+      setFilteredSongs(songs.slice(0, 50));
     } else {
-      const filtered = songs.filter((song) =>
-        song.displayName.toLowerCase().includes(query.toLowerCase())
-      );
+      const q = debouncedSongQuery.toLowerCase().trim();
+      const filtered = songs
+        .filter(
+          (song) =>
+            song.displayNameLower.startsWith(q) || song.displayNameLower.includes(q)
+        )
+        .slice(0, 50);
       setFilteredSongs(filtered);
     }
+  }, [debouncedSongQuery, songs]);
+
+  const handleSongSearch = (query: string) => {
+    setSongSearchQuery(query);
     setShowSongDropdown(true);
   };
 

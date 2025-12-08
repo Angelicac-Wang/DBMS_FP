@@ -54,9 +54,9 @@ export default function ManageProjectPage() {
     try {
       setLoading(true);
 
-      // 獲取專案資訊
+      // 獲取專案資訊（使用聚合視圖加速）
       const { data: projectData, error: projectError } = await supabase
-        .from('project')
+        .from('project_agg_view')
         .select('*')
         .eq('p_id', id)
         .single();
@@ -70,45 +70,24 @@ export default function ManageProjectPage() {
       }
 
       setProject(projectData);
-
-      // 獲取歌曲資訊
-      if (projectData.song_id) {
-        const { data: song } = await supabase
-          .from('kpop_songs')
-          .select('title')
-          .eq('song_id', projectData.song_id)
-          .single();
-
-        if (song) {
-          const { data: songGroups } = await supabase
-            .from('song_group')
-            .select('group_id')
-            .eq('song_id', projectData.song_id)
-            .limit(1);
-
-          let groupName = null;
-          if (songGroups && songGroups.length > 0) {
-            const { data: group } = await supabase
-              .from('kpop_groups')
-              .select('group_name')
-              .eq('group_id', songGroups[0].group_id)
-              .single();
-
-            if (group) groupName = group.group_name;
-          }
-
-          setSongInfo({ title: song.title, group_name: groupName });
-        }
+      if (projectData.song_title) {
+        setSongInfo({
+          title: projectData.song_title,
+          group_name: projectData.group_name || undefined,
+        });
       }
 
-      // 獲取練習時間表
-      const { data: schedules } = await supabase
-        .from('practice_schedule')
-        .select('*')
-        .eq('p_id', id)
-        .order('date', { ascending: true });
-
-      if (schedules) setPracticeSchedules(schedules);
+      // 練習時間表（聚合視圖中已有 schedules JSON，如需要詳細可保留原查詢）
+      if (Array.isArray(projectData.schedules) && projectData.schedules.length > 0) {
+        setPracticeSchedules(projectData.schedules as any);
+      } else {
+        const { data: schedules } = await supabase
+          .from('practice_schedule')
+          .select('*')
+          .eq('p_id', id)
+          .order('date', { ascending: true });
+        if (schedules) setPracticeSchedules(schedules);
+      }
 
       // 獲取目標位置
       const { data: targetsData } = await supabase
@@ -126,7 +105,7 @@ export default function ManageProjectPage() {
         setTargets(targetsData);
       }
 
-      // 獲取成員
+      // 獲取成員（含姓名）
       const { data: membersData } = await supabase
         .from('project_members')
         .select(`
@@ -151,38 +130,54 @@ export default function ManageProjectPage() {
         .order('applied_time', { ascending: false });
 
       if (applicationsData) {
-        // 獲取申請者詳細資訊
-        const applicationsWithDetails = await Promise.all(
-          applicationsData.map(async (app) => {
-            const { data: user } = await supabase
-              .from('users')
-              .select('name')
-              .eq('u_id', app.applicant_id)
-              .single();
+        const applicantIds = [...new Set(applicationsData.map((a) => a.applicant_id))];
 
-            const { data: skills } = await supabase
-              .from('user_skills')
-              .select('*')
-              .eq('u_id', app.applicant_id);
+        // 批次查詢申請者姓名
+        const { data: usersData } = await supabase
+          .from('users')
+          .select('u_id, name')
+          .in('u_id', applicantIds);
+        const userNameMap = new Map(usersData?.map((u) => [u.u_id, u.name]));
 
-            const { data: portfolios } = await supabase
-              .from('portfolios')
-              .select('*')
-              .eq('u_id', app.applicant_id)
-              .limit(3);
+        // 批次查詢技能
+        const { data: skillsData } = await supabase
+          .from('user_skills')
+          .select('u_id, skill_type, proficiency_level, years_of_experience, discription')
+          .in('u_id', applicantIds);
+        const skillsMap = new Map<number, any[]>();
+        (skillsData || []).forEach((s) => {
+          skillsMap.set(s.u_id, [...(skillsMap.get(s.u_id) || []), s]);
+        });
 
-            const target = targetsData?.find((t) => t.target_seq === app.target_seq);
-            const idolName = target?.kpop_idols && !Array.isArray(target.kpop_idols) ? (target.kpop_idols as any).stage_name : undefined;
+        // 批次查詢作品（僅取最新 3 筆）
+        const { data: portfoliosData } = await supabase
+          .from('portfolios')
+          .select('u_id, video_url, title, discription, created_at')
+          .in('u_id', applicantIds)
+          .order('created_at', { ascending: false });
+        const portfolioMap = new Map<number, any[]>();
+        (portfoliosData || []).forEach((p) => {
+          const arr = portfolioMap.get(p.u_id) || [];
+          if (arr.length < 3) {
+            portfolioMap.set(p.u_id, [...arr, p]);
+          }
+        });
 
-            return {
-              ...app,
-              applicant_name: user?.name,
-              applicant_skills: skills || [],
-              applicant_portfolios: portfolios || [],
-              idol_name: idolName,
-            };
-          })
-        );
+        const applicationsWithDetails = applicationsData.map((app) => {
+          const target = targetsData?.find((t) => t.target_seq === app.target_seq);
+          const idolName =
+            target?.kpop_idols && !Array.isArray(target.kpop_idols)
+              ? (target.kpop_idols as any).stage_name
+              : undefined;
+
+          return {
+            ...app,
+            applicant_name: userNameMap.get(app.applicant_id),
+            applicant_skills: skillsMap.get(app.applicant_id) || [],
+            applicant_portfolios: portfolioMap.get(app.applicant_id) || [],
+            idol_name: idolName,
+          };
+        });
 
         setApplications(applicationsWithDetails);
       }
@@ -226,10 +221,94 @@ export default function ManageProjectPage() {
               target_seq: application.target_seq,
               status: 'Y',
             });
+
+          // 成員人數達標時，將專案狀態更新為已額滿(F)
+          const { count: memberCount, error: countError } = await supabase
+            .from('project_members')
+            .select('member_id', { count: 'exact', head: true })
+            .eq('p_id', projectId)
+            .eq('status', 'Y');
+
+          if (countError) throw countError;
+
+          const { data: projectInfo, error: projectError } = await supabase
+            .from('project')
+            .select('target_cnt, status')
+            .eq('p_id', projectId)
+            .single();
+
+          if (projectError) throw projectError;
+
+          if (
+            memberCount !== null &&
+            projectInfo?.target_cnt !== undefined &&
+            memberCount >= projectInfo.target_cnt &&
+            projectInfo.status !== 'F'
+          ) {
+            await supabase
+              .from('project')
+              .update({ status: 'F', update_at: new Date().toISOString() })
+              .eq('p_id', projectId);
+          }
         }
       }
 
       // 重新載入資料
+      if (userId) {
+        fetchProjectData(projectId, userId);
+      }
+    } catch (err: any) {
+      setError('操作失敗：' + (err.message || '未知錯誤'));
+    }
+  };
+
+  const handleRemoveMember = async (memberId: number, targetSeq: number) => {
+    if (!confirm('確定要將此成員移出專案嗎？')) return;
+
+    try {
+      // 標記成員狀態為離開(N)，保留紀錄
+      const { error: updateMemberError } = await supabase
+        .from('project_members')
+        .update({ status: 'N' })
+        .eq('p_id', projectId)
+        .eq('member_id', memberId);
+
+      if (updateMemberError) throw updateMemberError;
+
+      await supabase
+        .from('project_target')
+        .update({ status: 'I' })
+        .eq('project_id', projectId)
+        .eq('target_seq', targetSeq);
+
+      const { count: memberCount, error: countError } = await supabase
+        .from('project_members')
+        .select('member_id', { count: 'exact', head: true })
+        .eq('p_id', projectId)
+        .eq('status', 'Y');
+
+      if (countError) throw countError;
+
+      const { data: projectInfo, error: projectError } = await supabase
+        .from('project')
+        .select('target_cnt, status')
+        .eq('p_id', projectId)
+        .single();
+
+      if (projectError) throw projectError;
+
+      if (
+        memberCount !== null &&
+        projectInfo?.target_cnt !== undefined &&
+        memberCount < projectInfo.target_cnt &&
+        projectInfo.status === 'F'
+      ) {
+        await supabase
+          .from('project')
+          .update({ status: 'A', update_at: new Date().toISOString() })
+          .eq('p_id', projectId);
+      }
+
       if (userId) {
         fetchProjectData(projectId, userId);
       }
@@ -494,9 +573,19 @@ export default function ManageProjectPage() {
                   <span className="font-medium text-gray-800">{(member.users as any)?.name}</span>
                   <span className="text-gray-500 text-sm ml-2">位置 {member.target_seq}</span>
                 </div>
-                <span className="text-sm text-gray-600">
-                  加入日期：{new Date(member.join_date).toLocaleDateString('zh-TW')}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-600">
+                    加入日期：{new Date(member.join_date).toLocaleDateString('zh-TW')}
+                  </span>
+                  {member.member_id.toString() !== project?.creator_id?.toString() && (
+                    <button
+                      onClick={() => handleRemoveMember(member.member_id, member.target_seq)}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      踢出
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
             {members.length === 0 && (
