@@ -532,18 +532,12 @@ export default function ProjectsPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-5 py-3 mt-auto">
+                  <div className="flex items-center justify-center gap-3 border-t border-gray-200 bg-white px-5 py-3 mt-auto">
                     <button
                       onClick={() => router.push(`/project/${project.p_id}`)}
                       className="rounded-full border border-[#eca382] px-4 py-2 text-sm font-semibold text-[#eca382] hover:bg-[#eca382] hover:text-white transition-colors"
                     >
                       詳細資訊
-                    </button>
-                    <button
-                      onClick={() => router.push(`/project/${project.p_id}/apply`)}
-                      className="rounded-full bg-[#eca382] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
-                    >
-                      申請加入
                     </button>
                   </div>
                 </div>
@@ -591,4 +585,6 @@ export default function ProjectsPage() {
     </div>
   );
 }
+
+
 
