@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useBehaviorTracking } from '@/hooks/useBehaviorTracking';
 import CreateProjectModal from '@/components/CreateProjectModal';
@@ -96,6 +96,7 @@ export default function ProjectsPage() {
   const { trackPageView } = useBehaviorTracking();
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<ProjectItem[]>([]);
+  const [totalFilteredCount, setTotalFilteredCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -125,6 +126,8 @@ export default function ProjectsPage() {
 
     fetchProjects(true);
     fetchTopRegions();
+    // 初始載入時獲取總數（無篩選條件）
+    fetchFilteredCount();
     trackPageView('/projects', '舞告Match - 專案列表');
 
     // 檢查 URL 參數或監聽事件來打開 modal
@@ -141,45 +144,43 @@ export default function ProjectsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
+  // 獲取篩選後的總數
+  const fetchFilteredCount = useCallback(async () => {
+    try {
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (filters.regions.length > 0) params.append('regions', filters.regions.join(','));
+      if (filters.months.length > 0) params.append('months', filters.months.join(','));
+      if (filters.groupTypes.length > 0) params.append('groupTypes', filters.groupTypes.join(','));
+
+      const response = await fetch(`/api/projects/count?${params.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setTotalFilteredCount(data.count || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching filtered count:', error);
+    }
+  }, [filters, searchQuery]);
+
+  // 檢查是否有篩選條件
+  const hasFilters = useMemo(() => {
+    return searchQuery.trim() !== '' || 
+           filters.regions.length > 0 || 
+           filters.months.length > 0 || 
+           filters.groupTypes.length > 0;
+  }, [searchQuery, filters]);
+
+  // 當篩選條件改變時，重新載入專案
   useEffect(() => {
-    let filtered = projects;
+    // 無論是否有篩選條件，都重新載入（確保取消篩選時也能正確顯示）
+    setCurrentPage(0);
+    setHasMore(true);
+    fetchProjects(true);
+    fetchFilteredCount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, searchQuery, hasFilters]);
 
-    // 搜尋功能
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((p) => {
-        const matchesTitle = p.porject_title.toLowerCase().includes(query);
-        const matchesGroup = p.song?.group?.group_name?.toLowerCase().includes(query);
-        const matchesSong = p.song?.title?.toLowerCase().includes(query);
-        return matchesTitle || matchesGroup || matchesSong;
-      });
-    }
-
-    if (filters.regions.length) {
-      filtered = filtered.filter((p) => p.practice_location && filters.regions.includes(p.practice_location));
-    }
-
-    if (filters.months.length) {
-      filtered = filtered.filter((p) => {
-        if (!p.practice_schedules || p.practice_schedules.length === 0) return false;
-        const months = extractMonths(p.practice_schedules);
-        return months.some((m) => filters.months.includes(m));
-      });
-    }
-
-    if (filters.groupTypes.length) {
-      filtered = filtered.filter((p) => {
-        const groupType = p.song?.group?.group_type;
-        if (!groupType) return false;
-        // 將資料庫的類型代碼轉換為顯示文字
-        const typeMap: { [key: string]: string } = { 'B': '男團', 'G': '女團', 'M': '混團' };
-        const displayType = typeMap[groupType];
-        return displayType && filters.groupTypes.includes(displayType);
-      });
-    }
-
-    setFilteredProjects(filtered);
-  }, [filters, projects, searchQuery]);
 
   const fetchTopRegions = async () => {
     try {
@@ -208,9 +209,27 @@ export default function ProjectsPage() {
       const userId = localStorage.getItem('userId');
       const offset = page * ITEMS_PER_PAGE;
       
-      const response = await fetch(
-        `/api/projects/list?limit=${ITEMS_PER_PAGE}&offset=${offset}${userId ? `&userId=${userId}` : ''}`
-      );
+      // 構建 API URL，如果有篩選條件則加入參數
+      const params = new URLSearchParams();
+      params.append('limit', ITEMS_PER_PAGE.toString());
+      params.append('offset', offset.toString());
+      if (userId) params.append('userId', userId);
+      
+      // 檢查是否有篩選條件（在函數內部重新計算，避免閉包問題）
+      const currentHasFilters = searchQuery.trim() !== '' || 
+                                filters.regions.length > 0 || 
+                                filters.months.length > 0 || 
+                                filters.groupTypes.length > 0;
+      
+      // 如果有篩選條件，加入篩選參數
+      if (currentHasFilters) {
+        if (searchQuery.trim()) params.append('search', searchQuery.trim());
+        if (filters.regions.length > 0) params.append('regions', filters.regions.join(','));
+        if (filters.months.length > 0) params.append('months', filters.months.join(','));
+        if (filters.groupTypes.length > 0) params.append('groupTypes', filters.groupTypes.join(','));
+      }
+      
+      const response = await fetch(`/api/projects/list?${params.toString()}`);
       
       if (!response.ok) throw new Error('Failed to fetch projects');
       
@@ -273,6 +292,8 @@ export default function ProjectsPage() {
       if (reset) {
         setProjects(projectsWithDetails);
         setFilteredProjects(projectsWithDetails);
+        // 獲取總數（無論是否有篩選條件）
+        fetchFilteredCount();
       } else {
         setProjects((prev) => [...prev, ...projectsWithDetails]);
         setFilteredProjects((prev) => [...prev, ...projectsWithDetails]);
@@ -406,20 +427,28 @@ export default function ProjectsPage() {
         <section className="flex-1 pl-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900">瀏覽專案</h2>
-            <span className="text-sm font-semibold text-gray-600">共 {filteredProjects.length} 個專案</span>
+            <span className="text-sm font-semibold text-gray-600">共 {totalFilteredCount} 個專案</span>
           </div>
 
           {loading ? (
             <div className="flex justify-center py-16">
               <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#eca382] border-t-transparent" />
             </div>
-          ) : filteredProjects.length === 0 ? (
+          ) : filteredProjects.length === 0 && totalFilteredCount === 0 ? (
             <div className="rounded-2xl bg-white py-12 text-center text-gray-600 shadow-sm ring-1 ring-amber-100">
               沒有符合條件的專案，試著調整篩選條件。
             </div>
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredProjects.map((project) => (
+            <>
+              {filteredProjects.length === 0 && totalFilteredCount > 0 && (
+                <div className="rounded-2xl bg-white py-8 text-center text-gray-600 shadow-sm ring-1 ring-amber-100 mb-5">
+                  <p className="mb-2">正在載入符合條件的專案...</p>
+                  <p className="text-sm text-gray-500">共找到 {totalFilteredCount} 個專案，請點擊下方按鈕載入</p>
+                </div>
+              )}
+              {filteredProjects.length > 0 && (
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {filteredProjects.map((project) => (
                 <div
                   key={project.p_id}
                   className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:-translate-y-1 hover:shadow-md h-full"
@@ -427,7 +456,7 @@ export default function ProjectsPage() {
                   <div className="flex items-center justify-between bg-white px-4 py-3 border-b border-gray-100">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-orange-400 to-pink-500 text-sm font-bold text-white shadow">
-                        舞
+                        {project.creator_name ? project.creator_name.charAt(0).toUpperCase() : '舞'}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-gray-900">{project.creator_name || '舞者'}</p>
@@ -547,12 +576,14 @@ export default function ProjectsPage() {
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
 
           {/* 載入更多按鈕 */}
-          {!loading && filteredProjects.length > 0 && hasMore && (
+          {!loading && hasMore && (filteredProjects.length > 0 || totalFilteredCount > 0) && (
             <div className="mt-8 flex justify-center">
               <button
                 onClick={loadMore}
@@ -574,7 +605,7 @@ export default function ProjectsPage() {
           {/* 顯示總數 */}
           {!loading && filteredProjects.length > 0 && !hasMore && (
             <div className="mt-8 text-center text-sm text-gray-600">
-              已顯示所有 {filteredProjects.length} 個專案
+              已顯示所有 {totalFilteredCount} 個專案
             </div>
           )}
         </section>

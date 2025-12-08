@@ -7,10 +7,70 @@ export async function GET(request: Request) {
     const userId = searchParams.get('userId');
     const limit = parseInt(searchParams.get('limit') || '1000');
     const offset = parseInt(searchParams.get('offset') || '0');
+    const searchQuery = searchParams.get('search') || '';
+    const regions = searchParams.get('regions')?.split(',').filter(Boolean) || [];
+    const months = searchParams.get('months')?.split(',').filter(Boolean) || [];
+    const groupTypes = searchParams.get('groupTypes')?.split(',').filter(Boolean) || [];
 
-    // 獲取所有進行中的專案
+    // 構建查詢條件
+    const conditions: string[] = ['p.status = \'A\''];
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    // 搜尋條件
+    if (searchQuery) {
+      conditions.push(`(
+        LOWER(p.porject_title) LIKE $${paramIndex} OR
+        LOWER(s.title) LIKE $${paramIndex} OR
+        LOWER(g.group_name) LIKE $${paramIndex}
+      )`);
+      params.push(`%${searchQuery.toLowerCase()}%`);
+      paramIndex++;
+    }
+
+    // 地區篩選
+    if (regions.length > 0) {
+      conditions.push(`p.practice_location = ANY($${paramIndex}::text[])`);
+      params.push(regions);
+      paramIndex++;
+    }
+
+    // 團體類型篩選
+    if (groupTypes.length > 0) {
+      const typeMap: { [key: string]: string } = { '男團': 'B', '女團': 'G', '混團': 'M' };
+      const dbTypes = groupTypes.map(t => typeMap[t]).filter(Boolean);
+      if (dbTypes.length > 0) {
+        conditions.push(`g.group_type = ANY($${paramIndex}::char[])`);
+        params.push(dbTypes);
+        paramIndex++;
+      }
+    }
+
+    // 月份篩選（需要子查詢）
+    let monthCondition = '';
+    if (months.length > 0) {
+      const monthConditions: string[] = [];
+      months.forEach((month) => {
+        const [year, monthNum] = month.split('/');
+        monthConditions.push(`(
+          EXTRACT(YEAR FROM ps2.date) = $${paramIndex} AND
+          EXTRACT(MONTH FROM ps2.date) = $${paramIndex + 1}
+        )`);
+        params.push(parseInt(year), parseInt(monthNum));
+        paramIndex += 2;
+      });
+      if (monthConditions.length > 0) {
+        monthCondition = `AND EXISTS (
+          SELECT 1 FROM practice_schedule ps2 
+          WHERE ps2.p_id = p.p_id 
+          AND (${monthConditions.join(' OR ')})
+        )`;
+      }
+    }
+
+    // 獲取所有進行中的專案（帶篩選條件）
     const query = `
-      SELECT
+      SELECT DISTINCT
         p.p_id,
         p.porject_title,
         p.practice_location,
@@ -31,12 +91,13 @@ export async function GET(request: Request) {
       LEFT JOIN kpop_songs s ON p.song_id = s.song_id
       LEFT JOIN song_group sg ON s.song_id = sg.song_id
       LEFT JOIN kpop_groups g ON sg.group_id = g.group_id
-      WHERE p.status = 'A'
+      WHERE ${conditions.join(' AND ')} ${monthCondition}
       ORDER BY p.create_at DESC
-      LIMIT $1 OFFSET $2
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
 
-    const result = await pool.query(query, [limit, offset]);
+    params.push(limit, offset);
+    const result = await pool.query(query, params);
 
     // 獲取練習時間表
     const projectIds = result.rows.map(p => p.p_id);
