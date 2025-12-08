@@ -73,7 +73,6 @@ export default function ProjectDetailPage() {
   const [isMember, setIsMember] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [viewCount, setViewCount] = useState(0);
-  const [canApply, setCanApply] = useState(false);
   const [pendingApplication, setPendingApplication] = useState<{ appli_id: number; target_seq: number } | null>(null);
 
   useEffect(() => {
@@ -108,7 +107,6 @@ export default function ProjectDetailPage() {
       // 檢查用戶狀態
       let userIsCreator = false;
       let userIsMember = false;
-      let userCanApply = false;
       let userPendingApplication: { appli_id: number; target_seq: number } | null = null;
 
       if (userId) {
@@ -118,21 +116,12 @@ export default function ProjectDetailPage() {
           userIsCreator = statusData.isCreator;
           userIsMember = statusData.isMember && statusData.memberStatus === 'Y';
           userPendingApplication = statusData.pendingApplication;
-
-          if (!userIsCreator && !userIsMember && !userPendingApplication) {
-            // 檢查是否有空缺位置
-            const hasMissingPositions = projectData.missing_positions && projectData.missing_positions.length > 0;
-            // 檢查專案狀態是否為 'A'
-            const isActive = projectData.status === 'A';
-            userCanApply = hasMissingPositions && isActive;
-          }
         }
       }
 
       setProject(projectData);
       setIsMember(userIsMember);
       setIsCreator(userIsCreator);
-      setCanApply(userCanApply);
       setPendingApplication(userPendingApplication);
 
       // 獲取專案瀏覽次數
@@ -357,8 +346,8 @@ export default function ProjectDetailPage() {
                 </button>
               )}
 
-              {/* 申請加入按鈕（沒有申請且不是成員） */}
-              {userId && !isCreator && !isMember && !pendingApplication && canApply && (
+              {/* 申請加入按鈕（不在專案中、不是創建者、也沒有申請中） */}
+              {userId && !isCreator && !isMember && !pendingApplication && (
                 <button
                   onClick={() => router.push(`/project/${projectId}/apply`)}
                   className="w-full rounded-full bg-[#eca382] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"

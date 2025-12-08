@@ -99,6 +99,35 @@ export default function ManageProjectPage() {
     }
   };
 
+  const handleRemoveMember = async (memberId: number, memberName: string) => {
+    if (!confirm(`確定要將「${memberName}」從專案中移除嗎？`)) return;
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/remove-member`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          memberId: memberId.toString(),
+          creatorId: userId 
+        }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || '移除失敗');
+      }
+
+      alert('成員已成功移除');
+      
+      // 重新載入資料
+      if (userId) {
+        fetchProjectData(projectId, userId);
+      }
+    } catch (err: any) {
+      setError('移除成員失敗：' + (err.message || '未知錯誤'));
+    }
+  };
+
   const handleAddSchedule = async () => {
     if (!newSchedule.date || !newSchedule.start_time || !newSchedule.end_time) {
       setError('請填寫完整的時間資訊');
@@ -346,18 +375,26 @@ export default function ManageProjectPage() {
         <div className="bg-white rounded-xl shadow-md p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">專案成員</h2>
           <div className="space-y-2">
-            {members.map((member, idx) => (
+            {members.filter(m => m.status === 'Y').map((member, idx) => (
               <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <span className="font-medium text-gray-800">{(member.users as any)?.name}</span>
-                  <span className="text-gray-500 text-sm ml-2">位置 {member.target_seq}</span>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-800">{(member.users as any)?.name}</span>
+                    <span className="text-gray-500 text-sm">位置 {member.target_seq}</span>
+                  </div>
+                  <span className="text-sm text-gray-600">
+                    加入日期：{new Date(member.join_date).toLocaleDateString('zh-TW')}
+                  </span>
                 </div>
-                <span className="text-sm text-gray-600">
-                  加入日期：{new Date(member.join_date).toLocaleDateString('zh-TW')}
-                </span>
+                <button
+                  onClick={() => handleRemoveMember(member.member_id, (member.users as any)?.name || '該成員')}
+                  className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors ml-4"
+                >
+                  移除
+                </button>
               </div>
             ))}
-            {members.length === 0 && (
+            {members.filter(m => m.status === 'Y').length === 0 && (
               <p className="text-gray-500 text-center py-4">尚未有成員</p>
             )}
           </div>

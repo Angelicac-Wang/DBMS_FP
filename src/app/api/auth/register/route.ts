@@ -64,8 +64,8 @@ export async function POST(request: Request) {
     await pool.query(
       `INSERT INTO users (
         u_id, name, email, password, birthdate, gender, region, phone,
-        create_at, status, role
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), 'A', 'U')`,
+        create_at, last_login, status, role
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW(), 'A', 'U')`,
       [newUserId, name, email || null, password, birthdate || null, gender || null, region || null, phone || null]
     );
 

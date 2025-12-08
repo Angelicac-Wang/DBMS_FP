@@ -175,13 +175,29 @@ export async function POST(
           [projectId, app.target_seq]
         );
 
-        // 加入專案成員
-        await pool.query(
-          `INSERT INTO project_members (p_id, member_id, join_date, target_seq, status)
-           VALUES ($1, $2, CURRENT_DATE, $3, 'Y')
-           ON CONFLICT (p_id, member_id, target_seq) DO NOTHING`,
-          [projectId, app.applicant_id, app.target_seq]
+        // 檢查該成員是否已存在
+        const existingMember = await pool.query(
+          `SELECT p_id, member_id FROM project_members
+           WHERE p_id = $1 AND member_id = $2`,
+          [projectId, app.applicant_id]
         );
+
+        if (existingMember.rows.length > 0) {
+          // 如果已存在，更新狀態和位置
+          await pool.query(
+            `UPDATE project_members
+             SET status = 'Y', target_seq = $1, join_date = CURRENT_DATE
+             WHERE p_id = $2 AND member_id = $3`,
+            [app.target_seq, projectId, app.applicant_id]
+          );
+        } else {
+          // 如果不存在，插入新記錄
+          await pool.query(
+            `INSERT INTO project_members (p_id, member_id, join_date, target_seq, status)
+             VALUES ($1, $2, CURRENT_DATE, $3, 'Y')`,
+            [projectId, app.applicant_id, app.target_seq]
+          );
+        }
       }
     }
 

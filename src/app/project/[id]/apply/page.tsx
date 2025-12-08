@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 
 export default function ApplyProjectPage() {
   const router = useRouter();
@@ -13,7 +12,6 @@ export default function ApplyProjectPage() {
   const [targets, setTargets] = useState<any[]>([]);
   const [selectedTarget, setSelectedTarget] = useState('');
   const [error, setError] = useState('');
-  const [isMember, setIsMember] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,7 +26,7 @@ export default function ApplyProjectPage() {
   }, [router]);
 
   useEffect(() => {
-    if (!userId || !projectId) return;
+    if (!projectId) return;
 
     const fetchProjectData = async () => {
       try {
@@ -37,56 +35,8 @@ export default function ApplyProjectPage() {
           const projectData = await projectResponse.json();
           setProject(projectData);
           
-          // 檢查是否是專案創建者
-          const isCreator = projectData.creator_id?.toString() === userId;
-          if (isCreator) {
-            setError('您是專案創建者，無法申請');
-            setIsMember(true);
-            return;
-          }
-
-          // 檢查是否在 PROJECT_MEMBERS 中有記錄（無論狀態）
-          const { data: memberData } = await supabase
-            .from('project_members')
-            .select('status')
-            .eq('p_id', projectId)
-            .eq('member_id', userId)
-            .maybeSingle();
-
-          if (memberData) {
-            if (memberData.status === 'Y') {
-              setError('您已經加入此專案，無法再次申請');
-              setIsMember(true);
-              return;
-            } else if (memberData.status === 'N') {
-              setError('您曾經加入過此專案但已退出，無法再次申請');
-              setIsMember(true);
-              return;
-            }
-          }
-
-          // 檢查是否有狀態為 'W' 的申請
-          const { data: pendingApplication } = await supabase
-            .from('project_applications')
-            .select('appli_id')
-            .eq('p_id', projectId)
-            .eq('applicant_id', userId)
-            .eq('status', 'W')
-            .maybeSingle();
-
-          if (pendingApplication) {
-            setError('您目前有一筆申請正在等待主辦人回覆，請等待主辦人回覆');
-            setIsMember(true);
-            return;
-          }
-          
-          // 獲取空缺位置
+          // 獲取空缺位置（所有用戶都看到相同的空缺位置列表）
           const missingPositions = projectData.missing_positions || [];
-          if (missingPositions.length === 0) {
-            setError('此位置沒有空缺');
-            return;
-          }
-
           setTargets(missingPositions.map((pos: any) => ({
             target_seq: pos.target_seq,
             idol_id: pos.idol_id,
@@ -99,7 +49,7 @@ export default function ApplyProjectPage() {
     };
 
     fetchProjectData();
-  }, [projectId, userId]);
+  }, [projectId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,7 +167,7 @@ export default function ApplyProjectPage() {
             </button>
             <button
               type="submit"
-              disabled={loading || targets.length === 0 || !selectedTarget || isMember}
+              disabled={loading || targets.length === 0 || !selectedTarget}
               className="flex-1 bg-[#eca382] text-white py-3 rounded-lg font-medium hover:bg-[#e08f6f] disabled:opacity-50"
             >
               {loading ? '申請中...' : '提交申請'}
