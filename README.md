@@ -62,7 +62,7 @@ npm install
 
 3. **恢復資料庫備份**：
    ```bash
-   psql -U your_username -d kpop_dance_db < database_backup.sql
+   psql -U your_username -d kpop_dance_db < database_backup_latest.sql
    ```
    
    > **注意**：`database_backup.sql` 包含完整的資料庫結構和資料，直接恢復即可使用，無需額外執行其他 SQL 文件。
@@ -194,8 +194,10 @@ DBMS_FP/
 │   ├── behavior-analytics/    # 行為分析系統
 │   └── data-scraping/         # 資料爬蟲
 ├── scripts/                    # 工具腳本
+├── backup_database.sh          # 資料庫備份腳本
 ├── data_structure.sql          # 資料庫結構
-├── database_backup.sql         # 資料庫備份
+├── database_backup.sql         # 資料庫備份（舊版）
+├── database_backup_latest.sql  # 最新資料庫備份
 └── README.md                  # 本文件
 ```
 
@@ -224,6 +226,36 @@ DBMS_FP/
 
 專案包含完整的資料庫備份文件 `database_backup.sql`，包含所有資料表結構和資料。
 
+### 創建資料庫備份
+
+使用提供的備份腳本快速創建資料庫備份：
+
+```bash
+# 執行備份腳本
+./backup_database.sh
+```
+
+備份腳本會：
+- 自動生成帶時間戳的備份文件（例如：`database_backup_20251209_005036.sql`）
+- 同時創建 `database_backup_latest.sql` 作為最新備份的快捷方式
+- 顯示備份文件大小
+
+**環境變數設定（可選）**：
+
+如果需要在腳本中使用環境變數，可以設定：
+
+```bash
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_NAME=kpop_dance_db
+export DB_USER=your_username
+export DB_PASSWORD=your_password  # 可選，如果未設定會提示輸入
+
+./backup_database.sh
+```
+
+> **提示**：如果未設定 `DB_PASSWORD`，腳本會提示輸入 PostgreSQL 密碼。
+
 ### 快速恢復（推薦）
 
 直接使用備份文件恢復，無需執行其他 SQL 文件：
@@ -232,8 +264,10 @@ DBMS_FP/
 # 創建資料庫（如果不存在）
 createdb -U your_username kpop_dance_db
 
-# 恢復備份（包含所有結構和資料）
-psql -U your_username -d kpop_dance_db < database_backup.sql
+# 恢復備份（使用最新備份或指定時間戳備份）
+psql -U your_username -d kpop_dance_db < database_backup_latest.sql
+# 或
+psql -U your_username -d kpop_dance_db < database_backup_20251209_005036.sql
 ```
 
 ### 重新恢復
@@ -248,10 +282,10 @@ dropdb -U your_username kpop_dance_db
 createdb -U your_username kpop_dance_db
 
 # 恢復備份
-psql -U your_username -d kpop_dance_db < database_backup.sql
+psql -U your_username -d kpop_dance_db < database_backup_latest.sql
 ```
 
-> **注意**：`database_backup.sql` 已經包含完整的資料庫結構和所有資料，直接恢復即可使用。
+> **注意**：備份文件已經包含完整的資料庫結構和所有資料，直接恢復即可使用。
 
 詳細說明請參考 [DATABASE_BACKUP_README.md](./DATABASE_BACKUP_README.md)
 

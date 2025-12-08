@@ -16,37 +16,38 @@ interface SpotifyTrackResponse {
   explicit?: boolean;
 }
 
-async function getSpotifyAccessToken() {
+async function getSpotifyAccessToken(): Promise<string | null> {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    console.error('Missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET environment variables');
-    throw new Error('Spotify credentials not configured');
+    // 静默处理，不抛出错误
+    return null;
   }
 
-  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+  try {
+    const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${basic}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-    }).toString(),
-    // Next.js route handlers run on the server; no need for additional options
-  });
+    const res = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${basic}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+      }).toString(),
+    });
 
-  if (!res.ok) {
-    const text = await res.text();
-    console.error('Failed to obtain Spotify access token:', text);
-    throw new Error('Failed to obtain Spotify access token');
+    if (!res.ok) {
+      return null;
+    }
+
+    const data = (await res.json()) as { access_token: string; token_type: string; expires_in: number };
+    return data.access_token;
+  } catch (error) {
+    return null;
   }
-
-  const data = (await res.json()) as { access_token: string; token_type: string; expires_in: number };
-  return data.access_token;
 }
 
 export async function GET(
@@ -62,6 +63,14 @@ export async function GET(
   try {
     const token = await getSpotifyAccessToken();
 
+    // 如果没有配置 Spotify 凭证，返回 503 状态码（服务不可用）
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Spotify service not configured' },
+        { status: 503 }
+      );
+    }
+
     const res = await fetch(`https://api.spotify.com/v1/tracks/${encodeURIComponent(trackId)}`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -73,9 +82,7 @@ export async function GET(
     }
 
     if (!res.ok) {
-      const text = await res.text();
-      console.error('Spotify tracks API error:', text);
-      return NextResponse.json({ error: 'Spotify API error' }, { status: 500 });
+      return NextResponse.json({ error: 'Spotify API error' }, { status: res.status });
     }
 
     const track = (await res.json()) as SpotifyTrackResponse;
@@ -100,7 +107,7 @@ export async function GET(
 
     return NextResponse.json(normalized);
   } catch (error) {
-    console.error('Error fetching Spotify track:', error);
+    // 静默处理错误，返回友好的错误响应
     return NextResponse.json(
       { error: 'Failed to fetch Spotify track' },
       { status: 500 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface Statistics {
@@ -44,153 +45,25 @@ export default function StatisticsPage() {
     try {
       setLoading(true);
 
-      // 總使用者數
-      const { count: totalUsers } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true });
-
-      // 活躍使用者數（最近30天有登入）
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const { count: activeUsers } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-        .gte('last_login', thirtyDaysAgo.toISOString());
-
-      // 總專案數
-      const { count: totalProjects } = await supabase
-        .from('project')
-        .select('*', { count: 'exact', head: true });
-
-      // 活躍專案數
-      const { count: activeProjects } = await supabase
-        .from('project')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'A');
-
-      // 已完成專案數
-      const { count: completedProjects } = await supabase
-        .from('project')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'F');
-
-      // 各狀態專案數量
-      const { data: statusData } = await supabase
-        .from('project')
-        .select('status');
-
-      const statusDistribution: { [key: string]: number } = {};
-      if (statusData) {
-        statusData.forEach((p) => {
-          statusDistribution[p.status] = (statusDistribution[p.status] || 0) + 1;
-        });
+      const response = await fetch('/api/admin/statistics');
+      if (!response.ok) {
+        throw new Error('Failed to fetch statistics');
       }
 
-      // 地區分布
-      const { data: usersData } = await supabase
-        .from('users')
-        .select('region');
-
-      const regionDistribution: { [key: string]: number } = {};
-      if (usersData) {
-        usersData.forEach((u) => {
-          const region = u.region || '未知';
-          regionDistribution[region] = (regionDistribution[region] || 0) + 1;
-        });
-      }
-
-      // 性別分布
-      const { data: genderData } = await supabase
-        .from('users')
-        .select('gender');
-
-      const genderDistribution: { [key: string]: number } = {};
-      if (genderData) {
-        genderData.forEach((u) => {
-          const gender = u.gender === 'B' ? '男' : u.gender === 'G' ? '女' : '未知';
-          genderDistribution[gender] = (genderDistribution[gender] || 0) + 1;
-        });
-      }
-
-      // 熱門翻跳歌曲排行
-      const { data: projectsData } = await supabase
-        .from('project')
-        .select('song_id');
-
-      const songCounts: { [key: number]: number } = {};
-      if (projectsData) {
-        projectsData.forEach((p) => {
-          if (p.song_id) {
-            songCounts[p.song_id] = (songCounts[p.song_id] || 0) + 1;
-          }
-        });
-      }
-
-      const topSongIds = Object.entries(songCounts)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 10)
-        .map(([id]) => parseInt(id));
-
-      const topSongs: { song_id: number; title: string; count: number }[] = [];
-      if (topSongIds.length > 0) {
-        const { data: songsData } = await supabase
-          .from('kpop_songs')
-          .select('song_id, title')
-          .in('song_id', topSongIds);
-
-        if (songsData) {
-          songsData.forEach((song) => {
-            topSongs.push({
-              song_id: song.song_id,
-              title: song.title,
-              count: songCounts[song.song_id],
-            });
-          });
-          topSongs.sort((a, b) => b.count - a.count);
-        }
-      }
-
-      // 人數規模分布
-      const { data: sizeData } = await supabase
-        .from('project')
-        .select('target_cnt');
-
-      const sizeDistribution: { [key: number]: number } = {};
-      if (sizeData) {
-        sizeData.forEach((p) => {
-          sizeDistribution[p.target_cnt] = (sizeDistribution[p.target_cnt] || 0) + 1;
-        });
-      }
-
-      // 專案完成率
-      const completionRate =
-        totalProjects && totalProjects > 0
-          ? ((completedProjects || 0) / totalProjects) * 100
-          : 0;
+      const data = await response.json();
 
       setStats({
-        totalUsers: totalUsers || 0,
-        activeUsers: activeUsers || 0,
-        totalProjects: totalProjects || 0,
-        activeProjects: activeProjects || 0,
-        completedProjects: completedProjects || 0,
-        statusDistribution: Object.entries(statusDistribution).map(([status, count]) => ({
-          status,
-          count,
-        })),
-        regionDistribution: Object.entries(regionDistribution).map(([region, count]) => ({
-          region,
-          count,
-        })),
-        genderDistribution: Object.entries(genderDistribution).map(([gender, count]) => ({
-          gender,
-          count,
-        })),
-        topSongs,
-        sizeDistribution: Object.entries(sizeDistribution)
-          .map(([size, count]) => ({ size: parseInt(size), count }))
-          .sort((a, b) => a.size - b.size),
-        completionRate,
+        totalUsers: data.totalUsers || 0,
+        activeUsers: data.activeUsers || 0,
+        totalProjects: data.totalProjects || 0,
+        activeProjects: data.activeProjects || 0,
+        completedProjects: data.completedProjects || 0,
+        statusDistribution: data.statusDistribution || [],
+        regionDistribution: data.regionDistribution || [],
+        genderDistribution: data.genderDistribution || [],
+        topSongs: data.topSongs || [],
+        sizeDistribution: data.sizeDistribution || [],
+        completionRate: data.completionRate || 0,
       });
     } catch (error) {
       console.error('Error fetching statistics:', error);
@@ -382,9 +255,10 @@ export default function StatisticsPage() {
               <h2 className="text-xl font-bold text-gray-800 mb-4">熱門翻跳歌曲 Top 10</h2>
               <div className="space-y-3">
                 {stats.topSongs.map((song, index) => (
-                  <div
+                  <Link
                     key={song.song_id}
-                    className="flex items-center justify-between border border-gray-200 rounded-lg p-4"
+                    href={`/admin/songs/${song.song_id}`}
+                    className="flex items-center justify-between border border-gray-200 rounded-lg p-4 hover:border-[#eca382] hover:bg-orange-50 transition-all cursor-pointer"
                   >
                     <div className="flex items-center space-x-4">
                       <span className="text-2xl font-bold text-[#eca382] w-8">
@@ -395,7 +269,7 @@ export default function StatisticsPage() {
                     <span className="text-sm font-medium text-gray-600">
                       {song.count} 個專案
                     </span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

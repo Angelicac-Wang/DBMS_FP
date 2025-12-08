@@ -114,13 +114,15 @@ export default function SongDetailPage() {
       setSpotifyLoading(true);
       const res = await fetch(`/api/spotify/track/${encodeURIComponent(trackId)}`);
       if (!res.ok) {
-        console.error('Failed to fetch Spotify track info');
+        // 静默处理错误，不显示 Spotify 信息即可
+        setSpotifyInfo(null);
         return;
       }
       const data: SpotifyTrackInfo = await res.json();
       setSpotifyInfo(data);
     } catch (error) {
-      console.error('Error fetching Spotify track info:', error);
+      // 静默处理错误，不抛出到控制台
+      setSpotifyInfo(null);
     } finally {
       setSpotifyLoading(false);
     }
