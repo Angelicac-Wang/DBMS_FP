@@ -74,6 +74,7 @@ export default function ProjectDetailPage() {
   const [isMember, setIsMember] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [viewCount, setViewCount] = useState(0);
+  const [pendingApplication, setPendingApplication] = useState<{ appli_id: number; target_seq: number } | null>(null);
 
   useEffect(() => {
     if (projectId) {
@@ -286,6 +287,8 @@ export default function ProjectDetailPage() {
       // 檢查用戶是否已在專案中
       let userIsMember = false;
       const isUserCreator = userId && projectData.creator_id.toString() === userId;
+      let pendingApp: { appli_id: number; target_seq: number } | null = null;
+      
       if (userId) {
         console.info(`${logPrefix} check membership`, { userId, isUserCreator });
         try {
@@ -299,6 +302,28 @@ export default function ProjectDetailPage() {
           userIsMember = !!memberCheck;
         } catch (err) {
           console.error('Error checking membership:', err);
+        }
+
+        // 檢查是否有申請中的申請（status = 'W'）
+        if (!userIsMember && !isUserCreator) {
+          try {
+            const { data: applicationCheck } = await supabase
+              .from('project_applications')
+              .select('appli_id, target_seq')
+              .eq('p_id', projectIdStr)
+              .eq('applicant_id', userId)
+              .eq('status', 'W')
+              .maybeSingle();
+            
+            if (applicationCheck) {
+              pendingApp = {
+                appli_id: applicationCheck.appli_id,
+                target_seq: applicationCheck.target_seq,
+              };
+            }
+          } catch (err) {
+            console.error('Error checking pending application:', err);
+          }
         }
       }
 
@@ -322,6 +347,7 @@ export default function ProjectDetailPage() {
       });
       setIsMember(userIsMember);
       setIsCreator(isUserCreator || false);
+      setPendingApplication(pendingApp);
 
       // 獲取專案瀏覽次數（失敗不影響項目顯示）
       try {
@@ -376,6 +402,107 @@ export default function ProjectDetailPage() {
       </div>
     );
   }
+
+  const handleCancelApplication = async () => {
+    if (!pendingApplication || !userId) return;
+    
+    if (!confirm('確定要取消申請嗎？')) return;
+
+    try {
+      const { error } = await supabase
+        .from('project_applications')
+        .update({ status: 'C' })
+        .eq('appli_id', pendingApplication.appli_id);
+
+      if (error) throw error;
+
+      alert('申請已取消');
+      setPendingApplication(null);
+      // 重新載入專案資料
+      if (projectId) {
+        fetchProjectDetail(projectId);
+      }
+    } catch (err: any) {
+      alert('取消申請失敗：' + (err.message || '未知錯誤'));
+    }
+  };
+
+  const handleLeaveProject = async () => {
+    if (!userId || !project || !projectId) return;
+
+    if (!confirm('確定要退出此專案嗎？')) return;
+
+    try {
+      // 將 projectId 轉換為字符串
+      const projectIdStr = BigInt(projectId).toString();
+
+      // 獲取使用者的成員資訊
+      const { data: memberInfo } = await supabase
+        .from('project_members')
+        .select('target_seq')
+        .eq('p_id', projectIdStr)
+        .eq('member_id', userId)
+        .eq('status', 'Y')
+        .maybeSingle();
+
+      if (!memberInfo) {
+        alert('未找到您的成員資料，無法退出專案');
+        return;
+      }
+
+      // 標記為離開，保留紀錄
+      const { error: updateMemberError } = await supabase
+        .from('project_members')
+        .update({ status: 'N' })
+        .eq('p_id', projectIdStr)
+        .eq('member_id', userId);
+
+      if (updateMemberError) throw updateMemberError;
+
+      // 更新目標狀態為空缺
+      await supabase
+        .from('project_target')
+        .update({ status: 'I' })
+        .eq('project_id', projectIdStr)
+        .eq('target_seq', memberInfo.target_seq);
+
+      // 檢查成員人數，如果低於目標人數且專案狀態為已額滿，則改為招募中
+      const { count: memberCount, error: countError } = await supabase
+        .from('project_members')
+        .select('member_id', { count: 'exact', head: true })
+        .eq('p_id', projectIdStr)
+        .eq('status', 'Y');
+
+      if (countError) throw countError;
+
+      const { data: projectInfo, error: projectError } = await supabase
+        .from('project')
+        .select('target_cnt, status')
+        .eq('p_id', projectIdStr)
+        .single();
+
+      if (projectError) throw projectError;
+
+      if (
+        memberCount !== null &&
+        projectInfo?.target_cnt !== undefined &&
+        memberCount < projectInfo.target_cnt &&
+        projectInfo.status === 'F'
+      ) {
+        await supabase
+          .from('project')
+          .update({ status: 'A', update_at: new Date().toISOString() })
+          .eq('p_id', projectIdStr);
+      }
+
+      alert('已成功退出專案');
+      setIsMember(false);
+      // 重新載入專案資料
+      fetchProjectDetail(projectId);
+    } catch (err: any) {
+      alert('退出失敗：' + (err.message || '未知錯誤'));
+    }
+  };
 
   const youtubeId = extractYoutubeId(project.song?.youtube_original_url);
   const youtubeEmbedUrl = youtubeId ? `https://www.youtube.com/embed/${youtubeId}` : null;
@@ -467,16 +594,6 @@ export default function ProjectDetailPage() {
         </div>
 
 
-              {/* 申請加入按鈕 */}
-              {userId && !isCreator && !isMember && project.status === 'A' && project.missing_positions && project.missing_positions.length > 0 && (
-                <button
-                  onClick={() => router.push(`/project/${projectId}/apply`)}
-                  className="w-full rounded-full bg-[#eca382] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
-                >
-                  申請加入
-                </button>
-              )}
-
               {/* 管理專案按鈕（僅創建者） */}
               {isCreator && (
                 <button
@@ -484,6 +601,36 @@ export default function ProjectDetailPage() {
                   className="w-full rounded-full bg-[#eca382] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
                 >
                   管理專案
+                </button>
+              )}
+
+              {/* 退出專案按鈕（成員但不是創建者） */}
+              {userId && isMember && !isCreator && (
+                <button
+                  onClick={handleLeaveProject}
+                  className="w-full rounded-full bg-red-500 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-600 transition-colors"
+                >
+                  退出專案
+                </button>
+              )}
+
+              {/* 取消申請按鈕（有申請中的申請） */}
+              {userId && !isCreator && !isMember && pendingApplication && (
+                <button
+                  onClick={handleCancelApplication}
+                  className="w-full rounded-full bg-yellow-500 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-yellow-600 transition-colors"
+                >
+                  取消申請
+                </button>
+              )}
+
+              {/* 申請加入按鈕（沒有申請且不是成員） */}
+              {userId && !isCreator && !isMember && !pendingApplication && project.status === 'A' && project.missing_positions && project.missing_positions.length > 0 && (
+                <button
+                  onClick={() => router.push(`/project/${projectId}/apply`)}
+                  className="w-full rounded-full bg-[#eca382] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
+                >
+                  申請加入
                 </button>
               )}
               </div>

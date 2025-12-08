@@ -110,7 +110,16 @@ export default function Header() {
                   }}
                   className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-gray-800 hover:bg-amber-50"
                 >
-                  管理專案
+                  我的專案
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    router.push('/profile/projects_appling');
+                  }}
+                  className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-gray-800 hover:bg-amber-50"
+                >
+                  申請中的專案
                 </button>
                 <button
                   onClick={handleLogout}
