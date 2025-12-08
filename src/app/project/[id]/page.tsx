@@ -73,6 +73,8 @@ export default function ProjectDetailPage() {
   const [isMember, setIsMember] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [viewCount, setViewCount] = useState(0);
+  const [canApply, setCanApply] = useState(false);
+  const [pendingApplication, setPendingApplication] = useState<{ appli_id: number; target_seq: number } | null>(null);
 
   useEffect(() => {
     // 在客户端获取 userId
@@ -103,36 +105,35 @@ export default function ProjectDetailPage() {
       
       const projectData = await response.json();
       
-      // 檢查用戶是否已在專案中
-      const isUserCreator = userId && projectData.creator_id?.toString() === userId;
+      // 檢查用戶狀態
+      let userIsCreator = false;
       let userIsMember = false;
-      
+      let userCanApply = false;
+      let userPendingApplication: { appli_id: number; target_seq: number } | null = null;
+
       if (userId) {
-        // 首先檢查是否為專案成員（從 filled_positions 中查找）
-        if (projectData.filled_positions) {
-          userIsMember = projectData.filled_positions.some((pos: any) => 
-            pos.member_id?.toString() === userId
-          );
-        }
-        
-        // 如果還不是成員，檢查是否有已接受的申請
-        if (!userIsMember) {
-          try {
-            const memberResponse = await fetch(`/api/projects/${id}/apply?userId=${userId}`);
-            if (memberResponse.ok) {
-              const memberData = await memberResponse.json();
-              // 檢查是否有已接受的申請
-              userIsMember = memberData.applications?.some((app: any) => app.status === 'A') || false;
-            }
-          } catch (err) {
-            console.error('Error checking membership:', err);
+        const statusResponse = await fetch(`/api/projects/${id}/user-status?userId=${userId}`);
+        if (statusResponse.ok) {
+          const statusData = await statusResponse.json();
+          userIsCreator = statusData.isCreator;
+          userIsMember = statusData.isMember && statusData.memberStatus === 'Y';
+          userPendingApplication = statusData.pendingApplication;
+
+          if (!userIsCreator && !userIsMember && !userPendingApplication) {
+            // 檢查是否有空缺位置
+            const hasMissingPositions = projectData.missing_positions && projectData.missing_positions.length > 0;
+            // 檢查專案狀態是否為 'A'
+            const isActive = projectData.status === 'A';
+            userCanApply = hasMissingPositions && isActive;
           }
         }
       }
 
       setProject(projectData);
       setIsMember(userIsMember);
-      setIsCreator(isUserCreator || false);
+      setIsCreator(userIsCreator);
+      setCanApply(userCanApply);
+      setPendingApplication(userPendingApplication);
 
       // 獲取專案瀏覽次數
       try {
@@ -144,7 +145,7 @@ export default function ProjectDetailPage() {
           );
           setViewCount(projectViews.length);
         }
-      } catch (err) {
+    } catch (err) {
         console.error('Error fetching view count:', err);
       }
     } catch (err: any) {
@@ -152,6 +153,56 @@ export default function ProjectDetailPage() {
       setProject(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLeaveProject = async () => {
+    if (!userId || !projectId) return;
+
+    if (!confirm('確定要退出此專案嗎？')) return;
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/leave`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || '退出失敗');
+      }
+
+      alert('已成功退出專案');
+      setIsMember(false);
+      // 重新載入專案資料
+      fetchProjectDetail(projectId);
+    } catch (err: any) {
+      alert('退出失敗：' + (err.message || '未知錯誤'));
+    }
+  };
+
+  const handleCancelApplication = async () => {
+    if (!pendingApplication || !userId) return;
+    
+    if (!confirm('確定要取消申請嗎？')) return;
+
+    try {
+      const response = await fetch(`/api/applications/${pendingApplication.appli_id}/cancel`, {
+        method: 'PUT',
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || '取消申請失敗');
+      }
+
+      alert('申請已取消');
+      setPendingApplication(null);
+      // 重新載入專案資料
+      fetchProjectDetail(projectId);
+    } catch (err: any) {
+      alert('取消申請失敗：' + (err.message || '未知錯誤'));
     }
   };
 
@@ -216,7 +267,7 @@ export default function ProjectDetailPage() {
                 {project.song?.title && project.song_id ? (
                   <Link href={`/song/${project.song_id}`}>
                     <h3 className="text-xl font-bold text-gray-900 hover:text-[#eca382] hover:underline cursor-pointer transition-colors">
-                      {project.song.title}
+                    {project.song.title}
                     </h3>
                   </Link>
                 ) : (
@@ -225,11 +276,11 @@ export default function ProjectDetailPage() {
                 <div className="flex items-center gap-4 text-gray-600">
                   {project.song?.group && (
                     <span className="font-medium">
-                      {project.song.group.group_id ? (
+                  {project.song.group.group_id ? (
                         <Link href={`/group/${project.song.group.group_id}`} className="hover:text-[#eca382] hover:underline">
-                          {project.song.group.group_name}
-                        </Link>
-                      ) : (
+                      {project.song.group.group_name}
+                    </Link>
+                  ) : (
                         project.song.group.group_name
                       )}
                     </span>
@@ -276,23 +327,43 @@ export default function ProjectDetailPage() {
         </div>
 
 
-              {/* 申請加入按鈕 */}
-              {userId && !isCreator && !isMember && project.status === 'A' && project.missing_positions && project.missing_positions.length > 0 && (
-                <button
-                  onClick={() => router.push(`/project/${projectId}/apply`)}
-                  className="w-full rounded-full bg-[#eca382] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
-                >
-                  申請加入
-                </button>
-              )}
-
               {/* 管理專案按鈕（僅創建者） */}
-              {isCreator && (
+              {userId && isCreator && (
                 <button
                   onClick={() => router.push(`/project/manage/${projectId}`)}
                   className="w-full rounded-full bg-[#eca382] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
                 >
                   管理專案
+                </button>
+              )}
+
+              {/* 退出專案按鈕（成員但不是創建者） */}
+              {userId && isMember && !isCreator && (
+                <button
+                  onClick={handleLeaveProject}
+                  className="w-full rounded-full bg-red-500 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-600 transition-colors"
+                >
+                  退出專案
+                </button>
+              )}
+
+              {/* 取消申請按鈕（有申請中的申請） */}
+              {userId && !isCreator && !isMember && pendingApplication && (
+                <button
+                  onClick={handleCancelApplication}
+                  className="w-full rounded-full bg-yellow-500 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-yellow-600 transition-colors"
+                >
+                  取消申請
+                </button>
+              )}
+
+              {/* 申請加入按鈕（沒有申請且不是成員） */}
+              {userId && !isCreator && !isMember && !pendingApplication && canApply && (
+                <button
+                  onClick={() => router.push(`/project/${projectId}/apply`)}
+                  className="w-full rounded-full bg-[#eca382] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
+                >
+                  申請加入
                 </button>
               )}
               </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function ApplyProjectPage() {
   const router = useRouter();
@@ -36,21 +37,56 @@ export default function ApplyProjectPage() {
           const projectData = await projectResponse.json();
           setProject(projectData);
           
-          // 檢查用戶是否已經是專案成員
+          // 檢查是否是專案創建者
           const isCreator = projectData.creator_id?.toString() === userId;
-          const userIsMember = projectData.filled_positions?.some((pos: any) => 
-            pos.member_id?.toString() === userId
-          ) || false;
-          
-          setIsMember(isCreator || userIsMember);
-          
-          if (isCreator || userIsMember) {
-            setError('您已經加入此專案，無法再次申請');
+          if (isCreator) {
+            setError('您是專案創建者，無法申請');
+            setIsMember(true);
+            return;
+          }
+
+          // 檢查是否在 PROJECT_MEMBERS 中有記錄（無論狀態）
+          const { data: memberData } = await supabase
+            .from('project_members')
+            .select('status')
+            .eq('p_id', projectId)
+            .eq('member_id', userId)
+            .maybeSingle();
+
+          if (memberData) {
+            if (memberData.status === 'Y') {
+              setError('您已經加入此專案，無法再次申請');
+              setIsMember(true);
+              return;
+            } else if (memberData.status === 'N') {
+              setError('您曾經加入過此專案但已退出，無法再次申請');
+              setIsMember(true);
+              return;
+            }
+          }
+
+          // 檢查是否有狀態為 'W' 的申請
+          const { data: pendingApplication } = await supabase
+            .from('project_applications')
+            .select('appli_id')
+            .eq('p_id', projectId)
+            .eq('applicant_id', userId)
+            .eq('status', 'W')
+            .maybeSingle();
+
+          if (pendingApplication) {
+            setError('您目前有一筆申請正在等待主辦人回覆，請等待主辦人回覆');
+            setIsMember(true);
             return;
           }
           
           // 獲取空缺位置
           const missingPositions = projectData.missing_positions || [];
+          if (missingPositions.length === 0) {
+            setError('此位置沒有空缺');
+            return;
+          }
+
           setTargets(missingPositions.map((pos: any) => ({
             target_seq: pos.target_seq,
             idol_id: pos.idol_id,

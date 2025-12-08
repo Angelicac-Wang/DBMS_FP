@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { getStatusText, getStatusColor } from '@/lib/utils';
 
 interface Project {
@@ -46,210 +45,19 @@ export default function MyProjectsPage() {
   const fetchProjects = async (id: string) => {
     try {
       setLoading(true);
+      const response = await fetch(`/api/users/${id}/applications?filter=${filter}`);
 
-      // 獲取我申請的專案（只查詢狀態為 'W' 或 'R' 的申請）
-      const { data: applicationsData, error: appError } = await supabase
-        .from('project_applications')
-        .select('appli_id, p_id, target_seq, status, applied_time')
-        .eq('applicant_id', id)
-        .in('status', ['W', 'R'])
-        .order('applied_time', { ascending: false });
-
-      if (appError) {
-        console.error('Error fetching applications:', appError);
-        setProjects([]);
-        return;
+      if (!response.ok) {
+        throw new Error('Failed to fetch applications');
       }
 
-      if (!applicationsData || applicationsData.length === 0) {
-        setProjects([]);
-        return;
-      }
-
-      // 獲取所有申請對應的專案 ID
-      const projectIds = [...new Set(applicationsData.map(a => a.p_id))];
-      
-      // 批次查詢專案資訊
-      const { data: projectsData, error: projectsError } = await supabase
-        .from('project_agg_view')
-        .select('*')
-        .in('p_id', projectIds);
-
-      if (projectsError) {
-        console.error('Error fetching projects:', projectsError);
-        setProjects([]);
-        return;
-      }
-
-      if (!projectsData || projectsData.length === 0) {
-        setProjects([]);
-        return;
-      }
-
-      // 建立申請映射表（每個專案對應的申請資訊）
-      const applicationMap = new Map<number, {
-        appli_id: number;
-        status: string;
-        target_seq: number;
-        applied_time: string;
-      }>();
-      
-      applicationsData.forEach((app) => {
-        const pid = Number(app.p_id);
-        if (!Number.isNaN(pid)) {
-          // 如果同一個專案有多個申請，保留最新的
-          const existing = applicationMap.get(pid);
-          if (!existing || new Date(app.applied_time) > new Date(existing.applied_time)) {
-            applicationMap.set(pid, {
-              appli_id: app.appli_id,
-              status: app.status,
-              target_seq: app.target_seq,
-              applied_time: app.applied_time,
-            });
-          }
-        }
-      });
-
-      // 從已獲取的專案資料中提取歌曲 ID
-      const songIds = [...new Set(
-        projectsData.map(p => p.song_id).filter(Boolean)
-      )];
-
-      // 批次查詢所有專案的詳細資訊
-      const [
-        songGroupsData,
-        groupsData,
-        membersDataBatch
-      ] = await Promise.all([
-        // 批次查詢所有歌曲-團體關聯
-        songIds.length > 0
-          ? supabase
-              .from('song_group')
-              .select('song_id, group_id')
-              .in('song_id', songIds)
-          : Promise.resolve({ data: [], error: null }),
-        
-        // 批次查詢所有團體（在獲取 songGroups 後）
-        Promise.resolve().then(async () => {
-          if (songIds.length === 0) return { data: [], error: null };
-          
-          const { data: songGroups } = await supabase
-            .from('song_group')
-            .select('song_id, group_id')
-            .in('song_id', songIds);
-          
-          if (!songGroups || songGroups.length === 0) return { data: [], error: null };
-          
-          const groupIds = [...new Set(songGroups.map(sg => sg.group_id))];
-          return supabase
-            .from('kpop_groups')
-            .select('group_id, group_name')
-            .in('group_id', groupIds);
-        }),
-        
-        // 批次查詢所有成員
-        supabase
-          .from('project_members')
-          .select('p_id, member_id')
-          .in('p_id', projectIds)
-          .eq('status', 'Y')
-      ]);
-
-      // 獲取所有歌曲資訊
-      const songsInfoData = songIds.length > 0
-        ? await supabase
-            .from('kpop_songs')
-            .select('song_id, title')
-            .in('song_id', songIds)
-        : { data: [], error: null };
-
-      // 建立查找映射表
-      const projectSongMap = new Map(
-        projectsData
-          .map((p) => [Number(p.p_id), p.song_id] as const)
-          .filter(([id]) => !Number.isNaN(id))
-      );
-      
-      const songsMap = new Map(
-        (songsInfoData.data || []).map(s => [s.song_id, s])
-      );
-      
-      const songGroupsMap = new Map<number, number>();
-      (songGroupsData.data || []).forEach(sg => {
-        if (!songGroupsMap.has(sg.song_id)) {
-          songGroupsMap.set(sg.song_id, sg.group_id);
-        }
-      });
-      
-      const groupsMap = new Map(
-        (groupsData.data || []).map(g => [g.group_id, g])
-      );
-      
-      const membersCountMap = new Map<number, number>();
-      (membersDataBatch.data || []).forEach(m => {
-        const pid = Number(m.p_id);
-        if (!Number.isNaN(pid)) {
-          membersCountMap.set(pid, (membersCountMap.get(pid) || 0) + 1);
-        }
-      });
-      
-      // 組裝專案詳細資訊的函數
-      const getProjectDetails = (project: any) => {
-        const projectId = Number(project.p_id);
-        const songId = projectSongMap.get(projectId);
-        let songInfo = null;
-
-        if (songId) {
-          const song = songsMap.get(songId);
-          if (song) {
-            const groupId = songGroupsMap.get(songId);
-            const group = groupId ? groupsMap.get(groupId) : null;
-            songInfo = {
-              title: song.title,
-              group_name: group?.group_name || null
-            };
-          }
-        }
-
-        const memberCount =
-          membersCountMap.get(projectId) ??
-          Number(project.member_count ?? 0);
-
-        // 獲取申請資訊
-        const applicationInfo = applicationMap.get(projectId);
-
-        return {
-          song: songInfo,
-          member_count: memberCount || 0,
-          application_status: applicationInfo?.status || '',
-          application_id: applicationInfo?.appli_id,
-          target_seq: applicationInfo?.target_seq,
-          applied_time: applicationInfo?.applied_time,
-        };
-      };
-
-      // 組裝所有申請的專案
-      const allProjects = projectsData.map((project) => {
-        const details = getProjectDetails(project);
-        return { ...project, ...details };
-      });
-
-      // 排序：待回覆的優先，然後按申請時間降序
-      const sortedProjects = allProjects.sort((a, b) => {
-        const aIsWaiting = a.application_status === 'W' ? 1 : 0;
-        const bIsWaiting = b.application_status === 'W' ? 1 : 0;
-        if (aIsWaiting !== bIsWaiting) return bIsWaiting - aIsWaiting;
-        const aTime = a.applied_time ? new Date(a.applied_time).getTime() : 0;
-        const bTime = b.applied_time ? new Date(b.applied_time).getTime() : 0;
-        return bTime - aTime;
-      });
-
-      setAllProjects(sortedProjects);
-      
-      // 根據篩選條件過濾專案
-      applyFilter(sortedProjects, filter);
+      const data = await response.json();
+      setAllProjects(data);
+      setProjects(data);
     } catch (err) {
       console.error('Error fetching projects:', err);
+      setProjects([]);
+      setAllProjects([]);
     } finally {
       setLoading(false);
     }
@@ -293,12 +101,14 @@ export default function MyProjectsPage() {
     if (!confirm('確定要取消申請嗎？')) return;
 
     try {
-      const { error } = await supabase
-        .from('project_applications')
-        .update({ status: 'C' })
-        .eq('appli_id', applicationId);
+      const response = await fetch(`/api/applications/${applicationId}/cancel`, {
+        method: 'PUT',
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || '取消申請失敗');
+      }
 
       alert('申請已取消');
       
@@ -384,7 +194,7 @@ export default function MyProjectsPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h2 className="text-xl font-bold text-gray-800">{project.porject_title}</h2>
+                        <h2 className="text-xl font-bold text-gray-800">{project.porject_title}</h2>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
                         {getStatusText(project.status)}
                       </span>
@@ -416,12 +226,12 @@ export default function MyProjectsPage() {
                         取消申請
                       </button>
                     )}
-                    <button
-                      onClick={() => router.push(`/project/${project.p_id}`)}
-                      className="px-4 py-2 bg-[#eca382] text-white rounded-lg text-sm hover:bg-[#e08f6f]"
-                    >
+                        <button
+                          onClick={() => router.push(`/project/${project.p_id}`)}
+                          className="px-4 py-2 bg-[#eca382] text-white rounded-lg text-sm hover:bg-[#e08f6f]"
+                        >
                       查看專案
-                    </button>
+                      </button>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">

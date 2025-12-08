@@ -9,30 +9,52 @@ export async function POST(
     const { id: projectId } = await params;
     const { applicant_id, target_seq, message } = await request.json();
 
-    // 檢查用戶是否已經是該專案的成員
-    const memberCheck = await pool.query(
-      `SELECT p_id FROM project_members
-       WHERE p_id = $1 AND member_id = $2 AND status = 'Y'`,
+    // 檢查是否是專案創建者
+    const creatorCheck = await pool.query(
+      `SELECT creator_id FROM project
+       WHERE p_id = $1 AND creator_id = $2`,
       [projectId, applicant_id]
     );
 
-    if (memberCheck.rows.length > 0) {
+    if (creatorCheck.rows.length > 0) {
       return NextResponse.json(
-        { error: '您已經加入此專案，無法再次申請' },
+        { error: '您是專案創建者，無法申請' },
         { status: 400 }
       );
     }
 
-    // 檢查是否已經申請過
-    const existingCheck = await pool.query(
-      `SELECT appli_id FROM project_applications
-       WHERE p_id = $1 AND applicant_id = $2 AND target_seq = $3`,
-      [projectId, applicant_id, target_seq]
+    // 檢查用戶是否在 PROJECT_MEMBERS 中有記錄（無論狀態）
+    const memberCheck = await pool.query(
+      `SELECT status FROM project_members
+       WHERE p_id = $1 AND member_id = $2`,
+      [projectId, applicant_id]
     );
 
-    if (existingCheck.rows.length > 0) {
+    if (memberCheck.rows.length > 0) {
+      const memberStatus = memberCheck.rows[0].status;
+      if (memberStatus === 'Y') {
+        return NextResponse.json(
+          { error: '您已經加入此專案，無法再次申請' },
+          { status: 400 }
+        );
+      } else if (memberStatus === 'N') {
+        return NextResponse.json(
+          { error: '您曾經加入過此專案但已退出，無法再次申請' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 檢查是否有狀態為 'W' 的申請
+    const pendingApplicationCheck = await pool.query(
+      `SELECT appli_id FROM project_applications
+       WHERE p_id = $1 AND applicant_id = $2 AND status = 'W'`,
+      [projectId, applicant_id]
+    );
+
+    if (pendingApplicationCheck.rows.length > 0) {
       return NextResponse.json(
-        { error: '您已經申請過此位置了' },
+        { error: '您目前有一筆申請正在等待主辦人回覆，請等待主辦人回覆' },
         { status: 400 }
       );
     }
@@ -53,7 +75,7 @@ export async function POST(
 
     if (targetCheck.rows[0].status === 'F') {
       return NextResponse.json(
-        { error: '此位置已被填滿' },
+        { error: '此位置沒有空缺' },
         { status: 400 }
       );
     }
