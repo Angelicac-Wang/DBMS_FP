@@ -401,10 +401,6 @@ export default function ManageProjectPage() {
               <span className="text-gray-600">練習地點：</span>
               <span className="font-medium text-gray-800">{project.practice_location}</span>
             </div>
-            <div>
-              <span className="text-gray-600">拍攝地點：</span>
-              <span className="font-medium text-gray-800">{project.performance_location}</span>
-            </div>
           </div>
         </div>
 

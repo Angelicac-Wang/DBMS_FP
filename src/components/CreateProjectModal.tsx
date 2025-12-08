@@ -37,8 +37,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
     song_display: '',
     porject_title: '',
     practice_location: '',
-    performance_location: '',
-    discription: '',
+    description: '',
   });
 
   const [practiceSchedules, setPracticeSchedules] = useState<Array<{
@@ -399,11 +398,10 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
           porject_title: formData.porject_title,
           target_cnt: totalTargetCount,
           practice_location: formData.practice_location,
-          performance_location: formData.performance_location,
           create_at: now,
           update_at: now,
           status: 'A',
-          discription: formData.discription || null,
+          description: formData.description || null,
         });
 
       if (projectError) throw projectError;
@@ -467,8 +465,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
         song_display: '',
         porject_title: '',
         practice_location: '',
-        performance_location: '',
-        discription: '',
+        description: '',
       });
       setPracticeSchedules([]);
       setGroupIdols([]);
@@ -496,8 +493,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
       song_display: '',
       porject_title: '',
       practice_location: '',
-      performance_location: '',
-      discription: '',
+      description: '',
     });
     setPracticeSchedules([]);
     setGroupIdols([]);
@@ -618,21 +614,10 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">拍攝地點 *</label>
-                  <input
-                    type="text"
-                    value={formData.performance_location}
-                    onChange={(e) => setFormData({ ...formData, performance_location: e.target.value })}
-                    maxLength={50}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
-                    required
-                  />
-                </div>
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">專案描述</label>
                   <textarea
-                    value={formData.discription}
-                    onChange={(e) => setFormData({ ...formData, discription: e.target.value })}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     maxLength={500}
                     rows={4}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"

@@ -10,7 +10,6 @@ interface ProjectItem {
   p_id: number;
   porject_title: string;
   practice_location: string;
-  performance_location: string;
   status: string;
   creator_id?: number;
   creator_name?: string;
@@ -99,9 +98,14 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<ProjectItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterState>({ regions: [], months: [], groupTypes: [] });
   const [regionOptions, setRegionOptions] = useState<string[]>([]);
+  
+  const ITEMS_PER_PAGE = 50; // 每页加载50个项目
 
   const monthOptions = useMemo(() => nextFiveMonths(), []);
 
@@ -120,7 +124,7 @@ export default function ProjectsPage() {
       return;
     }
 
-    fetchProjects();
+    fetchProjects(true);
     fetchTopRegions();
     trackPageView('/projects', '舞告Match - 專案列表');
 
@@ -209,9 +213,19 @@ export default function ProjectsPage() {
     }
   };
 
-  const fetchProjects = async () => {
+  const fetchProjects = async (reset: boolean = false) => {
     try {
-      setLoading(true);
+      if (reset) {
+        setLoading(true);
+        setCurrentPage(0);
+        setHasMore(true);
+      } else {
+        setLoadingMore(true);
+      }
+      
+      const page = reset ? 0 : currentPage;
+      const from = page * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
       
       const { data: projectsData, error: projectsError } = await supabase
         .from('project')
@@ -219,7 +233,6 @@ export default function ProjectsPage() {
           p_id,
           porject_title,
           practice_location,
-          performance_location,
           status,
           song_id,
           creator_id,
@@ -228,140 +241,269 @@ export default function ProjectsPage() {
         `)
         .eq('status', 'A')
         .order('create_at', { ascending: false })
-        .limit(120);
+        .range(from, to);
 
       if (projectsError) throw projectsError;
 
-      const projectsWithDetails = await Promise.all(
-        (projectsData || []).map(async (project) => {
-          const { data: creator } = await supabase
-            .from('users')
-            .select('name')
-            .eq('u_id', project.creator_id)
-            .single();
+      // 檢查是否還有更多數據
+      if (!projectsData || projectsData.length < ITEMS_PER_PAGE) {
+        setHasMore(false);
+      }
 
-          const { data: schedules } = await supabase
-            .from('practice_schedule')
-            .select('date, start_time, end_time')
-            .eq('p_id', project.p_id)
-            .order('date', { ascending: true });
+      if (!projectsData || projectsData.length === 0) {
+        if (reset) {
+          setProjects([]);
+          setFilteredProjects([]);
+        }
+        setCurrentPage(page + 1);
+        return;
+      }
 
-          const { data: targets } = await supabase
-            .from('project_target')
-            .select('target_seq, idol_id, status')
-            .eq('project_id', project.p_id)
-            .eq('status', 'I');
+      const projectIds = projectsData.map(p => p.p_id);
+      const creatorIds = [...new Set(projectsData.map(p => p.creator_id).filter(Boolean))];
+      const songIds = [...new Set(projectsData.map(p => p.song_id).filter(Boolean))];
+      const userId = localStorage.getItem('userId');
 
-          const missingPositions: string[] = [];
-          if (targets && targets.length > 0) {
-            for (const target of targets) {
-              if (target.idol_id) {
-                const { data: idol } = await supabase
-                  .from('kpop_idols')
-                  .select('stage_name')
-                  .eq('idol_id', target.idol_id)
-                  .single();
-                
-                if (idol) {
-                  missingPositions.push(idol.stage_name);
-                } else {
-                  missingPositions.push(`位置 ${target.target_seq}`);
-                }
-              } else {
-                missingPositions.push(`伴舞 ${target.target_seq}`);
-              }
-            }
-          }
-
-          let songInfo = null;
-          let songThumbnail = '';
-          let groupLogoUrl = '';
-          if (project.song_id) {
-            const { data: song } = await supabase
+      // 批次查詢所有相關資料
+      const [
+        creatorsData,
+        schedulesData,
+        targetsData,
+        songsData,
+        songGroupsData,
+        groupsData,
+        memberChecksData
+      ] = await Promise.all([
+        // 批次查詢所有創建者
+        creatorIds.length > 0
+          ? supabase
+              .from('users')
+              .select('u_id, name')
+              .in('u_id', creatorIds)
+          : Promise.resolve({ data: [], error: null }),
+        
+        // 批次查詢所有練習時間表
+        supabase
+          .from('practice_schedule')
+          .select('p_id, date, start_time, end_time')
+          .in('p_id', projectIds)
+          .order('date', { ascending: true }),
+        
+        // 批次查詢所有目標位置
+        supabase
+          .from('project_target')
+          .select('project_id, target_seq, idol_id, status')
+          .in('project_id', projectIds)
+          .eq('status', 'I'),
+        
+        // 批次查詢所有歌曲
+        songIds.length > 0
+          ? supabase
               .from('kpop_songs')
-              .select('title, difficulty_level, youtube_original_url')
-              .eq('song_id', project.song_id)
-              .single();
-
-            if (song) {
-              // 提取 YouTube 縮圖
-              if (song.youtube_original_url) {
-                const youtubeIdMatch = song.youtube_original_url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
-                if (youtubeIdMatch) {
-                  songThumbnail = `https://img.youtube.com/vi/${youtubeIdMatch[1]}/hqdefault.jpg`;
-                }
-              }
-
-              const { data: songGroups } = await supabase
-                .from('song_group')
-                .select('group_id')
-                .eq('song_id', project.song_id)
-                .limit(1);
-
-              let groupName = null;
-              let groupType = null;
-              if (songGroups && songGroups.length > 0) {
-                const { data: group } = await supabase
-                  .from('kpop_groups')
-                  .select('group_name, group_type, logo_image')
-                  .eq('group_id', songGroups[0].group_id)
-                  .single();
-                
-                if (group) {
-                  groupName = group.group_name;
-                  groupType = group.group_type;
-                  if (group.logo_image) {
-                    groupLogoUrl = group.logo_image;
-                  }
-                }
-              }
-
-              songInfo = {
-                title: song.title,
-                difficulty_level: song.difficulty_level,
-                group: groupName ? { group_name: groupName, group_type: groupType || undefined } : undefined,
-              };
-            }
-          }
-
-          let userIsMember = false;
-          const userId = localStorage.getItem('userId');
-          if (userId) {
-            const { data: memberCheck } = await supabase
+              .select('song_id, title, difficulty_level, youtube_original_url')
+              .in('song_id', songIds)
+          : Promise.resolve({ data: [], error: null }),
+        
+        // 批次查詢所有歌曲-團體關聯
+        songIds.length > 0
+          ? supabase
+              .from('song_group')
+              .select('song_id, group_id')
+              .in('song_id', songIds)
+          : Promise.resolve({ data: [], error: null }),
+        
+        // 批次查詢所有團體（如果有 songGroups）
+        Promise.resolve().then(async () => {
+          if (songIds.length === 0) return { data: [], error: null };
+          const { data: songGroups } = await supabase
+            .from('song_group')
+            .select('song_id, group_id')
+            .in('song_id', songIds);
+          
+          if (!songGroups || songGroups.length === 0) return { data: [], error: null };
+          
+          const groupIds = [...new Set(songGroups.map(sg => sg.group_id))];
+          return supabase
+            .from('kpop_groups')
+            .select('group_id, group_name, group_type, logo_image')
+            .in('group_id', groupIds);
+        }),
+        
+        // 批次查詢用戶是否為成員（如果已登入）
+        userId
+          ? supabase
               .from('project_members')
-              .select('member_id')
-              .eq('p_id', project.p_id)
+              .select('p_id, member_id')
+              .in('p_id', projectIds)
               .eq('member_id', userId)
               .eq('status', 'Y')
-              .single();
-            userIsMember = !!memberCheck;
-          }
+          : Promise.resolve({ data: [], error: null })
+      ]);
 
-          const region = getRegionFromLocation(project.practice_location);
+      // 批次查詢所有偶像（從 targets 中提取）
+      const idolIds = targetsData.data
+        ? [...new Set(targetsData.data.map(t => t.idol_id).filter(Boolean))]
+        : [];
+      
+      const idolsData = idolIds.length > 0
+        ? await supabase
+            .from('kpop_idols')
+            .select('idol_id, stage_name')
+            .in('idol_id', idolIds)
+        : { data: [], error: null };
 
-          return {
-            ...project,
-            practice_schedules: schedules || [],
-            practiceMonthRange: formatPracticeMonthRange(schedules || []),
-            missing_positions: missingPositions,
-            song: songInfo || undefined,
-            region,
-            practice_location: project.practice_location,
-            creator_id: project.creator_id,
-            creator_name: creator?.name || '舞者',
-            is_member: userIsMember,
-            songThumbnail: songThumbnail || undefined,
-            groupLogoUrl: groupLogoUrl || undefined,
-          };
-        })
+      // 建立查找映射表
+      const creatorsMap = new Map(
+        (creatorsData.data || []).map(c => [c.u_id, c.name])
+      );
+      
+      const schedulesMap = new Map<number, Array<{ date: string; start_time: string; end_time: string }>>();
+      (schedulesData.data || []).forEach(schedule => {
+        if (!schedulesMap.has(schedule.p_id)) {
+          schedulesMap.set(schedule.p_id, []);
+        }
+        schedulesMap.get(schedule.p_id)!.push({
+          date: schedule.date,
+          start_time: schedule.start_time,
+          end_time: schedule.end_time
+        });
+      });
+      
+      const targetsMap = new Map<number, Array<{ target_seq: number; idol_id: number | null; status: string }>>();
+      (targetsData.data || []).forEach(target => {
+        if (!targetsMap.has(target.project_id)) {
+          targetsMap.set(target.project_id, []);
+        }
+        targetsMap.get(target.project_id)!.push({
+          target_seq: target.target_seq,
+          idol_id: target.idol_id,
+          status: target.status
+        });
+      });
+      
+      const idolsMap = new Map(
+        (idolsData.data || []).map(i => [i.idol_id, i.stage_name])
+      );
+      
+      const songsMap = new Map(
+        (songsData.data || []).map(s => [s.song_id, s])
+      );
+      
+      const songGroupsMap = new Map<number, number>();
+      (songGroupsData.data || []).forEach(sg => {
+        // 每個歌曲只取第一個團體
+        if (!songGroupsMap.has(sg.song_id)) {
+          songGroupsMap.set(sg.song_id, sg.group_id);
+        }
+      });
+      
+      const groupsMap = new Map(
+        (groupsData.data || []).map(g => [g.group_id, g])
+      );
+      
+      const memberSet = new Set(
+        (memberChecksData.data || []).map(m => m.p_id)
       );
 
-      setProjects(projectsWithDetails);
-      setFilteredProjects(projectsWithDetails);
+      // 組裝專案資料
+      const projectsWithDetails = projectsData.map((project) => {
+        const schedules = schedulesMap.get(project.p_id) || [];
+        const targets = targetsMap.get(project.p_id) || [];
+        
+        // 處理缺的位置
+        const missingPositions: string[] = [];
+        targets.forEach(target => {
+          if (target.idol_id) {
+            const idolName = idolsMap.get(target.idol_id);
+            if (idolName) {
+              missingPositions.push(idolName);
+            } else {
+              missingPositions.push(`位置 ${target.target_seq}`);
+            }
+          } else {
+            missingPositions.push(`伴舞 ${target.target_seq}`);
+          }
+        });
+
+        // 處理歌曲資訊
+        let songInfo = null;
+        let songThumbnail = '';
+        let groupLogoUrl = '';
+        
+        if (project.song_id) {
+          const song = songsMap.get(project.song_id);
+          if (song) {
+            // 提取 YouTube 縮圖
+            if (song.youtube_original_url) {
+              const youtubeIdMatch = song.youtube_original_url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
+              if (youtubeIdMatch) {
+                songThumbnail = `https://img.youtube.com/vi/${youtubeIdMatch[1]}/hqdefault.jpg`;
+              }
+            }
+
+            const groupId = songGroupsMap.get(project.song_id);
+            let groupName = null;
+            let groupType = null;
+            
+            if (groupId) {
+              const group = groupsMap.get(groupId);
+              if (group) {
+                groupName = group.group_name;
+                groupType = group.group_type;
+                // 過濾掉 kprofiles.com 的 URL，因為它們會返回 403
+                if (group.logo_image && !group.logo_image.includes('kprofiles.com')) {
+                  groupLogoUrl = group.logo_image;
+                }
+              }
+            }
+
+            songInfo = {
+              title: song.title,
+              difficulty_level: song.difficulty_level,
+              group: groupName ? { group_name: groupName, group_type: groupType || undefined } : undefined,
+            };
+          }
+        }
+
+        const userIsMember = userId ? memberSet.has(project.p_id) : false;
+        const region = getRegionFromLocation(project.practice_location);
+
+        return {
+          ...project,
+          practice_schedules: schedules,
+          practiceMonthRange: formatPracticeMonthRange(schedules),
+          missing_positions: missingPositions,
+          song: songInfo || undefined,
+          region,
+          practice_location: project.practice_location,
+          creator_id: project.creator_id,
+          creator_name: creatorsMap.get(project.creator_id) || '舞者',
+          is_member: userIsMember,
+          songThumbnail: songThumbnail || undefined,
+          groupLogoUrl: groupLogoUrl || undefined,
+        };
+      });
+
+      if (reset) {
+        setProjects(projectsWithDetails);
+        setFilteredProjects(projectsWithDetails);
+      } else {
+        setProjects((prev) => [...prev, ...projectsWithDetails]);
+        setFilteredProjects((prev) => [...prev, ...projectsWithDetails]);
+      }
+      
+      setCurrentPage(page + 1);
     } catch (error) {
       console.error('Error fetching projects:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchProjects(false);
     }
   };
 
@@ -518,18 +660,40 @@ export default function ProjectsPage() {
                   <div className="px-4 pt-4">
                     <div className="rounded-lg overflow-hidden shadow-sm">
                       <img
-                        src={project.songThumbnail || project.groupLogoUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+'}
+                        src={(() => {
+                          // 優先使用 YouTube 縮圖，但如果 groupLogoUrl 是 kprofiles.com，直接使用占位圖
+                          if (project.songThumbnail) {
+                            return project.songThumbnail;
+                          }
+                          if (project.groupLogoUrl && !project.groupLogoUrl.includes('kprofiles.com')) {
+                            return project.groupLogoUrl;
+                          }
+                          return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+';
+                        })()}
                         alt={project.song?.title || '歌曲縮圖'}
                         className="w-full h-48 object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           const currentSrc = target.src;
-                          // 如果當前是 YouTube 縮圖且失敗，嘗試使用團體 logo
-                          if (currentSrc.includes('youtube.com') && project.groupLogoUrl) {
+                          const placeholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+';
+                          
+                          // 如果已經是占位圖，不要再嘗試
+                          if (currentSrc === placeholder) {
+                            return;
+                          }
+                          
+                          // 如果當前是 kprofiles.com 的 URL，直接使用占位圖
+                          if (currentSrc.includes('kprofiles.com')) {
+                            target.src = placeholder;
+                            return;
+                          }
+                          
+                          // 如果當前是 YouTube 縮圖且失敗，嘗試使用團體 logo（但排除 kprofiles.com）
+                          if (currentSrc.includes('youtube.com') && project.groupLogoUrl && !project.groupLogoUrl.includes('kprofiles.com')) {
                             target.src = project.groupLogoUrl;
                           } else {
-                            // 如果團體 logo 也失敗或沒有，使用全黑圖片
-                            target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+';
+                            // 如果團體 logo 也失敗或沒有，使用占位圖
+                            target.src = placeholder;
                           }
                         }}
                       />
@@ -600,6 +764,33 @@ export default function ProjectsPage() {
               ))}
             </div>
           )}
+
+          {/* 載入更多按鈕 */}
+          {!loading && filteredProjects.length > 0 && hasMore && (
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="rounded-full bg-[#eca382] px-8 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingMore ? (
+                  <span className="flex items-center gap-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    載入中...
+                  </span>
+                ) : (
+                  '載入更多專案'
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* 顯示總數 */}
+          {!loading && filteredProjects.length > 0 && !hasMore && (
+            <div className="mt-8 text-center text-sm text-gray-600">
+              已顯示所有 {filteredProjects.length} 個專案
+            </div>
+          )}
         </section>
       </main>
 
@@ -607,7 +798,7 @@ export default function ProjectsPage() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={() => {
-          fetchProjects();
+          fetchProjects(true);
           fetchTopRegions();
         }}
       />

@@ -187,8 +187,8 @@ export default function UploadProjectPage() {
 
         <div className="bg-white rounded-xl shadow-md p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-800 mb-2">{project.porject_title}</h2>
-          {project.discription && (
-            <p className="text-gray-600">{project.discription}</p>
+          {project.description && (
+            <p className="text-gray-600 whitespace-pre-line">{project.description}</p>
           )}
         </div>
 

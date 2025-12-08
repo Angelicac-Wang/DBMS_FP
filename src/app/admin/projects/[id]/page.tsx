@@ -9,13 +9,12 @@ import Link from 'next/link';
 interface Project {
   p_id: number;
   porject_title: string;
-  discription?: string;
+  description?: string;
   creator_id: number;
   song_id?: number;
   target_cnt: number;
   status: string;
   practice_location?: string;
-  performance_location?: string;
   create_at: string;
   update_at?: string;
 }
@@ -312,10 +311,10 @@ export default function ProjectDetailPage() {
             <span className="text-sm text-gray-600">專案標題</span>
             <p className="text-lg font-medium text-gray-900">{project.porject_title}</p>
           </div>
-          {project.discription && (
+          {project.description && (
             <div className="md:col-span-2">
               <span className="text-sm text-gray-600">描述</span>
-              <p className="text-lg font-medium text-gray-900 mt-1">{project.discription}</p>
+              <p className="text-lg font-medium text-gray-900 mt-1">{project.description}</p>
             </div>
           )}
           <div>
@@ -346,12 +345,6 @@ export default function ProjectDetailPage() {
             <div>
               <span className="text-sm text-gray-600">練習地點</span>
               <p className="text-lg font-medium text-gray-900">{project.practice_location}</p>
-            </div>
-          )}
-          {project.performance_location && (
-            <div>
-              <span className="text-sm text-gray-600">拍攝地點</span>
-              <p className="text-lg font-medium text-gray-900">{project.performance_location}</p>
             </div>
           )}
           <div>

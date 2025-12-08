@@ -15,7 +15,6 @@ interface ProjectCardProps {
     p_id: number;
     porject_title: string;
     practice_location: string;
-    performance_location: string;
     status: string;
     creator_id?: number;
     is_member?: boolean;
@@ -126,17 +125,6 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           <div className="text-gray-700 text-sm font-medium pl-8">{project.practice_location}</div>
         </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-full bg-[#fff2e6] flex items-center justify-center">
-              <svg className="w-4 h-4 text-[#eca382]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <span className="font-semibold text-gray-800 text-sm">拍攝</span>
-          </div>
-          <div className="text-gray-700 text-sm font-medium pl-8 line-clamp-2">{project.performance_location}</div>
-        </div>
       </div>
 
       {/* Footer */}

@@ -12,7 +12,6 @@ interface Project {
   create_at: string;
   update_at: string;
   practice_location: string;
-  performance_location: string;
   target_cnt: number;
   creator_id: number;
   song?: {
@@ -54,37 +53,164 @@ export default function MyProjectsPage() {
         .eq('creator_id', id)
         .order('create_at', { ascending: false });
 
-      if (createdData) {
-        createdProjects = await Promise.all(
-          createdData.map(async (project) => {
-            const details = await getProjectDetails(project.p_id);
-            return { ...project, ...details };
-          })
-        );
-      }
-
       // 獲取我參與的專案
       const { data: membersData } = await supabase
         .from('project_members')
         .select('p_id')
         .eq('member_id', id);
 
+      let joinedData: any[] = [];
       if (membersData && membersData.length > 0) {
         const projectIds = membersData.map((m) => m.p_id);
-        const { data: joinedData } = await supabase
+        const { data } = await supabase
           .from('project')
           .select('*')
           .in('p_id', projectIds)
           .order('create_at', { ascending: false });
+        joinedData = data || [];
+      }
 
-        if (joinedData) {
-          joinedProjects = await Promise.all(
-            joinedData.map(async (project) => {
-              const details = await getProjectDetails(project.p_id);
-              return { ...project, ...details };
-            })
-          );
+      // 合併所有專案
+      const allProjects = [
+        ...(createdData || []),
+        ...joinedData
+      ];
+      const uniqueProjectIds = [...new Set(allProjects.map(p => p.p_id))];
+
+      if (uniqueProjectIds.length === 0) {
+        setProjects([]);
+        return;
+      }
+
+      // 從已獲取的專案資料中提取歌曲 ID
+      const songIds = [...new Set(
+        allProjects.map(p => p.song_id).filter(Boolean)
+      )];
+
+      // 批次查詢所有專案的詳細資訊
+      const [
+        songGroupsData,
+        groupsData,
+        membersDataBatch,
+        applicationsDataBatch
+      ] = await Promise.all([
+        // 批次查詢所有歌曲-團體關聯
+        songIds.length > 0
+          ? supabase
+              .from('song_group')
+              .select('song_id, group_id')
+              .in('song_id', songIds)
+          : Promise.resolve({ data: [], error: null }),
+        
+        // 批次查詢所有團體（在獲取 songGroups 後）
+        Promise.resolve().then(async () => {
+          if (songIds.length === 0) return { data: [], error: null };
+          
+          const { data: songGroups } = await supabase
+            .from('song_group')
+            .select('song_id, group_id')
+            .in('song_id', songIds);
+          
+          if (!songGroups || songGroups.length === 0) return { data: [], error: null };
+          
+          const groupIds = [...new Set(songGroups.map(sg => sg.group_id))];
+          return supabase
+            .from('kpop_groups')
+            .select('group_id, group_name')
+            .in('group_id', groupIds);
+        }),
+        
+        // 批次查詢所有成員
+        supabase
+          .from('project_members')
+          .select('p_id, member_id')
+          .in('p_id', uniqueProjectIds)
+          .eq('status', 'Y'),
+        
+        // 批次查詢所有申請
+        supabase
+          .from('project_applications')
+          .select('p_id, appli_id')
+          .in('p_id', uniqueProjectIds)
+          .eq('status', 'W')
+      ]);
+
+      // 獲取所有歌曲資訊
+      const songsInfoData = songIds.length > 0
+        ? await supabase
+            .from('kpop_songs')
+            .select('song_id, title')
+            .in('song_id', songIds)
+        : { data: [], error: null };
+
+      // 建立查找映射表
+      const projectSongMap = new Map(
+        allProjects.map(p => [p.p_id, p.song_id])
+      );
+      
+      const songsMap = new Map(
+        (songsInfoData.data || []).map(s => [s.song_id, s])
+      );
+      
+      const songGroupsMap = new Map<number, number>();
+      (songGroupsData.data || []).forEach(sg => {
+        if (!songGroupsMap.has(sg.song_id)) {
+          songGroupsMap.set(sg.song_id, sg.group_id);
         }
+      });
+      
+      const groupsMap = new Map(
+        (groupsData.data || []).map(g => [g.group_id, g])
+      );
+      
+      const membersCountMap = new Map<number, number>();
+      (membersDataBatch.data || []).forEach(m => {
+        membersCountMap.set(m.p_id, (membersCountMap.get(m.p_id) || 0) + 1);
+      });
+      
+      const applicationsCountMap = new Map<number, number>();
+      (applicationsDataBatch.data || []).forEach(a => {
+        applicationsCountMap.set(a.p_id, (applicationsCountMap.get(a.p_id) || 0) + 1);
+      });
+
+      // 組裝專案詳細資訊的函數
+      const getProjectDetails = (projectId: number) => {
+        const songId = projectSongMap.get(projectId);
+        let songInfo = null;
+
+        if (songId) {
+          const song = songsMap.get(songId);
+          if (song) {
+            const groupId = songGroupsMap.get(songId);
+            const group = groupId ? groupsMap.get(groupId) : null;
+            songInfo = {
+              title: song.title,
+              group_name: group?.group_name || null
+            };
+          }
+        }
+
+        return {
+          song: songInfo,
+          member_count: membersCountMap.get(projectId) || 0,
+          application_count: applicationsCountMap.get(projectId) || 0,
+        };
+      };
+
+      // 組裝創建的專案
+      if (createdData) {
+        createdProjects = createdData.map((project) => {
+          const details = getProjectDetails(project.p_id);
+          return { ...project, ...details };
+        });
+      }
+
+      // 組裝參與的專案
+      if (joinedData.length > 0) {
+        joinedProjects = joinedData.map((project) => {
+          const details = getProjectDetails(project.p_id);
+          return { ...project, ...details };
+        });
       }
 
       // 根據篩選條件合併專案
@@ -108,64 +234,6 @@ export default function MyProjectsPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const getProjectDetails = async (projectId: number) => {
-    // 獲取歌曲資訊
-    let songInfo = null;
-    const { data: projectData } = await supabase
-      .from('project')
-      .select('song_id')
-      .eq('p_id', projectId)
-      .single();
-
-    if (projectData?.song_id) {
-      const { data: song } = await supabase
-        .from('kpop_songs')
-        .select('title')
-        .eq('song_id', projectData.song_id)
-        .single();
-
-      if (song) {
-        const { data: songGroups } = await supabase
-          .from('song_group')
-          .select('group_id')
-          .eq('song_id', projectData.song_id)
-          .limit(1);
-
-        let groupName = null;
-        if (songGroups && songGroups.length > 0) {
-          const { data: group } = await supabase
-            .from('kpop_groups')
-            .select('group_name')
-            .eq('group_id', songGroups[0].group_id)
-            .single();
-
-          if (group) groupName = group.group_name;
-        }
-
-        songInfo = { title: song.title, group_name: groupName };
-      }
-    }
-
-    // 獲取成員數量
-    const { data: members } = await supabase
-      .from('project_members')
-      .select('member_id')
-      .eq('p_id', projectId);
-
-    // 獲取申請數量
-    const { data: applications } = await supabase
-      .from('project_applications')
-      .select('appli_id')
-      .eq('p_id', projectId)
-      .eq('status', 'W');
-
-    return {
-      song: songInfo,
-      member_count: members?.length || 0,
-      application_count: applications?.length || 0,
-    };
   };
 
   useEffect(() => {
@@ -302,10 +370,6 @@ export default function MyProjectsPage() {
                   <div>
                     <span className="text-gray-600">練習地點：</span>
                     <span className="text-gray-800">{project.practice_location}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">拍攝地點：</span>
-                    <span className="text-gray-800">{project.performance_location}</span>
                   </div>
                 </div>
               </div>

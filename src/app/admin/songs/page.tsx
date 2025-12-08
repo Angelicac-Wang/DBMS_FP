@@ -61,33 +61,57 @@ export default function SongsPage() {
 
       if (error) throw error;
 
-      // 獲取每首歌的團體資訊
-      const songsWithGroups = await Promise.all(
-        (songsData || []).map(async (song) => {
-          const { data: songGroups } = await supabase
-            .from('song_group')
-            .select('group_id')
-            .eq('song_id', song.song_id);
+      if (!songsData || songsData.length === 0) {
+        setSongs([]);
+        return;
+      }
 
-          let groupNames: string[] = [];
-          if (songGroups && songGroups.length > 0) {
-            const groupIds = songGroups.map(sg => sg.group_id);
-            const { data: groups } = await supabase
-              .from('kpop_groups')
-              .select('group_name')
-              .in('group_id', groupIds);
+      // 批量獲取所有歌曲的團體資訊（優化：減少查詢次數）
+      const songIds = songsData.map(s => s.song_id);
+      
+      // 一次性獲取所有 song_group 關聯
+      const { data: allSongGroups, error: sgError } = await supabase
+        .from('song_group')
+        .select('song_id, group_id')
+        .in('song_id', songIds);
 
-            if (groups) {
-              groupNames = groups.map(g => g.group_name);
-            }
+      if (sgError) throw sgError;
+
+      // 獲取所有相關的 group_id
+      const groupIds = [...new Set((allSongGroups || []).map(sg => sg.group_id))];
+      
+      // 一次性獲取所有團體名稱
+      let groupsMap = new Map<number, string>();
+      if (groupIds.length > 0) {
+        const { data: groupsData, error: groupsError } = await supabase
+          .from('kpop_groups')
+          .select('group_id, group_name')
+          .in('group_id', groupIds);
+
+        if (groupsError) throw groupsError;
+        
+        if (groupsData) {
+          groupsMap = new Map(groupsData.map(g => [g.group_id, g.group_name]));
+        }
+      }
+
+      // 建立 song_id 到 group_names 的映射
+      const songGroupsMap = new Map<number, string[]>();
+      (allSongGroups || []).forEach(sg => {
+        const groupName = groupsMap.get(sg.group_id);
+        if (groupName) {
+          if (!songGroupsMap.has(sg.song_id)) {
+            songGroupsMap.set(sg.song_id, []);
           }
+          songGroupsMap.get(sg.song_id)!.push(groupName);
+        }
+      });
 
-          return {
-            ...song,
-            groups: groupNames,
-          };
-        })
-      );
+      // 組裝最終結果
+      const songsWithGroups = songsData.map(song => ({
+        ...song,
+        groups: songGroupsMap.get(song.song_id) || [],
+      }));
 
       // 如果有篩選團體，過濾結果
       let filteredSongs = songsWithGroups;

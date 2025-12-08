@@ -98,101 +98,168 @@ export default function Home() {
       setLoadingNewest(true);
       const { data: projectsData, error } = await supabase
         .from('project')
-        .select('p_id, porject_title, target_cnt, practice_location, performance_location, song_id, create_at, creator_id')
+        .select('p_id, porject_title, target_cnt, practice_location, song_id, create_at, creator_id')
         .eq('status', 'A')
         .order('create_at', { ascending: false })
         .limit(8);
 
       if (error) throw error;
 
-      const projectsWithDetails = await Promise.all(
-        (projectsData || []).map(async (project) => {
-          let songTitle = '未命名歌曲';
-          let groupName = '未知團體';
-          let thumbnail = '';
-          let groupLogoUrl = '';
-          let practiceMonthRange = '待定';
+      if (!projectsData || projectsData.length === 0) {
+        setNewestProjects([]);
+        return;
+      }
 
-          if (project.song_id) {
-            const { data: song } = await supabase
+      const projectIds = projectsData.map(p => p.p_id);
+      const creatorIds = [...new Set(projectsData.map(p => p.creator_id).filter(Boolean))];
+      const songIds = [...new Set(projectsData.map(p => p.song_id).filter(Boolean))];
+
+      // 批次查詢所有相關資料
+      const [
+        creatorsData,
+        schedulesData,
+        memberCountsData,
+        songsData,
+        songGroupsData
+      ] = await Promise.all([
+        // 批次查詢所有創建者
+        creatorIds.length > 0
+          ? supabase
+              .from('users')
+              .select('u_id, name')
+              .in('u_id', creatorIds)
+          : Promise.resolve({ data: [], error: null }),
+        
+        // 批次查詢所有練習時間表
+        supabase
+          .from('practice_schedule')
+          .select('p_id, date')
+          .in('p_id', projectIds),
+        
+        // 批次查詢所有成員數量
+        supabase
+          .from('project_members')
+          .select('p_id')
+          .in('p_id', projectIds)
+          .eq('status', 'Y'),
+        
+        // 批次查詢所有歌曲
+        songIds.length > 0
+          ? supabase
               .from('kpop_songs')
-              .select('title, youtube_original_url')
-              .eq('song_id', project.song_id)
-              .single();
+              .select('song_id, title, youtube_original_url')
+              .in('song_id', songIds)
+          : Promise.resolve({ data: [], error: null }),
+        
+        // 批次查詢所有歌曲-團體關聯
+        songIds.length > 0
+          ? supabase
+              .from('song_group')
+              .select('song_id, group_id')
+              .in('song_id', songIds)
+          : Promise.resolve({ data: [], error: null })
+      ]);
 
-            if (song?.title) songTitle = song.title;
-            const youtubeId = extractYoutubeId(song?.youtube_original_url);
+      // 批次查詢所有團體
+      let groupsData = { data: [], error: null };
+      if (songGroupsData.data && songGroupsData.data.length > 0) {
+        const groupIds = [...new Set(songGroupsData.data.map(sg => sg.group_id))];
+        if (groupIds.length > 0) {
+          groupsData = await supabase
+            .from('kpop_groups')
+            .select('group_id, group_name, logo_image')
+            .in('group_id', groupIds);
+        }
+      }
+
+      // 建立查找映射表
+      const creatorsMap = new Map(
+        (creatorsData.data || []).map(c => [c.u_id, c.name])
+      );
+      
+      const schedulesMap = new Map<number, Array<{ date: string }>>();
+      (schedulesData.data || []).forEach(schedule => {
+        if (!schedulesMap.has(schedule.p_id)) {
+          schedulesMap.set(schedule.p_id, []);
+        }
+        schedulesMap.get(schedule.p_id)!.push({ date: schedule.date });
+      });
+      
+      const memberCountsMap = new Map<number, number>();
+      (memberCountsData.data || []).forEach(member => {
+        memberCountsMap.set(member.p_id, (memberCountsMap.get(member.p_id) || 0) + 1);
+      });
+      
+      const songsMap = new Map(
+        (songsData.data || []).map(s => [s.song_id, s])
+      );
+      
+      const songGroupsMap = new Map<number, number>();
+      (songGroupsData.data || []).forEach(sg => {
+        // 每個歌曲只取第一個團體
+        if (!songGroupsMap.has(sg.song_id)) {
+          songGroupsMap.set(sg.song_id, sg.group_id);
+        }
+      });
+      
+      const groupsMap = new Map(
+        (groupsData.data || []).map(g => [g.group_id, g])
+      );
+
+      // 組裝專案資料
+      const projectsWithDetails = projectsData.map((project) => {
+        let songTitle = '未命名歌曲';
+        let groupName = '未知團體';
+        let thumbnail = '';
+        let groupLogoUrl = '';
+        const schedules = schedulesMap.get(project.p_id) || [];
+        const practiceMonthRange = schedules.length > 0 ? formatPracticeMonthRange(schedules) : '待定';
+        const memberCount = memberCountsMap.get(project.p_id) || 0;
+
+        if (project.song_id) {
+          const song = songsMap.get(project.song_id);
+          if (song) {
+            songTitle = song.title || '未命名歌曲';
+            const youtubeId = extractYoutubeId(song.youtube_original_url);
             if (youtubeId) {
               thumbnail = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
             }
 
-              const { data: songGroups } = await supabase
-                .from('song_group')
-                .select('group_id')
-                .eq('song_id', project.song_id)
-                .limit(1);
-
-            if (songGroups?.length) {
-                const { data: group } = await supabase
-                  .from('kpop_groups')
-                .select('group_name, logo_image')
-                  .eq('group_id', songGroups[0].group_id)
-                  .single();
-              if (group?.group_name) groupName = group.group_name;
-              if (group?.logo_image) {
-                groupLogoUrl = group.logo_image;
-              }
-              // 如果沒有 YouTube 縮圖，使用團體 logo
-              if (!thumbnail && groupLogoUrl) {
-                thumbnail = groupLogoUrl;
+            const groupId = songGroupsMap.get(project.song_id);
+            if (groupId) {
+              const group = groupsMap.get(groupId);
+              if (group) {
+                groupName = group.group_name || '未知團體';
+                // 過濾掉 kprofiles.com 的 URL，因為它們會返回 403
+                if (group.logo_image && !group.logo_image.includes('kprofiles.com')) {
+                  groupLogoUrl = group.logo_image;
+                }
+                // 如果沒有 YouTube 縮圖，使用團體 logo（已過濾 kprofiles.com）
+                if (!thumbnail && groupLogoUrl) {
+                  thumbnail = groupLogoUrl;
+                }
               }
             }
           }
+        }
 
-          const { data: schedules } = await supabase
-            .from('practice_schedule')
-            .select('date')
-            .eq('p_id', project.p_id);
+        const creatorName = creatorsMap.get(project.creator_id) || '舞者';
 
-          if (schedules) {
-            practiceMonthRange = formatPracticeMonthRange(schedules);
-          }
-
-          const { count: memberCount } = await supabase
-              .from('project_members')
-            .select('*', { count: 'exact', head: true })
-              .eq('p_id', project.p_id)
-            .eq('status', 'Y');
-
-          // 獲取發文者名稱
-          let creatorName = '舞者';
-          if (project.creator_id) {
-            const { data: creator } = await supabase
-              .from('users')
-              .select('name')
-              .eq('u_id', project.creator_id)
-              .single();
-            if (creator?.name) {
-              creatorName = creator.name;
-            }
-          }
-
-          return {
-            id: project.p_id,
-            title: project.porject_title,
-            songTitle,
-            groupName,
-            region: project.practice_location || '未指定',
-            targetCount: project.target_cnt ?? 0,
-            memberCount: memberCount || 0,
-            thumbnail: thumbnail || groupLogoUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+',
-            groupLogoUrl: groupLogoUrl || undefined,
-            practiceMonthRange,
-            createdAt: project.create_at,
-            creatorName,
-          };
-        })
-      );
+        return {
+          id: project.p_id,
+          title: project.porject_title,
+          songTitle,
+          groupName,
+          region: project.practice_location || '未指定',
+          targetCount: project.target_cnt ?? 0,
+          memberCount,
+          thumbnail: thumbnail || groupLogoUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+',
+          groupLogoUrl: groupLogoUrl || undefined,
+          practiceMonthRange,
+          createdAt: project.create_at,
+          creatorName,
+        };
+      });
 
       setNewestProjects(projectsWithDetails);
     } catch (err) {
@@ -304,12 +371,25 @@ export default function Home() {
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         const currentSrc = target.src;
-                        // 如果當前是 YouTube 縮圖且失敗，嘗試使用團體 logo
-                        if (currentSrc.includes('youtube.com') && project.groupLogoUrl) {
+                        const placeholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+';
+                        
+                        // 如果已經是占位圖，不要再嘗試
+                        if (currentSrc === placeholder) {
+                          return;
+                        }
+                        
+                        // 如果當前是 kprofiles.com 的 URL，直接使用占位圖
+                        if (currentSrc.includes('kprofiles.com')) {
+                          target.src = placeholder;
+                          return;
+                        }
+                        
+                        // 如果當前是 YouTube 縮圖且失敗，嘗試使用團體 logo（但排除 kprofiles.com）
+                        if (currentSrc.includes('youtube.com') && project.groupLogoUrl && !project.groupLogoUrl.includes('kprofiles.com')) {
                           target.src = project.groupLogoUrl;
                         } else {
-                          // 如果團體 logo 也失敗或沒有，使用全黑圖片
-                          target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+';
+                          // 如果團體 logo 也失敗或沒有，使用占位圖
+                          target.src = placeholder;
                         }
                       }}
                     />

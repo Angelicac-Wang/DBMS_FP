@@ -82,11 +82,10 @@ CREATE TABLE PROJECT (
     porject_title VARCHAR(50) NOT NULL,
     target_cnt INT NOT NULL,
     practice_location VARCHAR(50) NOT NULL,
-    performance_location VARCHAR(50) NOT NULL,
     create_at TIMESTAMP NOT NULL,
     update_at TIMESTAMP NOT NULL,
     status CHAR NOT NULL CHECK (status IN ('A','D','F')),
-    discription VARCHAR(500),
+    description VARCHAR(500),
     FOREIGN KEY (creator_id)
         REFERENCES USERS(u_id)
         ON DELETE SET DEFAULT
