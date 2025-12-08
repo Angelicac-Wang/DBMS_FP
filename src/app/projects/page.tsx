@@ -570,7 +570,13 @@ export default function ProjectsPage() {
                   <div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-5 py-3 mt-auto">
                     {/* 詳細資訊按鈕（始終顯示，放在左邊） */}
                     <button
-                      onClick={() => router.push(`/project/${project.p_id}`)}
+                      onClick={() => {
+                        // 檢查專案狀態，如果已招募完成，顯示提示
+                        if (project.status === 'F') {
+                          alert('該專案已招募完成');
+                        }
+                        router.push(`/project/${project.p_id}`);
+                      }}
                       className="rounded-full border border-[#eca382] px-4 py-2 text-sm font-semibold text-[#eca382] hover:bg-[#eca382] hover:text-white transition-colors"
                     >
                       詳細資訊
@@ -647,7 +653,14 @@ export default function ProjectsPage() {
                       {/* 申請加入按鈕（不在專案中、不是創建者、也沒有申請中、且有缺失位置） */}
                       {userId && !project.is_creator && !project.is_member && !project.pending_application && project.missing_positions && project.missing_positions.length > 0 && (
                         <button
-                          onClick={() => router.push(`/project/${project.p_id}/apply`)}
+                          onClick={() => {
+                            // 檢查專案狀態，如果已招募完成，顯示提示並阻止導航
+                            if (project.status === 'F') {
+                              alert('該專案已招募完成');
+                              return;
+                            }
+                            router.push(`/project/${project.p_id}/apply`);
+                          }}
                           className="rounded-full bg-[#eca382] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
                         >
                           申請加入

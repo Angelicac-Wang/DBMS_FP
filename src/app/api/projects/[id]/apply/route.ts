@@ -59,6 +59,26 @@ export async function POST(
       );
     }
 
+    // 檢查專案狀態（是否已招募完成）
+    const projectStatusCheck = await pool.query(
+      `SELECT status FROM project WHERE p_id = $1`,
+      [projectId]
+    );
+
+    if (projectStatusCheck.rows.length === 0) {
+      return NextResponse.json(
+        { error: '專案不存在' },
+        { status: 404 }
+      );
+    }
+
+    if (projectStatusCheck.rows[0].status === 'F') {
+      return NextResponse.json(
+        { error: '該專案已招募完成' },
+        { status: 400 }
+      );
+    }
+
     // 檢查該位置是否已填滿
     const targetCheck = await pool.query(
       `SELECT status FROM project_target

@@ -35,6 +35,11 @@ export default function ApplyProjectPage() {
           const projectData = await projectResponse.json();
           setProject(projectData);
           
+          // 檢查專案狀態
+          if (projectData.status === 'F') {
+            setError('該專案已招募完成');
+          }
+          
           // 獲取空缺位置（所有用戶都看到相同的空缺位置列表）
           const missingPositions = projectData.missing_positions || [];
           setTargets(missingPositions.map((pos: any) => ({
@@ -127,7 +132,12 @@ export default function ApplyProjectPage() {
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">選擇申請位置</h2>
           
-          {targets.length === 0 ? (
+          {project.status === 'F' ? (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg">
+              <p className="font-semibold">該專案已招募完成</p>
+              <p className="text-sm mt-1">此專案的所有位置都已被填滿，無法再接受申請。</p>
+            </div>
+          ) : targets.length === 0 ? (
             <p className="text-gray-500">目前沒有空缺位置</p>
           ) : (
             <div className="space-y-3 mb-6">
@@ -167,8 +177,8 @@ export default function ApplyProjectPage() {
             </button>
             <button
               type="submit"
-              disabled={loading || targets.length === 0 || !selectedTarget}
-              className="flex-1 bg-[#eca382] text-white py-3 rounded-lg font-medium hover:bg-[#e08f6f] disabled:opacity-50"
+              disabled={loading || targets.length === 0 || !selectedTarget || project.status === 'F'}
+              className="flex-1 bg-[#eca382] text-white py-3 rounded-lg font-medium hover:bg-[#e08f6f] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? '申請中...' : '提交申請'}
             </button>

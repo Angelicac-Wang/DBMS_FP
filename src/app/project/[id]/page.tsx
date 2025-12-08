@@ -348,12 +348,20 @@ export default function ProjectDetailPage() {
 
               {/* 申請加入按鈕（不在專案中、不是創建者、也沒有申請中） */}
               {userId && !isCreator && !isMember && !pendingApplication && (
-                <button
-                  onClick={() => router.push(`/project/${projectId}/apply`)}
-                  className="w-full rounded-full bg-[#eca382] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
-                >
-                  申請加入
-                </button>
+                <>
+                  {project.status === 'F' ? (
+                    <div className="w-full rounded-full bg-gray-400 px-6 py-3 text-sm font-semibold text-white text-center cursor-not-allowed">
+                      該專案已招募完成
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => router.push(`/project/${projectId}/apply`)}
+                      className="w-full rounded-full bg-[#eca382] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
+                    >
+                      申請加入
+                    </button>
+                  )}
+                </>
               )}
               </div>
           </div>

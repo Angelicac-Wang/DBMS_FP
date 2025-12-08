@@ -214,6 +214,33 @@ export async function POST(
             [projectId, app.applicant_id, app.target_seq]
           );
         }
+
+        // 檢查專案是否已招募完成（所有位置都已填滿）
+        const memberCountResult = await pool.query(
+          `SELECT COUNT(*) as count FROM project_members
+           WHERE p_id = $1 AND status = 'Y'`,
+          [projectId]
+        );
+
+        const memberCount = parseInt(memberCountResult.rows[0].count);
+
+        const projectInfoResult = await pool.query(
+          `SELECT target_cnt, status FROM project WHERE p_id = $1`,
+          [projectId]
+        );
+
+        if (projectInfoResult.rows.length > 0) {
+          const projectInfo = projectInfoResult.rows[0];
+          // 如果成員數達到目標人數且專案狀態不是 'F'，則更新為已招募完成
+          if (memberCount >= projectInfo.target_cnt && projectInfo.status !== 'F') {
+            await pool.query(
+              `UPDATE project
+               SET status = 'F', update_at = NOW()
+               WHERE p_id = $1`,
+              [projectId]
+            );
+          }
+        }
       }
     }
 
