@@ -56,9 +56,9 @@ export default function ManageProjectPage() {
       const response = await fetch(`/api/projects/${id}/manage?userId=${creatorId}`);
       if (!response.ok) {
         if (response.status === 403) {
-          setError('您不是此專案的創建者');
-          return;
-        }
+        setError('您不是此專案的創建者');
+        return;
+      }
         throw new Error('Failed to fetch project data');
       }
 
@@ -144,7 +144,7 @@ export default function ManageProjectPage() {
           start_time: newSchedule.start_time,
           end_time: newSchedule.end_time,
         }),
-      });
+        });
 
       if (!response.ok) {
         const result = await response.json();
@@ -255,12 +255,12 @@ export default function ManageProjectPage() {
             >
               刪除專案
             </button>
-            <button
-              onClick={() => router.back()}
-              className="text-gray-600 hover:text-gray-800"
-            >
-              ← 返回
-            </button>
+          <button
+            onClick={() => router.back()}
+            className="text-gray-600 hover:text-gray-800"
+          >
+            ← 返回
+          </button>
           </div>
         </div>
 
@@ -379,12 +379,12 @@ export default function ManageProjectPage() {
               <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-800">{(member.users as any)?.name}</span>
+                  <span className="font-medium text-gray-800">{(member.users as any)?.name}</span>
                     <span className="text-gray-500 text-sm">位置 {member.target_seq}</span>
-                  </div>
-                  <span className="text-sm text-gray-600">
-                    加入日期：{new Date(member.join_date).toLocaleDateString('zh-TW')}
-                  </span>
+                </div>
+                <span className="text-sm text-gray-600">
+                  加入日期：{new Date(member.join_date).toLocaleDateString('zh-TW')}
+                </span>
                 </div>
                 <button
                   onClick={() => handleRemoveMember(member.member_id, (member.users as any)?.name || '該成員')}

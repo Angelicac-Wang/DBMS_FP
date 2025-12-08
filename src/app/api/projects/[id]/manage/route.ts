@@ -167,6 +167,22 @@ export async function POST(
       if (appResult.rows.length > 0) {
         const app = appResult.rows[0];
 
+        // 1. 拒絕同一個位置的其他申請（同一個 target_seq，但不同的 applicant_id）
+        await pool.query(
+          `UPDATE project_applications
+           SET status = 'R', reviewed_time = NOW()
+           WHERE p_id = $1 AND target_seq = $2 AND applicant_id != $3 AND status = 'W'`,
+          [projectId, app.target_seq, app.applicant_id]
+        );
+
+        // 2. 拒絕同一個申請者的其他申請（同一個 applicant_id，但不同的 target_seq）
+        await pool.query(
+          `UPDATE project_applications
+           SET status = 'R', reviewed_time = NOW()
+           WHERE p_id = $1 AND applicant_id = $2 AND target_seq != $3 AND status = 'W'`,
+          [projectId, app.applicant_id, app.target_seq]
+        );
+
         // 更新目標狀態為已填滿
         await pool.query(
           `UPDATE project_target

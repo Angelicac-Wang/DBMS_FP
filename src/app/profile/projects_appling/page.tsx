@@ -49,7 +49,7 @@ export default function MyProjectsPage() {
 
       if (!response.ok) {
         throw new Error('Failed to fetch applications');
-      }
+        }
 
       const data = await response.json();
       setAllProjects(data);
@@ -114,7 +114,7 @@ export default function MyProjectsPage() {
       
       // 重新載入資料（取消的申請不會再顯示，因為查詢條件是 status IN ('W', 'R')）
       if (userId) {
-        fetchProjects(userId);
+      fetchProjects(userId);
       }
     } catch (err: any) {
       alert('取消申請失敗：' + (err.message || '未知錯誤'));
