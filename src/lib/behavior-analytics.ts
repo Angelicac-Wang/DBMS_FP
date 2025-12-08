@@ -1,5 +1,4 @@
 // 行为数据分析工具函数
-import { supabase } from './supabase';
 import type { 
   UserBehaviorEvent, 
   UserSession, 
@@ -32,25 +31,21 @@ export async function trackEvent(event: UserBehaviorEvent): Promise<{ data: any;
       session_id: event.session_id,
     });
 
-    const { data, error } = await supabase
-      .from('user_behavior_events')
-      .insert(insertData)
-      .select()
-      .single();
+    const response = await fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(insertData),
+    });
 
-    if (error) {
-      console.error('Supabase insert error:', {
-        error,
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-      });
-    } else {
-      console.log('Event inserted successfully:', data?.event_id);
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error('API insert error:', result);
+      return { data: null, error: result };
     }
 
-    return { data, error };
+    console.log('Event inserted successfully:', result.data?.event_id);
+    return { data: result.data, error: null };
   } catch (error: any) {
     console.error('Exception in trackEvent:', error);
     return { data: null, error: { message: error.message, stack: error.stack } };
@@ -75,12 +70,19 @@ export async function trackEvents(events: UserBehaviorEvent[]): Promise<{ data: 
       metadata: event.metadata || {}
     }));
 
-    const { data, error } = await supabase
-      .from('user_behavior_events')
-      .insert(eventsToInsert)
-      .select();
+    const response = await fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ events: eventsToInsert }),
+    });
 
-    return { data, error };
+    const result = await response.json();
+
+    if (!response.ok) {
+      return { data: null, error: result };
+    }
+
+    return { data: result.data, error: null };
   } catch (error) {
     return { data: null, error };
   }
@@ -91,51 +93,32 @@ export async function trackEvents(events: UserBehaviorEvent[]): Promise<{ data: 
  */
 export async function queryEvents(query: BehaviorQuery = {}): Promise<{ data: any[] | null; error: any }> {
   try {
-    let queryBuilder = supabase
-      .from('user_behavior_events')
-      .select('*');
-
-    // 应用过滤条件
-    if (query.user_id) {
-      queryBuilder = queryBuilder.eq('user_id', query.user_id);
-    }
-
+    const params = new URLSearchParams();
+    
+    if (query.user_id) params.append('user_id', query.user_id.toString());
     if (query.event_type) {
       if (Array.isArray(query.event_type)) {
-        queryBuilder = queryBuilder.in('event_type', query.event_type);
+        params.append('event_type', query.event_type.join(','));
       } else {
-        queryBuilder = queryBuilder.eq('event_type', query.event_type);
+        params.append('event_type', query.event_type);
       }
     }
+    if (query.start_date) params.append('start_date', query.start_date);
+    if (query.end_date) params.append('end_date', query.end_date);
+    if (query.session_id) params.append('session_id', query.session_id);
+    if (query.order_by) params.append('order_by', query.order_by);
+    if (query.order) params.append('order', query.order);
+    if (query.limit) params.append('limit', query.limit.toString());
+    if (query.offset) params.append('offset', query.offset.toString());
 
-    if (query.start_date) {
-      queryBuilder = queryBuilder.gte('event_timestamp', query.start_date);
+    const response = await fetch(`/api/analytics/query?${params.toString()}`);
+    const result = await response.json();
+
+    if (!response.ok) {
+      return { data: null, error: result };
     }
 
-    if (query.end_date) {
-      queryBuilder = queryBuilder.lte('event_timestamp', query.end_date);
-    }
-
-    if (query.session_id) {
-      queryBuilder = queryBuilder.eq('session_id', query.session_id);
-    }
-
-    // 排序
-    const orderBy = query.order_by || 'event_timestamp';
-    const order = query.order || 'desc';
-    queryBuilder = queryBuilder.order(orderBy, { ascending: order === 'asc' });
-
-    // 分页
-    if (query.limit) {
-      queryBuilder = queryBuilder.limit(query.limit);
-    }
-    if (query.offset) {
-      queryBuilder = queryBuilder.range(query.offset, query.offset + (query.limit || 100) - 1);
-    }
-
-    const { data, error } = await queryBuilder;
-
-    return { data, error };
+    return { data: result.events || null, error: null };
   } catch (error) {
     return { data: null, error };
   }
@@ -146,9 +129,10 @@ export async function queryEvents(query: BehaviorQuery = {}): Promise<{ data: an
  */
 export async function createOrUpdateSession(session: UserSession): Promise<{ data: any; error: any }> {
   try {
-    const { data, error } = await supabase
-      .from('user_sessions')
-      .upsert({
+    const response = await fetch('/api/analytics/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         session_id: session.session_id,
         user_id: session.user_id || null,
         started_at: session.started_at || new Date().toISOString(),
@@ -162,13 +146,16 @@ export async function createOrUpdateSession(session: UserSession): Promise<{ dat
         country: session.country,
         city: session.city,
         session_data: session.session_data || {}
-      }, {
-        onConflict: 'session_id'
-      })
-      .select()
-      .single();
+      }),
+    });
 
-    return { data, error };
+    const result = await response.json();
+
+    if (!response.ok) {
+      return { data: null, error: result };
+    }
+
+    return { data: result.data, error: null };
   } catch (error) {
     return { data: null, error };
   }
@@ -179,32 +166,18 @@ export async function createOrUpdateSession(session: UserSession): Promise<{ dat
  */
 export async function endSession(sessionId: string): Promise<{ data: any; error: any }> {
   try {
-    // 获取会话开始时间
-    const { data: session } = await supabase
-      .from('user_sessions')
-      .select('started_at')
-      .eq('session_id', sessionId)
-      .single();
+    const response = await fetch(`/api/analytics/session/${sessionId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+    });
 
-    if (!session) {
-      return { data: null, error: { message: 'Session not found' } };
+    const result = await response.json();
+
+    if (!response.ok) {
+      return { data: null, error: result };
     }
 
-    const startedAt = new Date(session.started_at);
-    const endedAt = new Date();
-    const durationSeconds = Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000);
-
-    const { data, error } = await supabase
-      .from('user_sessions')
-      .update({
-        ended_at: endedAt.toISOString(),
-        duration_seconds: durationSeconds
-      })
-      .eq('session_id', sessionId)
-      .select()
-      .single();
-
-    return { data, error };
+    return { data: result.data, error: null };
   } catch (error) {
     return { data: null, error };
   }
@@ -219,71 +192,19 @@ export async function getBehaviorStats(
   userId?: number
 ): Promise<{ data: BehaviorStats | null; error: any }> {
   try {
-    let queryBuilder = supabase
-      .from('user_behavior_events')
-      .select('event_type, event_timestamp, user_id');
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate.toString());
+    if (endDate) params.append('end_date', endDate.toString());
+    if (userId) params.append('user_id', userId.toString());
 
-    if (startDate) {
-      queryBuilder = queryBuilder.gte('event_timestamp', startDate);
-    }
-    if (endDate) {
-      queryBuilder = queryBuilder.lte('event_timestamp', endDate);
-    }
-    if (userId) {
-      queryBuilder = queryBuilder.eq('user_id', userId);
+    const response = await fetch(`/api/analytics/stats?${params.toString()}`);
+    const result = await response.json();
+
+    if (!response.ok) {
+      return { data: null, error: result };
     }
 
-    const { data: events, error } = await queryBuilder;
-
-    if (error) {
-      return { data: null, error };
-    }
-
-    if (!events) {
-      return {
-        data: {
-          total_events: 0,
-          unique_users: 0,
-          unique_sessions: 0,
-          events_by_type: {},
-          events_by_date: []
-        },
-        error: null
-      };
-    }
-
-    // 计算统计
-    const totalEvents = events.length;
-    const uniqueUsers = new Set(events.map(e => e.user_id).filter(Boolean)).size;
-    const uniqueSessions = new Set(events.map(e => e.session_id).filter(Boolean)).size;
-
-    // 按类型统计
-    const eventsByType: Record<string, number> = {};
-    events.forEach(event => {
-      eventsByType[event.event_type] = (eventsByType[event.event_type] || 0) + 1;
-    });
-
-    // 按日期统计
-    const eventsByDateMap = new Map<string, number>();
-    events.forEach(event => {
-      const date = new Date(event.event_timestamp).toISOString().split('T')[0];
-      eventsByDateMap.set(date, (eventsByDateMap.get(date) || 0) + 1);
-    });
-
-    const eventsByDate = Array.from(eventsByDateMap.entries())
-      .map(([date, count]) => ({ date, count }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-
-    return {
-      data: {
-        total_events: totalEvents,
-        unique_users: uniqueUsers,
-        unique_sessions: uniqueSessions,
-        events_by_type: eventsByType,
-        events_by_date: eventsByDate
-      },
-      error: null
-    };
+    return { data: result, error: null };
   } catch (error) {
     return { data: null, error };
   }
@@ -298,27 +219,22 @@ export async function queryByEventData(
   additionalQuery?: BehaviorQuery
 ): Promise<{ data: any[] | null; error: any }> {
   try {
-    let queryBuilder = supabase
-      .from('user_behavior_events')
-      .select('*');
+    const params = new URLSearchParams();
+    params.append('event_data_key', key);
+    params.append('event_data_value', value);
+    
+    if (additionalQuery?.user_id) params.append('user_id', additionalQuery.user_id.toString());
+    if (additionalQuery?.start_date) params.append('start_date', additionalQuery.start_date);
+    if (additionalQuery?.end_date) params.append('end_date', additionalQuery.end_date);
 
-    // JSONB 查询
-    queryBuilder = queryBuilder.eq(`event_data->>${key}`, value);
+    const response = await fetch(`/api/analytics/query?${params.toString()}`);
+    const result = await response.json();
 
-    // 应用其他查询条件
-    if (additionalQuery?.user_id) {
-      queryBuilder = queryBuilder.eq('user_id', additionalQuery.user_id);
-    }
-    if (additionalQuery?.start_date) {
-      queryBuilder = queryBuilder.gte('event_timestamp', additionalQuery.start_date);
-    }
-    if (additionalQuery?.end_date) {
-      queryBuilder = queryBuilder.lte('event_timestamp', additionalQuery.end_date);
+    if (!response.ok) {
+      return { data: null, error: result };
     }
 
-    const { data, error } = await queryBuilder;
-
-    return { data, error };
+    return { data: result.events || null, error: null };
   } catch (error) {
     return { data: null, error };
   }
@@ -383,4 +299,5 @@ export function parseUserAgent(userAgent?: string): {
 
   return { device_type, browser, os };
 }
+
 

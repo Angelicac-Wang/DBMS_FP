@@ -47,12 +47,21 @@ export function useBehaviorTracking() {
       const result = await response.json();
       
       if (!response.ok) {
-        console.error('Failed to track page view:', result);
+        // 只在开发环境显示错误
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to track page view:', result);
+        }
       } else {
-        console.log('Page view tracked successfully:', result);
+        // 只在开发环境显示成功日志
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Page view tracked successfully');
+        }
       }
     } catch (error) {
-      console.error('Failed to track page view:', error);
+      // 静默处理错误，避免影响用户体验
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to track page view:', error);
+      }
     }
   }, []);
 

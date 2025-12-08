@@ -1,72 +1,76 @@
 // API 路由：查询行为事件
 import { NextRequest, NextResponse } from 'next/server';
-import { queryEvents } from '@/lib/behavior-analytics';
-import type { BehaviorQuery } from '@/types/behavior';
+import pool from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     
-    const query: BehaviorQuery = {};
+    // 构建查询
+    let query = 'SELECT * FROM user_behavior_events WHERE 1=1';
+    const params: any[] = [];
+    let paramIndex = 1;
 
-    // 解析查询参数
     if (searchParams.get('user_id')) {
-      query.user_id = parseInt(searchParams.get('user_id')!);
+      query += ` AND user_id = $${paramIndex++}`;
+      params.push(parseInt(searchParams.get('user_id')!));
     }
 
     if (searchParams.get('event_type')) {
       const eventType = searchParams.get('event_type')!;
-      query.event_type = eventType.includes(',') 
-        ? eventType.split(',') as any
-        : eventType as any;
+      if (eventType.includes(',')) {
+        const types = eventType.split(',');
+        query += ` AND event_type = ANY($${paramIndex++})`;
+        params.push(types);
+      } else {
+        query += ` AND event_type = $${paramIndex++}`;
+        params.push(eventType);
+      }
     }
 
     if (searchParams.get('start_date')) {
-      query.start_date = searchParams.get('start_date')!;
+      query += ` AND event_timestamp >= $${paramIndex++}`;
+      params.push(searchParams.get('start_date')!);
     }
 
     if (searchParams.get('end_date')) {
-      query.end_date = searchParams.get('end_date')!;
+      query += ` AND event_timestamp <= $${paramIndex++}`;
+      params.push(searchParams.get('end_date')! + 'T23:59:59');
     }
 
     if (searchParams.get('session_id')) {
-      query.session_id = searchParams.get('session_id')!;
+      query += ` AND session_id = $${paramIndex++}`;
+      params.push(searchParams.get('session_id')!);
     }
 
+    // 排序
+    const orderBy = searchParams.get('order_by') || 'event_timestamp';
+    const order = searchParams.get('order') || 'desc';
+    query += ` ORDER BY ${orderBy} ${order.toUpperCase()}`;
+
+    // 限制
     if (searchParams.get('limit')) {
-      query.limit = parseInt(searchParams.get('limit')!);
+      query += ` LIMIT $${paramIndex++}`;
+      params.push(parseInt(searchParams.get('limit')!));
     }
 
     if (searchParams.get('offset')) {
-      query.offset = parseInt(searchParams.get('offset')!);
+      query += ` OFFSET $${paramIndex++}`;
+      params.push(parseInt(searchParams.get('offset')!));
     }
 
-    if (searchParams.get('order_by')) {
-      query.order_by = searchParams.get('order_by') as 'event_timestamp' | 'event_type';
-    }
-
-    if (searchParams.get('order')) {
-      query.order = searchParams.get('order') as 'asc' | 'desc';
-    }
-
-    const { data, error } = await queryEvents(query);
-
-    if (error) {
-      return NextResponse.json(
-        { error: 'Failed to query events', details: error },
-        { status: 500 }
-      );
-    }
+    const result = await pool.query(query, params);
 
     return NextResponse.json({ 
       success: true, 
-      events: data,
-      count: data?.length || 0
+      events: result.rows,
+      count: result.rows.length
     });
   } catch (error: any) {
+    console.error('Error querying events:', error);
     return NextResponse.json(
-      { error: 'Invalid request', details: error.message },
-      { status: 400 }
+      { error: 'Failed to query events', details: error.message },
+      { status: 500 }
     );
   }
 }

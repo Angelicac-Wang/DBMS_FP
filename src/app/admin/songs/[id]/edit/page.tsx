@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface Group {
@@ -49,43 +48,37 @@ export default function EditSongPage() {
   }, [isAdmin, songId]);
 
   const fetchGroups = async () => {
-    const { data } = await supabase
-      .from('kpop_groups')
-      .select('group_id, group_name')
-      .order('group_name');
-    if (data) setGroups(data);
+    try {
+      const response = await fetch('/api/admin/groups');
+      if (response.ok) {
+        const data = await response.json();
+        setGroups(data);
+      }
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+    }
   };
 
   const fetchIdols = async () => {
-    const { data } = await supabase
-      .from('kpop_idols')
-      .select(`
-        idol_id,
-        stage_name,
-        kpop_groups!inner(group_name)
-      `)
-      .limit(1000);
-
-    if (data) {
-      const idolsData = data.map((item: any) => ({
-        idol_id: item.idol_id,
-        stage_name: item.stage_name,
-        group_name: item.kpop_groups?.group_name || '',
-      }));
-      setIdols(idolsData);
+    try {
+      const response = await fetch('/api/admin/idols');
+      if (response.ok) {
+        const data = await response.json();
+        setIdols(data);
+      }
+    } catch (error) {
+      console.error('Error fetching idols:', error);
     }
   };
 
   const fetchSong = async () => {
     try {
       setLoading(true);
-      const { data: songData, error: songError } = await supabase
-        .from('kpop_songs')
-        .select('*')
-        .eq('song_id', parseInt(songId))
-        .single();
+      const response = await fetch(`/api/admin/songs/${songId}`);
 
-      if (songError) throw songError;
+      if (!response.ok) throw new Error('Failed to fetch song');
+
+      const songData = await response.json();
 
       if (songData) {
         setFormData({
@@ -98,24 +91,13 @@ export default function EditSongPage() {
           youtube_original_url: songData.youtube_original_url,
         });
 
-        // 獲取現有的團體關聯
-        const { data: songGroups } = await supabase
-          .from('song_group')
-          .select('group_id')
-          .eq('song_id', parseInt(songId));
-
-        if (songGroups) {
-          setSelectedGroups(songGroups.map(sg => sg.group_id));
+        // Set selected groups and idols from the song data
+        if (songData.groups) {
+          setSelectedGroups(songData.groups);
         }
 
-        // 獲取現有的偶像關聯
-        const { data: songIdols } = await supabase
-          .from('song_idol')
-          .select('idol_id')
-          .eq('song_id', parseInt(songId));
-
-        if (songIdols) {
-          setSelectedIdols(songIdols.map(si => si.idol_id));
+        if (songData.idols) {
+          setSelectedIdols(songData.idols);
         }
       }
     } catch (err: any) {
@@ -131,10 +113,12 @@ export default function EditSongPage() {
     setError('');
 
     try {
-      // 更新歌曲
-      const { error: updateError } = await supabase
-        .from('kpop_songs')
-        .update({
+      const response = await fetch(`/api/admin/songs/${songId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           title: formData.title,
           title_kr: formData.title_kr,
           release_date: formData.release_date,
@@ -142,31 +126,14 @@ export default function EditSongPage() {
           difficulty_level: parseInt(formData.difficulty_level),
           spotify_url: formData.spotify_url || null,
           youtube_original_url: formData.youtube_original_url,
-        })
-        .eq('song_id', parseInt(songId));
+          groups: selectedGroups,
+          idols: selectedIdols,
+        }),
+      });
 
-      if (updateError) throw updateError;
-
-      // 更新團體關聯（先刪除再新增）
-      await supabase.from('song_group').delete().eq('song_id', parseInt(songId));
-      if (selectedGroups.length > 0) {
-        const songGroups = selectedGroups.map(groupId => ({
-          song_id: parseInt(songId),
-          group_id: groupId,
-        }));
-        const { error: groupError } = await supabase.from('song_group').insert(songGroups);
-        if (groupError) throw groupError;
-      }
-
-      // 更新偶像關聯（先刪除再新增）
-      await supabase.from('song_idol').delete().eq('song_id', parseInt(songId));
-      if (selectedIdols.length > 0) {
-        const songIdols = selectedIdols.map(idolId => ({
-          song_id: parseInt(songId),
-          idol_id: idolId,
-        }));
-        const { error: idolError } = await supabase.from('song_idol').insert(songIdols);
-        if (idolError) throw idolError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '更新失敗');
       }
 
       alert('歌曲已成功更新');
@@ -184,24 +151,15 @@ export default function EditSongPage() {
     }
 
     try {
-      // 檢查是否有關聯的專案
-      const { data: projects } = await supabase
-        .from('project')
-        .select('p_id')
-        .eq('song_id', parseInt(songId))
-        .limit(1);
+      const response = await fetch(`/api/admin/songs/${songId}`, {
+        method: 'DELETE',
+      });
 
-      if (projects && projects.length > 0) {
-        alert('無法刪除：此歌曲有關聯的專案，請先處理相關專案。');
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert('刪除失敗：' + (errorData.error || '未知錯誤'));
         return;
       }
-
-      const { error: deleteError } = await supabase
-        .from('kpop_songs')
-        .delete()
-        .eq('song_id', parseInt(songId));
-
-      if (deleteError) throw deleteError;
 
       alert('歌曲已成功刪除');
       router.push('/admin/songs');

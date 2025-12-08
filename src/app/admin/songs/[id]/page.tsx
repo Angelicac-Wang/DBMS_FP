@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import Link from 'next/link';
 
@@ -49,55 +48,26 @@ export default function SongDetailPage() {
     try {
       setLoading(true);
 
-      // 獲取歌曲基本資訊
-      const { data: songData, error: songError } = await supabase
-        .from('kpop_songs')
-        .select('*')
-        .eq('song_id', parseInt(songId))
-        .single();
+      const response = await fetch(`/api/songs/${songId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setSong(null);
+          return;
+        }
+        throw new Error('Failed to fetch song');
+      }
 
-      if (songError) throw songError;
+      const songData = await response.json();
       setSong(songData);
-
-      // 獲取團體列表
-      const { data: songGroups } = await supabase
-        .from('song_group')
-        .select('group_id')
-        .eq('song_id', parseInt(songId));
-
-      if (songGroups && songGroups.length > 0) {
-        const groupIds = songGroups.map(sg => sg.group_id);
-        const { data: groupsData } = await supabase
-          .from('kpop_groups')
-          .select('group_id, group_name')
-          .in('group_id', groupIds);
-
-        if (groupsData) setGroups(groupsData);
-      }
-
-      // 獲取偶像列表
-      const { data: songIdols } = await supabase
-        .from('song_idol')
-        .select('idol_id')
-        .eq('song_id', parseInt(songId));
-
-      if (songIdols && songIdols.length > 0) {
-        const idolIds = songIdols.map(si => si.idol_id);
-        const { data: idolsData } = await supabase
-          .from('kpop_idols')
-          .select('idol_id, stage_name, stage_name_kr')
-          .in('idol_id', idolIds);
-
-        if (idolsData) setIdols(idolsData);
-      }
+      setGroups(songData.groups || []);
+      setIdols(songData.idols || []);
 
       // 獲取相關專案統計
-      const { count } = await supabase
-        .from('project')
-        .select('*', { count: 'exact', head: true })
-        .eq('song_id', parseInt(songId));
-
-      setProjectCount(count || 0);
+      const projectCountResponse = await fetch(`/api/admin/songs/${songId}/project-count`);
+      if (projectCountResponse.ok) {
+        const countData = await projectCountResponse.json();
+        setProjectCount(countData.count || 0);
+      }
     } catch (error) {
       console.error('Error fetching song detail:', error);
     } finally {

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
 interface UserProfile {
@@ -108,73 +107,12 @@ export default function ProfilePage() {
 
   const fetchSongs = async () => {
     try {
-      const { data: songsData } = await supabase
-        .from('kpop_songs')
-        .select('song_id, title')
-        .limit(500);
-
-      if (!songsData) return;
-
-      // 為每首歌獲取團體或偶像資訊
-      const songsWithInfo = await Promise.all(
-        songsData.map(async (song) => {
-          // 先嘗試從 song_group 獲取團體
-          const { data: songGroups } = await supabase
-            .from('song_group')
-            .select('group_id')
-            .eq('song_id', song.song_id)
-            .limit(1);
-
-          if (songGroups && songGroups.length > 0) {
-            const { data: group } = await supabase
-              .from('kpop_groups')
-              .select('group_name')
-              .eq('group_id', songGroups[0].group_id)
-              .single();
-
-            if (group) {
-              return {
-                song_id: song.song_id,
-                title: song.title,
-                displayName: `${song.title} - ${group.group_name}`,
-              };
-            }
-          }
-
-          // 如果沒有團體，從 song_idol 獲取第一個偶像
-          const { data: songIdols } = await supabase
-            .from('song_idol')
-            .select('idol_id')
-            .eq('song_id', song.song_id)
-            .limit(1);
-
-          if (songIdols && songIdols.length > 0) {
-            const { data: idol } = await supabase
-              .from('kpop_idols')
-              .select('stage_name')
-              .eq('idol_id', songIdols[0].idol_id)
-              .single();
-
-            if (idol) {
-              return {
-                song_id: song.song_id,
-                title: song.title,
-                displayName: `${song.title} - ${idol.stage_name}`,
-              };
-            }
-          }
-
-          // 如果都沒有，只顯示歌曲名稱
-          return {
-            song_id: song.song_id,
-            title: song.title,
-            displayName: song.title,
-          };
-        })
-      );
-
-      setSongs(songsWithInfo);
-      setFilteredSongs(songsWithInfo);
+      const response = await fetch('/api/songs?limit=500');
+      if (!response.ok) return;
+      
+      const songsData = await response.json();
+      setSongs(songsData);
+      setFilteredSongs(songsData);
     } catch (err) {
       console.error('Error fetching songs:', err);
     }
@@ -184,24 +122,12 @@ export default function ProfilePage() {
     try {
       setLoading(true);
 
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('u_id, name, email, birthdate, gender, region, phone, create_at, last_login')
-        .eq('u_id', userId)
-        .single();
-
-      if (userError) throw userError;
+      const response = await fetch(`/api/users/${userId}`);
+      if (!response.ok) throw new Error('Failed to fetch user profile');
+      
+      const userData = await response.json();
       setUser(userData);
-
-      const { data: skillsData, error: skillsError } = await supabase
-        .from('user_skills')
-        .select('skill_type, proficiency_level, years_of_experience, discription')
-        .eq('u_id', userId)
-        .limit(3);
-
-      if (!skillsError && skillsData) {
-        setSkills(skillsData);
-      }
+      setSkills(userData.skills || []);
     } catch (error) {
       console.error('Error fetching user profile:', error);
     } finally {
@@ -211,25 +137,17 @@ export default function ProfilePage() {
 
   const fetchPortfolios = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('portfolios')
-        .select(`
-          video_url,
-          title,
-          discription,
-          video_detail!inner(cover_song_id, created_at, view_cnt)
-        `)
-        .eq('u_id', userId);
-
-      if (error) throw error;
-
-      const portfoliosData: Portfolio[] = (data || []).map((item: any) => ({
+      const response = await fetch(`/api/users/${userId}`);
+      if (!response.ok) return;
+      
+      const userData = await response.json();
+      const portfoliosData: Portfolio[] = (userData.portfolios || []).map((item: any) => ({
         video_url: item.video_url,
         title: item.title,
         discription: item.discription || '',
-        cover_song_id: item.video_detail?.cover_song_id,
-        created_at: item.video_detail?.created_at || '',
-        view_cnt: item.video_detail?.view_cnt || 0,
+        cover_song_id: item.cover_song_id,
+        created_at: item.created_at || '',
+        view_cnt: item.view_cnt || 0,
       }));
 
       setPortfolios(portfoliosData);
@@ -282,36 +200,24 @@ export default function ProfilePage() {
         return;
       }
 
-      // 檢查 video_url 是否已存在於 video_detail
-      const { data: existingVideo } = await supabase
-        .from('video_detail')
-        .select('video_url')
-        .eq('video_url', formData.video_url)
-        .single();
-
-      if (!existingVideo) {
-        // 創建新的 video_detail
-        await supabase
-          .from('video_detail')
-          .insert({
-            video_url: formData.video_url,
-            cover_song_id: formData.cover_song_id ? parseInt(formData.cover_song_id) : null,
-            created_at: new Date().toISOString(),
-            view_cnt: 0,
-          });
-      }
-
-      // 新增作品集
-      const { error: portfolioError } = await supabase
-        .from('portfolios')
-        .insert({
+      const response = await fetch('/api/portfolios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           u_id: parseInt(userId),
           video_url: formData.video_url,
           title: formData.title,
           discription: formData.discription || null,
-        });
+          cover_song_id: formData.cover_song_id ? parseInt(formData.cover_song_id) : null,
+        }),
+      });
 
-      if (portfolioError) throw portfolioError;
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error || '儲存失敗');
+        return;
+      }
 
       setShowModal(false);
       setFormData({ video_url: '', title: '', discription: '', cover_song_id: '', cover_song_display: '' });

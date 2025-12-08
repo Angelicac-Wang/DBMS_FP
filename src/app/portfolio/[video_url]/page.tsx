@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
 interface PortfolioDetail {
@@ -45,62 +44,19 @@ export default function PortfolioDetailPage() {
     try {
       setLoading(true);
 
-      // 獲取作品集基本資訊
-      const { data: portfolioData, error: portfolioError } = await supabase
-        .from('portfolios')
-        .select('*')
-        .eq('video_url', url)
-        .single();
-
-      if (portfolioError) throw portfolioError;
-
-      // 獲取用戶資訊
-      const { data: userData } = await supabase
-        .from('users')
-        .select('name')
-        .eq('u_id', portfolioData.u_id)
-        .single();
-
-      // 獲取歌曲資訊
-      let songInfo = null;
-      if (portfolioData.cover_song_id) {
-        const { data: songData } = await supabase
-          .from('kpop_songs')
-          .select('title')
-          .eq('song_id', portfolioData.cover_song_id)
-          .single();
-
-        if (songData) {
-          // 獲取團體名稱
-          const { data: songGroups } = await supabase
-            .from('song_group')
-            .select('group_id')
-            .eq('song_id', portfolioData.cover_song_id)
-            .limit(1);
-
-          let groupName = null;
-          if (songGroups && songGroups.length > 0) {
-            const { data: group } = await supabase
-              .from('kpop_groups')
-              .select('group_name')
-              .eq('group_id', songGroups[0].group_id)
-              .single();
-
-            if (group) groupName = group.group_name;
-          }
-
-          songInfo = {
-            title: songData.title,
-            group_name: groupName,
-          };
+      const encodedUrl = encodeURIComponent(url);
+      const response = await fetch(`/api/portfolios/${encodedUrl}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('作品不存在');
+          return;
         }
+        throw new Error('Failed to fetch portfolio');
       }
 
-      setPortfolio({
-        ...portfolioData,
-        user: userData,
-        song: songInfo,
-      });
+      const portfolioData = await response.json();
+      setPortfolio(portfolioData);
     } catch (err: any) {
       console.error('Error fetching portfolio:', err);
       setError('無法載入作品資訊');

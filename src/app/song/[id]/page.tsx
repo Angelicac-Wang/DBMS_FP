@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { formatDuration } from '@/lib/utils';
 
@@ -79,67 +78,20 @@ export default function SongDetailPage() {
     try {
       setLoading(true);
       
-      // 獲取歌曲基本資訊
-      const { data: songData, error } = await supabase
-        .from('kpop_songs')
-        .select('*')
-        .eq('song_id', id)
-        .single();
-
-      if (error) throw error;
-
-      // 獲取關聯的團體
-      const { data: songGroups } = await supabase
-        .from('song_group')
-        .select('group_id')
-        .eq('song_id', id);
-
-      const groups: Array<{ group_id: number; group_name: string; group_namekr?: string }> = [];
-      if (songGroups) {
-        for (const sg of songGroups) {
-          const { data: group } = await supabase
-            .from('kpop_groups')
-            .select('group_id, group_name, group_namekr')
-            .eq('group_id', sg.group_id)
-            .single();
-          if (group) {
-            groups.push({
-              group_id: group.group_id,
-              group_name: group.group_name,
-              group_namekr: group.group_namekr || undefined,
-            });
-          }
+      const response = await fetch(`/api/songs/${id}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setSong(null);
+          return;
         }
+        throw new Error('Failed to fetch song');
       }
 
-      // 獲取關聯的偶像
-      const { data: songIdols } = await supabase
-        .from('song_idol')
-        .select('idol_id')
-        .eq('song_id', id);
-
-      const idols: Array<{ idol_id: number; stage_name: string; stage_name_kr: string }> = [];
-      if (songIdols) {
-        for (const si of songIdols) {
-          const { data: idol } = await supabase
-            .from('kpop_idols')
-            .select('idol_id, stage_name, stage_name_kr')
-            .eq('idol_id', si.idol_id)
-            .single();
-          if (idol) {
-            idols.push({
-              idol_id: idol.idol_id,
-              stage_name: idol.stage_name,
-              stage_name_kr: idol.stage_name_kr,
-            });
-          }
-        }
-      }
-
+      const songData = await response.json();
       const fullSong: SongDetail = {
         ...songData,
-        groups,
-        idols,
+        groups: songData.groups || [],
+        idols: songData.idols || [],
       };
 
       setSong(fullSong);

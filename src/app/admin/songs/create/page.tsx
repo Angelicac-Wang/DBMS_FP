@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface Group {
@@ -45,30 +44,24 @@ export default function CreateSongPage() {
   }, [isAdmin]);
 
   const fetchGroups = async () => {
-    const { data } = await supabase
-      .from('kpop_groups')
-      .select('group_id, group_name')
-      .order('group_name');
-    if (data) setGroups(data);
+    try {
+      const response = await fetch('/api/admin/groups');
+      if (response.ok) {
+        const data = await response.json();
+        setGroups(data);
+      }
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+    }
   };
 
   const fetchIdols = async () => {
-    const { data } = await supabase
-      .from('kpop_idols')
-      .select(`
-        idol_id,
-        stage_name,
-        kpop_groups!inner(group_name)
-      `)
-      .limit(1000);
-
-    if (data) {
-      const idolsData = data.map((item: any) => ({
-        idol_id: item.idol_id,
-        stage_name: item.stage_name,
-        group_name: item.kpop_groups?.group_name || '',
-      }));
-      setIdols(idolsData);
+    try {
+      // TODO: 需要創建獲取 idols 的 API
+      // 暫時設為空陣列
+      setIdols([]);
+    } catch (error) {
+      console.error('Error fetching idols:', error);
     }
   };
 
@@ -78,65 +71,27 @@ export default function CreateSongPage() {
     setError('');
 
     try {
-      // 生成唯一的 song_id
-      const generateSongId = () => {
-        const timestamp = Date.now();
-        const random = Math.floor(Math.random() * 10000);
-        return timestamp * 10000 + random;
-      };
-
-      let newSongId = generateSongId();
-      let attempts = 0;
-      while (attempts < 10) {
-        const { data: checkId } = await supabase
-          .from('kpop_songs')
-          .select('song_id')
-          .eq('song_id', newSongId)
-          .single();
-
-        if (!checkId) break;
-        newSongId = generateSongId();
-        attempts++;
-      }
-
-      if (attempts >= 10) {
-        setError('系統繁忙，請稍後再試');
-        setLoading(false);
-        return;
-      }
-
-      // 插入歌曲
-      const { error: insertError } = await supabase.from('kpop_songs').insert({
-        song_id: newSongId,
-        title: formData.title,
-        title_kr: formData.title_kr,
-        release_date: formData.release_date,
-        duration: parseInt(formData.duration),
-        difficulty_level: parseInt(formData.difficulty_level),
-        spotify_url: formData.spotify_url || null,
-        youtube_original_url: formData.youtube_original_url,
+      const response = await fetch('/api/admin/songs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          title_kr: formData.title_kr,
+          release_date: formData.release_date,
+          duration: parseInt(formData.duration),
+          difficulty_level: parseInt(formData.difficulty_level),
+          spotify_url: formData.spotify_url || null,
+          youtube_original_url: formData.youtube_original_url,
+          groups: selectedGroups,
+          idols: selectedIdols,
+        }),
       });
 
-      if (insertError) throw insertError;
+      const result = await response.json();
 
-      // 建立團體關聯
-      if (selectedGroups.length > 0) {
-        const songGroups = selectedGroups.map(groupId => ({
-          song_id: newSongId,
-          group_id: groupId,
-        }));
-        const { error: groupError } = await supabase.from('song_group').insert(songGroups);
-        if (groupError) throw groupError;
-      }
-
-      // 建立偶像關聯
-      if (selectedIdols.length > 0) {
-        const songIdols = selectedIdols.map(idolId => ({
-          song_id: newSongId,
-          idol_id: idolId,
-        }));
-        const { error: idolError } = await supabase.from('song_idol').insert(songIdols);
-        if (idolError) throw idolError;
+      if (!response.ok) {
+        setError(result.error || '建立失敗');
+        return;
       }
 
       alert('歌曲已成功建立');

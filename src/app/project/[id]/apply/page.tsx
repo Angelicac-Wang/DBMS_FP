@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 
 export default function ApplyProjectPage() {
   const router = useRouter();
@@ -13,46 +12,58 @@ export default function ApplyProjectPage() {
   const [targets, setTargets] = useState<any[]>([]);
   const [selectedTarget, setSelectedTarget] = useState('');
   const [error, setError] = useState('');
-  const userId = localStorage.getItem('userId');
+  const [isMember, setIsMember] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId) {
+    // 只在客户端访问 localStorage
+    const id = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    setUserId(id);
+    
+    if (!id) {
       router.push('/auth');
       return;
     }
-    if (projectId) {
-      fetchProjectData();
-    }
-  }, [projectId, router, userId]);
+  }, [router]);
 
-  const fetchProjectData = async () => {
-    try {
-      const { data: projectData } = await supabase
-        .from('project')
-        .select('*')
-        .eq('p_id', projectId)
-        .single();
+  useEffect(() => {
+    if (!userId || !projectId) return;
 
-      if (projectData) setProject(projectData);
-
-      const { data: targetsData } = await supabase
-        .from('project_target')
-        .select(`
-          target_seq,
-          idol_id,
-          status,
-          kpop_idols(stage_name)
-        `)
-        .eq('project_id', projectId)
-        .eq('status', 'I'); // 只顯示空缺位置
-
-      if (targetsData) {
-        setTargets(targetsData);
+    const fetchProjectData = async () => {
+      try {
+        const projectResponse = await fetch(`/api/projects/${projectId}`);
+        if (projectResponse.ok) {
+          const projectData = await projectResponse.json();
+          setProject(projectData);
+          
+          // 檢查用戶是否已經是專案成員
+          const isCreator = projectData.creator_id?.toString() === userId;
+          const userIsMember = projectData.filled_positions?.some((pos: any) => 
+            pos.member_id?.toString() === userId
+          ) || false;
+          
+          setIsMember(isCreator || userIsMember);
+          
+          if (isCreator || userIsMember) {
+            setError('您已經加入此專案，無法再次申請');
+            return;
+          }
+          
+          // 獲取空缺位置
+          const missingPositions = projectData.missing_positions || [];
+          setTargets(missingPositions.map((pos: any) => ({
+            target_seq: pos.target_seq,
+            idol_id: pos.idol_id,
+            kpop_idols: pos.idol_name ? { stage_name: pos.idol_name } : null,
+          })));
+        }
+      } catch (err) {
+        console.error('Error:', err);
       }
-    } catch (err) {
-      console.error('Error:', err);
-    }
-  };
+    };
+
+    fetchProjectData();
+  }, [projectId, userId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,43 +73,23 @@ export default function ApplyProjectPage() {
       setLoading(true);
       setError('');
 
-      // 生成申請ID
-      const generateAppliId = () => {
-        const timestamp = Date.now();
-        const random = Math.floor(Math.random() * 10000);
-        return timestamp * 10000 + random;
-      };
-
-      const appliId = generateAppliId();
       const targetSeq = parseInt(selectedTarget);
 
-      // 檢查是否已經申請過
-      const { data: existing } = await supabase
-        .from('project_applications')
-        .select('appli_id')
-        .eq('p_id', projectId)
-        .eq('applicant_id', userId)
-        .eq('target_seq', targetSeq)
-        .single();
+      const response = await fetch(`/api/projects/${projectId}/apply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicant_id: userId,
+          target_seq: targetSeq,
+        }),
+      });
 
-      if (existing) {
-        setError('您已經申請過此位置');
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error || '申請失敗');
         return;
       }
-
-      // 創建申請
-      const { error: insertError } = await supabase
-        .from('project_applications')
-        .insert({
-          appli_id: appliId,
-          p_id: projectId,
-          target_seq: targetSeq,
-          applicant_id: userId,
-          applied_time: new Date().toISOString(),
-          status: 'W', // 等待審核
-        });
-
-      if (insertError) throw insertError;
 
       alert('申請成功！專案發起人將會審核您的申請。');
       router.push('/profile/projects');
@@ -169,7 +160,7 @@ export default function ApplyProjectPage() {
                   />
                   <div>
                     <span className="font-medium text-black">位置 {target.target_seq}</span>
-                    {target.kpop_idols && (
+                    {target.kpop_idols?.stage_name && (
                       <span className="text-gray-600 ml-2">
                         ({target.kpop_idols.stage_name})
                       </span>
@@ -190,7 +181,7 @@ export default function ApplyProjectPage() {
             </button>
             <button
               type="submit"
-              disabled={loading || targets.length === 0 || !selectedTarget}
+              disabled={loading || targets.length === 0 || !selectedTarget || isMember}
               className="flex-1 bg-[#eca382] text-white py-3 rounded-lg font-medium hover:bg-[#e08f6f] disabled:opacity-50"
             >
               {loading ? '申請中...' : '提交申請'}

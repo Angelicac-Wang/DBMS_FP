@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 
 export default function UploadProjectPage() {
   const router = useRouter();
@@ -35,15 +34,12 @@ export default function UploadProjectPage() {
 
   const fetchProjectData = async (id: string, creatorId: string) => {
     try {
-      const { data: projectData, error: projectError } = await supabase
-        .from('project')
-        .select('*')
-        .eq('p_id', id)
-        .single();
+      const response = await fetch(`/api/projects/${id}`);
+      if (!response.ok) throw new Error('Failed to fetch project');
+      
+      const projectData = await response.json();
 
-      if (projectError) throw projectError;
-
-      if (projectData.creator_id.toString() !== creatorId) {
+      if (projectData.creator_id?.toString() !== creatorId) {
         setError('您不是此專案的創建者');
         return;
       }
@@ -55,19 +51,13 @@ export default function UploadProjectPage() {
 
       setProject(projectData);
 
-      // 獲取專案成員
-      const { data: membersData } = await supabase
-        .from('project_members')
-        .select(`
-          member_id,
-          users(name)
-        `)
-        .eq('p_id', id)
-        .eq('status', 'Y');
+      // 獲取專案成員（從 filled_positions 中提取）
+      const membersData = (projectData.filled_positions || []).map((pos: any) => ({
+        member_id: pos.member_id,
+        users: { name: pos.member_name },
+      }));
 
-      if (membersData) {
-        setMembers(membersData);
-      }
+      setMembers(membersData);
     } catch (err: any) {
       setError('載入失敗：' + (err.message || '未知錯誤'));
     }
@@ -81,49 +71,25 @@ export default function UploadProjectPage() {
       setLoading(true);
       setError('');
 
-      // 檢查 video_url 是否已存在於 video_detail
-      const { data: existingVideo } = await supabase
-        .from('video_detail')
-        .select('video_url')
-        .eq('video_url', formData.video_url)
-        .single();
-
-      if (!existingVideo) {
-        // 創建新的 video_detail
-        await supabase
-          .from('video_detail')
-          .insert({
-            video_url: formData.video_url,
-            cover_song_id: project.song_id || null,
-            created_at: new Date().toISOString(),
-            view_cnt: 0,
-          });
-      }
-
-      // 為每個成員創建作品集項目
-      const portfolioInserts = formData.team_members.map((memberId) => ({
-        u_id: memberId,
-        video_url: formData.video_url,
-        title: formData.title,
-        discription: formData.discription || null,
-      }));
-
-      // 如果創建者也在團隊中，也要加入
-      if (!formData.team_members.includes(userId)) {
-        portfolioInserts.push({
-          u_id: userId,
+      const response = await fetch(`/api/projects/${projectId}/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           video_url: formData.video_url,
           title: formData.title,
           discription: formData.discription || null,
-        });
+          team_members: formData.team_members,
+          creator_id: userId,
+          song_id: project.song_id || null,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error || '上傳失敗');
+        return;
       }
-
-      // 批量插入作品集
-      const { error: insertError } = await supabase
-        .from('portfolios')
-        .insert(portfolioInserts);
-
-      if (insertError) throw insertError;
 
       alert('作品上傳成功！');
       router.push(`/project/${projectId}`);

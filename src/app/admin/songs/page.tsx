@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import Link from 'next/link';
 
@@ -36,92 +35,17 @@ export default function SongsPage() {
   const fetchSongs = async () => {
     try {
       setLoading(true);
-      let query = supabase.from('kpop_songs').select('*');
-
-      // 搜尋
-      if (searchQuery) {
-        query = query.or(`title.ilike.%${searchQuery}%,title_kr.ilike.%${searchQuery}%`);
-      }
-
-      // 篩選難度
-      if (filterDifficulty) {
-        const level = parseInt(filterDifficulty);
-        if (level === 1) {
-          query = query.gte('difficulty_level', 1).lte('difficulty_level', 3);
-        } else if (level === 2) {
-          query = query.gte('difficulty_level', 4).lte('difficulty_level', 6);
-        } else if (level === 3) {
-          query = query.gte('difficulty_level', 7).lte('difficulty_level', 10);
-        }
-      }
-
-      query = query.order('title');
-
-      const { data: songsData, error } = await query;
-
-      if (error) throw error;
-
-      if (!songsData || songsData.length === 0) {
-        setSongs([]);
-        return;
-      }
-
-      // 批量獲取所有歌曲的團體資訊（優化：減少查詢次數）
-      const songIds = songsData.map(s => s.song_id);
       
-      // 一次性獲取所有 song_group 關聯
-      const { data: allSongGroups, error: sgError } = await supabase
-        .from('song_group')
-        .select('song_id, group_id')
-        .in('song_id', songIds);
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (filterDifficulty) params.append('difficulty', filterDifficulty);
+      if (filterGroup) params.append('group', filterGroup);
 
-      if (sgError) throw sgError;
+      const response = await fetch(`/api/admin/songs/search?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch songs');
 
-      // 獲取所有相關的 group_id
-      const groupIds = [...new Set((allSongGroups || []).map(sg => sg.group_id))];
-      
-      // 一次性獲取所有團體名稱
-      let groupsMap = new Map<number, string>();
-      if (groupIds.length > 0) {
-        const { data: groupsData, error: groupsError } = await supabase
-          .from('kpop_groups')
-          .select('group_id, group_name')
-          .in('group_id', groupIds);
-
-        if (groupsError) throw groupsError;
-        
-        if (groupsData) {
-          groupsMap = new Map(groupsData.map(g => [g.group_id, g.group_name]));
-        }
-      }
-
-      // 建立 song_id 到 group_names 的映射
-      const songGroupsMap = new Map<number, string[]>();
-      (allSongGroups || []).forEach(sg => {
-        const groupName = groupsMap.get(sg.group_id);
-        if (groupName) {
-          if (!songGroupsMap.has(sg.song_id)) {
-            songGroupsMap.set(sg.song_id, []);
-          }
-          songGroupsMap.get(sg.song_id)!.push(groupName);
-        }
-      });
-
-      // 組裝最終結果
-      const songsWithGroups = songsData.map(song => ({
-        ...song,
-        groups: songGroupsMap.get(song.song_id) || [],
-      }));
-
-      // 如果有篩選團體，過濾結果
-      let filteredSongs = songsWithGroups;
-      if (filterGroup) {
-        filteredSongs = songsWithGroups.filter(song =>
-          song.groups?.some(g => g === filterGroup)
-        );
-      }
-
-      setSongs(filteredSongs);
+      const songsData = await response.json();
+      setSongs(songsData || []);
     } catch (error) {
       console.error('Error fetching songs:', error);
     } finally {
@@ -141,24 +65,16 @@ export default function SongsPage() {
     }
 
     try {
-      // 檢查是否有關聯的專案
-      const { data: projects } = await supabase
-        .from('project')
-        .select('p_id')
-        .eq('song_id', songId)
-        .limit(1);
+      const response = await fetch(`/api/admin/songs/${songId}`, {
+        method: 'DELETE',
+      });
 
-      if (projects && projects.length > 0) {
-        alert('無法刪除：此歌曲有關聯的專案，請先處理相關專案。');
+      const result = await response.json();
+
+      if (!response.ok) {
+        alert(result.error || '刪除失敗');
         return;
       }
-
-      const { error } = await supabase
-        .from('kpop_songs')
-        .delete()
-        .eq('song_id', songId);
-
-      if (error) throw error;
 
       alert('歌曲已成功刪除');
       fetchSongs();
@@ -178,13 +94,12 @@ export default function SongsPage() {
 
   useEffect(() => {
     if (isAdmin) {
-      supabase
-        .from('kpop_groups')
-        .select('group_id, group_name')
-        .order('group_name')
-        .then(({ data }) => {
-          if (data) setAllGroups(data);
-        });
+      fetch('/api/admin/groups')
+        .then(res => res.json())
+        .then(data => {
+          if (data) setAllGroups(data.map((g: any) => ({ group_id: g.group_id, group_name: g.group_name })));
+        })
+        .catch(err => console.error('Error fetching groups:', err));
     }
   }, [isAdmin]);
 

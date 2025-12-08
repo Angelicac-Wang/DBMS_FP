@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import Link from 'next/link';
 
@@ -26,44 +25,41 @@ export default function UsersPage() {
   const [filterRegion, setFilterRegion] = useState('');
   const [filterGender, setFilterGender] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [allRegions, setAllRegions] = useState<string[]>([]);
 
   useEffect(() => {
     if (isAdmin) {
       fetchUsers();
+      fetchRegions();
     }
   }, [isAdmin]);
+
+  const fetchRegions = async () => {
+    try {
+      const response = await fetch('/api/admin/users/regions');
+      if (!response.ok) throw new Error('Failed to fetch regions');
+      const data = await response.json();
+      setAllRegions(data);
+    } catch (error) {
+      console.error('Error fetching regions:', error);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      let query = supabase.from('users').select('u_id, name, email, region, gender, status, create_at, last_login');
+      const params = new URLSearchParams();
 
-      // 搜尋
-      if (searchQuery) {
-        query = query.or(`name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
-      }
+      if (searchQuery) params.append('search', searchQuery);
+      if (filterRegion) params.append('region', filterRegion);
+      if (filterGender) params.append('gender', filterGender);
+      if (filterStatus) params.append('status', filterStatus);
 
-      // 篩選地區
-      if (filterRegion) {
-        query = query.eq('region', filterRegion);
-      }
+      const response = await fetch('/api/admin/users?' + params.toString());
+      if (!response.ok) throw new Error('Failed to fetch users');
 
-      // 篩選性別
-      if (filterGender) {
-        query = query.eq('gender', filterGender);
-      }
-
-      // 篩選狀態
-      if (filterStatus) {
-        query = query.eq('status', filterStatus);
-      }
-
-      query = query.order('create_at', { ascending: false });
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setUsers(data || []);
+      const data = await response.json();
+      setUsers(data);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -99,22 +95,6 @@ export default function UsersPage() {
     }
   };
 
-  // 獲取所有地區選項（用於篩選）
-  const [allRegions, setAllRegions] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (isAdmin) {
-      supabase
-        .from('users')
-        .select('region')
-        .then(({ data }) => {
-          if (data) {
-            const uniqueRegions = Array.from(new Set(data.map(u => u.region).filter(Boolean))) as string[];
-            setAllRegions(uniqueRegions.sort());
-          }
-        });
-    }
-  }, [isAdmin]);
 
   if (authLoading || !isAdmin) {
     return null;

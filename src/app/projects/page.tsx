@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useBehaviorTracking } from '@/hooks/useBehaviorTracking';
 import CreateProjectModal from '@/components/CreateProjectModal';
 
@@ -184,29 +183,11 @@ export default function ProjectsPage() {
 
   const fetchTopRegions = async () => {
     try {
-      // 獲取所有專案的 practice_location
-      const { data: projectsData } = await supabase
-        .from('project')
-        .select('practice_location')
-        .eq('status', 'A');
-
-      if (!projectsData) return;
-
-      // 統計各練習地點的數量
-      const locationCounts: { [key: string]: number } = {};
-      projectsData.forEach((project) => {
-        if (project.practice_location) {
-          locationCounts[project.practice_location] = (locationCounts[project.practice_location] || 0) + 1;
-        }
-      });
-
-      // 排序並取前六熱門的練習地點
-      const sortedLocations = Object.entries(locationCounts)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 6)
-        .map(([location]) => location);
-
-      setRegionOptions(sortedLocations);
+      const response = await fetch('/api/projects/locations');
+      if (!response.ok) return;
+      
+      const locations = await response.json();
+      setRegionOptions(locations.slice(0, 6));
     } catch (err) {
       console.error('Error fetching top practice locations:', err);
       setRegionOptions([]);
@@ -224,26 +205,16 @@ export default function ProjectsPage() {
       }
       
       const page = reset ? 0 : currentPage;
-      const from = page * ITEMS_PER_PAGE;
-      const to = from + ITEMS_PER_PAGE - 1;
+      const userId = localStorage.getItem('userId');
+      const offset = page * ITEMS_PER_PAGE;
       
-      const { data: projectsData, error: projectsError } = await supabase
-        .from('project')
-        .select(`
-          p_id:p_id::text,
-          porject_title,
-          practice_location,
-          status,
-          song_id:song_id::text,
-          creator_id:creator_id::text,
-          target_cnt,
-          create_at
-        `)
-        .eq('status', 'A')
-        .order('create_at', { ascending: false })
-        .range(from, to);
-
-      if (projectsError) throw projectsError;
+      const response = await fetch(
+        `/api/projects/list?limit=${ITEMS_PER_PAGE}&offset=${offset}${userId ? `&userId=${userId}` : ''}`
+      );
+      
+      if (!response.ok) throw new Error('Failed to fetch projects');
+      
+      const projectsData = await response.json();
 
       // 檢查是否還有更多數據
       if (!projectsData || projectsData.length < ITEMS_PER_PAGE) {
@@ -259,228 +230,41 @@ export default function ProjectsPage() {
         return;
       }
 
-      const projectIds = projectsData.map(p => p.p_id);
-      const creatorIds = [...new Set(projectsData.map(p => p.creator_id).filter(Boolean))];
-      const songIds = [...new Set(projectsData.map(p => p.song_id).filter(Boolean))];
-      const userId = localStorage.getItem('userId');
-
-      // 批次查詢所有相關資料
-      const [
-        creatorsData,
-        schedulesData,
-        targetsData,
-        songsData,
-        songGroupsData,
-        groupsData,
-        memberChecksData
-      ] = await Promise.all([
-        // 批次查詢所有創建者
-        creatorIds.length > 0
-          ? supabase
-              .from('users')
-              .select('u_id, name')
-              .in('u_id', creatorIds)
-          : Promise.resolve({ data: [], error: null }),
-        
-        // 批次查詢所有練習時間表
-        supabase
-          .from('practice_schedule')
-          .select('p_id:p_id::text, date, start_time, end_time')
-          .in('p_id', projectIds)
-          .order('date', { ascending: true }),
-        
-        // 批次查詢所有目標位置
-        supabase
-          .from('project_target')
-          .select('project_id:project_id::text, target_seq, idol_id:idol_id::text, status')
-          .in('project_id', projectIds)
-          .eq('status', 'I'),
-        
-        // 批次查詢所有歌曲
-        songIds.length > 0
-          ? supabase
-              .from('kpop_songs')
-              .select('song_id:song_id::text, title, difficulty_level, youtube_original_url')
-              .in('song_id', songIds)
-          : Promise.resolve({ data: [], error: null }),
-        
-        // 批次查詢所有歌曲-團體關聯
-        songIds.length > 0
-          ? supabase
-              .from('song_group')
-              .select('song_id:song_id::text, group_id:group_id::text')
-              .in('song_id', songIds)
-          : Promise.resolve({ data: [], error: null }),
-        
-        // 批次查詢所有團體（如果有 songGroups）
-        Promise.resolve().then(async () => {
-          if (songIds.length === 0) return { data: [], error: null };
-          const { data: songGroups } = await supabase
-            .from('song_group')
-            .select('song_id:song_id::text, group_id:group_id::text')
-            .in('song_id', songIds);
-          
-          if (!songGroups || songGroups.length === 0) return { data: [], error: null };
-          
-          const groupIds = [...new Set(songGroups.map(sg => sg.group_id))];
-          return supabase
-            .from('kpop_groups')
-            .select('group_id:group_id::text, group_name, group_type, logo_image')
-            .in('group_id', groupIds);
-        }),
-        
-        // 批次查詢用戶是否為成員（如果已登入）
-        userId
-          ? supabase
-              .from('project_members')
-              .select('p_id:p_id::text, member_id:member_id::text')
-              .in('p_id', projectIds)
-              .eq('member_id', userId)
-              .eq('status', 'Y')
-          : Promise.resolve({ data: [], error: null })
-      ]);
-
-      // 批次查詢所有偶像（從 targets 中提取）
-      const idolIds = targetsData.data
-        ? [...new Set(targetsData.data.map(t => t.idol_id).filter(Boolean))]
-        : [];
-      
-      const idolsData = idolIds.length > 0
-        ? await supabase
-            .from('kpop_idols')
-            .select('idol_id, stage_name')
-            .in('idol_id', idolIds)
-        : { data: [], error: null };
-
-      // 建立查找映射表
-      const creatorsMap = new Map(
-        (creatorsData.data || []).map(c => [c.u_id, c.name])
-      );
-      
-      const schedulesMap = new Map<string, Array<{ date: string; start_time: string; end_time: string }>>();
-      (schedulesData.data || []).forEach(schedule => {
-        const pid = String(schedule.p_id);
-        if (!schedulesMap.has(pid)) {
-          schedulesMap.set(pid, []);
-        }
-        schedulesMap.get(pid)!.push({
-          date: schedule.date,
-          start_time: schedule.start_time,
-          end_time: schedule.end_time
-        });
-      });
-      
-      const targetsMap = new Map<string, Array<{ target_seq: number; idol_id: number | null; status: string }>>();
-      (targetsData.data || []).forEach(target => {
-        const pid = String(target.project_id);
-        if (!targetsMap.has(pid)) {
-          targetsMap.set(pid, []);
-        }
-        targetsMap.get(pid)!.push({
-          target_seq: target.target_seq,
-          idol_id: target.idol_id,
-          status: target.status
-        });
-      });
-      
-      const idolsMap = new Map(
-        (idolsData.data || []).map(i => [String(i.idol_id), i.stage_name])
-      );
-      
-      const songsMap = new Map(
-        (songsData.data || []).map(s => [String(s.song_id), s])
-      );
-      
-      const songGroupsMap = new Map<string, string>();
-      (songGroupsData.data || []).forEach(sg => {
-        // 每個歌曲只取第一個團體
-        if (!songGroupsMap.has(sg.song_id)) {
-          songGroupsMap.set(String(sg.song_id), String(sg.group_id));
-        }
-      });
-      
-      const groupsMap = new Map(
-        (groupsData.data || []).map(g => [String(g.group_id), g])
-      );
-      
-      const memberSet = new Set(
-        (memberChecksData.data || []).map(m => String(m.p_id))
-      );
-
       // 組裝專案資料
-      const projectsWithDetails = projectsData.map((project) => {
-        const schedules = schedulesMap.get(project.p_id) || [];
-        const targets = targetsMap.get(project.p_id) || [];
+      const projectsWithDetails = projectsData.map((project: any) => {
+        const schedules = project.practice_schedules || [];
+        const missingPositions = project.missing_positions || [];
         
-        // 處理缺的位置
-        const missingPositions: string[] = [];
-        targets.forEach(target => {
-          if (target.idol_id) {
-            const idolName = idolsMap.get(String(target.idol_id));
-            if (idolName) {
-              missingPositions.push(idolName);
-            } else {
-              missingPositions.push(`位置 ${target.target_seq}`);
-            }
-          } else {
-            missingPositions.push(`伴舞 ${target.target_seq}`);
-          }
-        });
-
-        // 處理歌曲資訊
-        let songInfo = null;
-        let songThumbnail = '';
-        let groupLogoUrl = '';
+        // 直接使用 API 返回的縮圖和 logo，如果沒有則嘗試生成
+        let songThumbnail = project.songThumbnail || '';
+        let groupLogoUrl = project.groupLogoUrl || '';
         
-        if (project.song_id) {
-          const song = songsMap.get(project.song_id);
-          if (song) {
-            // 提取 YouTube 縮圖
-            if (song.youtube_original_url) {
-              const youtubeIdMatch = song.youtube_original_url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
-              if (youtubeIdMatch) {
-                songThumbnail = `https://img.youtube.com/vi/${youtubeIdMatch[1]}/hqdefault.jpg`;
-              }
-            }
-
-            const groupId = songGroupsMap.get(project.song_id);
-            let groupName = null;
-            let groupType = null;
-            
-            if (groupId) {
-              const group = groupsMap.get(groupId);
-              if (group) {
-                groupName = group.group_name;
-                groupType = group.group_type;
-                // 過濾掉 kprofiles.com 的 URL，因為它們會返回 403
-                if (group.logo_image && !group.logo_image.includes('kprofiles.com')) {
-                  groupLogoUrl = group.logo_image;
-                }
-              }
-            }
-
-            songInfo = {
-              title: song.title,
-              difficulty_level: song.difficulty_level,
-              group: groupName ? { group_name: groupName, group_type: groupType || undefined } : undefined,
-            };
+        // 如果 API 沒有返回縮圖，嘗試從歌曲的 YouTube URL 生成
+        if (!songThumbnail && project.song?.youtube_original_url) {
+          const youtubeIdMatch = project.song.youtube_original_url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
+          if (youtubeIdMatch) {
+            songThumbnail = `https://img.youtube.com/vi/${youtubeIdMatch[1]}/hqdefault.jpg`;
           }
         }
 
-        const userIsMember = userId ? memberSet.has(project.p_id) : false;
         const region = getRegionFromLocation(project.practice_location);
 
         return {
-          ...project,
+          p_id: project.p_id,
+          porject_title: project.porject_title,
+          practice_location: project.practice_location,
+          status: project.status,
+          song_id: project.song_id,
+          creator_id: project.creator_id,
+          target_cnt: project.target_cnt,
+          create_at: project.create_at,
           practice_schedules: schedules,
           practiceMonthRange: formatPracticeMonthRange(schedules),
           missing_positions: missingPositions,
-          song: songInfo || undefined,
+          song: project.song || undefined,
           region,
-          practice_location: project.practice_location,
-          creator_id: project.creator_id,
-          creator_name: creatorsMap.get(project.creator_id) || '舞者',
-          is_member: userIsMember,
+          creator_name: project.creator_name || '舞者',
+          is_member: project.is_member || false,
           songThumbnail: songThumbnail || undefined,
           groupLogoUrl: groupLogoUrl || undefined,
         };

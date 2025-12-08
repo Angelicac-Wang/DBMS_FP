@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+// import { supabase } from '@/lib/supabase'; // 已改用本地 PostgreSQL API
 
 interface CreateProjectModalProps {
   isOpen: boolean;
@@ -75,22 +75,11 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
 
   const fetchPracticeLocationTags = async () => {
     try {
-      const { data: projectsData } = await supabase
-        .from('project')
-        .select('practice_location')
-        .eq('status', 'A');
-
-      if (!projectsData) return;
-
-      // 獲取所有不重複的練習地點
-      const uniqueLocations = new Set<string>();
-      projectsData.forEach((project) => {
-        if (project.practice_location) {
-          uniqueLocations.add(project.practice_location);
-        }
-      });
-
-      setPracticeLocationTags(Array.from(uniqueLocations).sort());
+      const response = await fetch('/api/projects/locations');
+      if (response.ok) {
+        const data = await response.json();
+        setPracticeLocationTags(data);
+      }
     } catch (err) {
       console.error('Error fetching practice location tags:', err);
     }
@@ -117,76 +106,12 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
 
   const fetchSongs = async () => {
     try {
-      const { data: songsData } = await supabase
-        .from('kpop_songs')
-        .select('song_id, title, difficulty_level')
-        .limit(500);
-
-      if (!songsData) return;
-
-      // 為每首歌獲取團體或偶像資訊
-      const songsWithInfo = await Promise.all(
-        songsData.map(async (song) => {
-          // 先嘗試從 song_group 獲取團體
-          const { data: songGroups } = await supabase
-            .from('song_group')
-            .select('group_id')
-            .eq('song_id', song.song_id)
-            .limit(1);
-
-          if (songGroups && songGroups.length > 0) {
-            const { data: group } = await supabase
-              .from('kpop_groups')
-              .select('group_name')
-              .eq('group_id', songGroups[0].group_id)
-              .single();
-
-            if (group) {
-              return {
-                song_id: song.song_id,
-                title: song.title,
-                difficulty_level: song.difficulty_level,
-                displayName: `${song.title} - ${group.group_name}`,
-              };
-            }
-          }
-
-          // 如果沒有團體，從 song_idol 獲取第一個偶像
-          const { data: songIdols } = await supabase
-            .from('song_idol')
-            .select('idol_id')
-            .eq('song_id', song.song_id)
-            .limit(1);
-
-          if (songIdols && songIdols.length > 0) {
-            const { data: idol } = await supabase
-              .from('kpop_idols')
-              .select('stage_name')
-              .eq('idol_id', songIdols[0].idol_id)
-              .single();
-
-            if (idol) {
-              return {
-                song_id: song.song_id,
-                title: song.title,
-                difficulty_level: song.difficulty_level,
-                displayName: `${song.title} - ${idol.stage_name}`,
-              };
-            }
-          }
-
-          // 如果都沒有，只顯示歌曲名稱
-          return {
-            song_id: song.song_id,
-            title: song.title,
-            difficulty_level: song.difficulty_level,
-            displayName: song.title,
-          };
-        })
-      );
-
-      setSongs(songsWithInfo);
-      setFilteredSongs(songsWithInfo);
+      const response = await fetch('/api/songs');
+      if (response.ok) {
+        const data = await response.json();
+        setSongs(data);
+        setFilteredSongs(data);
+      }
     } catch (err) {
       console.error('Error fetching songs:', err);
     }
@@ -194,42 +119,10 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
 
   const fetchGroupIdols = async (songId: string) => {
     try {
-      // 從 song_group 獲取 group_id
-      const { data: songGroups } = await supabase
-        .from('song_group')
-        .select('group_id')
-        .eq('song_id', parseInt(songId))
-        .limit(1);
-
-      if (!songGroups || songGroups.length === 0) {
-        setGroupIdols([]);
-        return;
-      }
-
-      const groupId = songGroups[0].group_id;
-
-      // 從 group_idol 獲取該團體的所有 idols
-      const { data: groupIdolsData } = await supabase
-        .from('group_idol')
-        .select('idol_id')
-        .eq('group_id', groupId);
-
-      if (!groupIdolsData || groupIdolsData.length === 0) {
-        setGroupIdols([]);
-        return;
-      }
-
-      const idolIds = groupIdolsData.map(item => item.idol_id);
-
-      // 獲取這些偶像的詳細資訊
-      const { data: idolsData } = await supabase
-        .from('kpop_idols')
-        .select('idol_id, stage_name')
-        .in('idol_id', idolIds)
-        .order('idol_id');
-
-      if (idolsData) {
-        setGroupIdols(idolsData);
+      const response = await fetch(`/api/songs/${songId}/idols`);
+      if (response.ok) {
+        const data = await response.json();
+        setGroupIdols(data);
       } else {
         setGroupIdols([]);
       }
@@ -341,6 +234,13 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
       setLoading(true);
       setError('');
 
+      // 驗證翻跳歌曲是否已選擇
+      if (!formData.song_id || formData.song_id.trim() === '') {
+        setError('請選擇翻跳歌曲');
+        setLoading(false);
+        return;
+      }
+
       const validSchedules = practiceSchedules.filter(
         (s) => s.date && s.start_time && s.end_time
       );
@@ -361,103 +261,48 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
         return;
       }
 
-      const generateProjectId = () => {
-        const timestamp = Date.now();
-        const random = Math.floor(Math.random() * 10000);
-        return timestamp * 10000 + random;
+      // 準備創建專案的資料
+      const projectData = {
+        creator_id: userId,
+        song_id: parseInt(formData.song_id),
+        porject_title: formData.porject_title,
+        target_cnt: totalTargetCount,
+        practice_location: formData.practice_location,
+        description: formData.description || null,
+        schedules: validSchedules,
+        targets: [] as Array<{ idol_id: number | null }>,
       };
 
-      let newProjectId = generateProjectId();
-      let attempts = 0;
-      while (attempts < 10) {
-        const { data: checkId } = await supabase
-          .from('project')
-          .select('p_id')
-          .eq('p_id', newProjectId)
-          .single();
-
-        if (!checkId) break;
-        newProjectId = generateProjectId();
-        attempts++;
-      }
-
-      if (attempts >= 10) {
-        setError('系統繁忙，請稍後再試');
-        return;
-      }
-
-      const now = new Date().toISOString();
-
-      // 創建專案
-      const { error: projectError } = await supabase
-        .from('project')
-        .insert({
-          p_id: newProjectId,
-          creator_id: userId,
-          song_id: formData.song_id ? parseInt(formData.song_id) : null,
-          porject_title: formData.porject_title,
-          target_cnt: totalTargetCount,
-          practice_location: formData.practice_location,
-          create_at: now,
-          update_at: now,
-          status: 'A',
-          description: formData.description || null,
-        });
-
-      if (projectError) throw projectError;
-
-      // 創建練習時間表
-      const schedules = validSchedules.map((s) => ({
-        p_id: newProjectId,
-        date: s.date,
-        start_time: s.start_time,
-        end_time: s.end_time,
-      }));
-
-      if (schedules.length > 0) {
-        const { error: scheduleError } = await supabase.from('practice_schedule').insert(schedules);
-        if (scheduleError) throw scheduleError;
-      }
-
-      // 創建所有目標位置
-      const allTargets: Array<{
-        target_seq: number;
-        project_id: number;
-        idol_id: number | null;
-        status: 'I';
-      }> = [];
-
-      // 添加選中的 idols（按順序）
-      let seq = 1;
+      // 添加選中的 idols
       groupIdols.forEach((idol) => {
         if (selectedIdols.has(idol.idol_id)) {
-          allTargets.push({
-            target_seq: seq,
-            project_id: newProjectId,
-            idol_id: idol.idol_id,
-            status: 'I',
-          });
-          seq++;
+          projectData.targets.push({ idol_id: idol.idol_id });
         }
       });
 
       // 添加伴舞
       if (dancerCountNum > 0) {
-        for (let i = 1; i <= dancerCountNum; i++) {
-          allTargets.push({
-            target_seq: seq,
-            project_id: newProjectId,
-            idol_id: null,
-            status: 'I',
-          });
-          seq++;
+        for (let i = 0; i < dancerCountNum; i++) {
+          projectData.targets.push({ idol_id: null });
         }
       }
 
-      if (allTargets.length > 0) {
-        const { error: targetError } = await supabase.from('project_target').insert(allTargets);
-        if (targetError) throw targetError;
+      // 調用 API 創建專案
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(projectData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '建立失敗');
       }
+
+      const result = await response.json();
+      const newProjectId = result.project_id;
 
       // 重置表單
       setFormData({
@@ -551,7 +396,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                   />
                 </div>
                 <div className="relative">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">翻跳歌曲（選填）</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">翻跳歌曲 *</label>
                   <input
                     type="text"
                     value={songSearchQuery}
@@ -559,6 +404,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                     onFocus={() => setShowSongDropdown(true)}
                     placeholder="搜尋歌曲..."
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
+                    required
                   />
                   {showSongDropdown && filteredSongs.length > 0 && (
                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">

@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -33,44 +32,29 @@ export default function AuthPage() {
     setError('');
 
     try {
-      // 使用用戶名稱和密碼登入
-      const { data, error: fetchError } = await supabase
-        .from('users')
-        .select('u_id, status, password, role')
-        .eq('name', loginData.name)
-        .single();
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: loginData.name,
+          password: loginData.password,
+        }),
+      });
 
-      if (fetchError || !data) {
-        setError('用戶名稱或密碼錯誤');
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error || '登入失敗，請稍後再試');
         setLoading(false);
         return;
       }
-
-      if (data.status === 'N') {
-        setError('帳號已被停用');
-        setLoading(false);
-        return;
-      }
-
-      // 驗證密碼
-      if (data.password !== loginData.password) {
-        setError('用戶名稱或密碼錯誤');
-        setLoading(false);
-        return;
-      }
-
-      // 更新最後登入時間
-      await supabase
-        .from('users')
-        .update({ last_login: new Date().toISOString() })
-        .eq('u_id', data.u_id);
 
       // 儲存到 localStorage
-      localStorage.setItem('userId', data.u_id.toString());
-      localStorage.setItem('userRole', data.role);
+      localStorage.setItem('userId', result.u_id.toString());
+      localStorage.setItem('userRole', result.role);
       
       // 根據角色導向不同頁面
-      if (data.role === 'A') {
+      if (result.role === 'A') {
         router.push('/admin');
       } else {
         router.push('/');
@@ -88,94 +72,23 @@ export default function AuthPage() {
     setError('');
 
     try {
-      // 檢查用戶名稱是否已存在
-      const { data: existingName } = await supabase
-        .from('users')
-        .select('name')
-        .eq('name', registerData.name)
-        .single();
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registerData),
+      });
 
-      if (existingName) {
-        setError('此用戶名稱已被使用，請選擇其他名稱');
-        setLoading(false);
-        return;
-      }
+      const result = await response.json();
 
-      // 檢查 email 和 phone 是否已存在
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('email, phone')
-        .or(`email.eq.${registerData.email},phone.eq.${registerData.phone}`)
-        .limit(1);
-
-      if (existingUser && existingUser.length > 0) {
-        setError('Email 或電話號碼已被使用');
-        setLoading(false);
-        return;
-      }
-
-      // 生成唯一的 u_id（使用時間戳 + 隨機數）
-      const generateUserId = () => {
-        const timestamp = Date.now();
-        const random = Math.floor(Math.random() * 10000);
-        return timestamp * 10000 + random;
-      };
-
-      let newUserId = generateUserId();
-      let attempts = 0;
-      const maxAttempts = 10;
-
-      // 確保生成的 ID 是唯一的
-      while (attempts < maxAttempts) {
-        const { data: checkId } = await supabase
-          .from('users')
-          .select('u_id')
-          .eq('u_id', newUserId)
-          .single();
-
-        if (!checkId) {
-          break; // ID 不存在，可以使用
-        }
-        newUserId = generateUserId();
-        attempts++;
-      }
-
-      if (attempts >= maxAttempts) {
-        setError('系統繁忙，請稍後再試');
-        setLoading(false);
-        return;
-      }
-
-      // 插入新用戶
-      const { data: newUser, error: insertError } = await supabase
-        .from('users')
-        .insert({
-          u_id: newUserId,
-          name: registerData.name,
-          email: registerData.email,
-          password: registerData.password,
-          birthdate: registerData.birthdate,
-          gender: registerData.gender,
-          region: registerData.region,
-          phone: registerData.phone,
-          status: 'A',
-          create_at: new Date().toISOString(),
-          last_login: new Date().toISOString(),
-          role: 'U',
-        })
-        .select('u_id')
-        .single();
-
-      if (insertError) {
-        setError('註冊失敗：' + insertError.message);
+      if (!response.ok) {
+        setError(result.error || '註冊失敗，請稍後再試');
         setLoading(false);
         return;
       }
 
       // 儲存到 localStorage
-      if (newUser) {
-        localStorage.setItem('userId', newUser.u_id.toString());
-      }
+      localStorage.setItem('userId', result.u_id.toString());
+      localStorage.setItem('userRole', result.role || 'U');
       router.push('/');
     } catch (err) {
       setError('註冊失敗，請稍後再試');

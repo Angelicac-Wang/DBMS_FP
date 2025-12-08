@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import Link from 'next/link';
 
@@ -72,162 +71,61 @@ export default function ProjectDetailPage() {
     try {
       setLoading(true);
 
-      // 獲取專案基本資訊
-      const { data: projectData, error: projectError } = await supabase
-        .from('project')
-        .select('*')
-        .eq('p_id', parseInt(projectId))
-        .single();
-
-      if (projectError) throw projectError;
-      setProject(projectData);
-
-      // 獲取創建者名稱
-      if (projectData.creator_id) {
-        const { data: creator } = await supabase
-          .from('users')
-          .select('name')
-          .eq('u_id', projectData.creator_id)
-          .single();
-        if (creator) setCreatorName(creator.name);
-      }
-
-      // 獲取歌曲資訊
-      if (projectData.song_id) {
-        const { data: song } = await supabase
-          .from('kpop_songs')
-          .select('title, difficulty_level')
-          .eq('song_id', projectData.song_id)
-          .single();
-        if (song) {
-          setSongTitle(song.title);
-          setSongDifficulty(song.difficulty_level);
-
-          // 獲取歌曲的團體
-          const { data: songGroups } = await supabase
-            .from('song_group')
-            .select('group_id')
-            .eq('song_id', projectData.song_id)
-            .limit(1);
-
-          if (songGroups && songGroups.length > 0) {
-            const { data: group } = await supabase
-              .from('kpop_groups')
-              .select('group_name')
-              .eq('group_id', songGroups[0].group_id)
-              .single();
-            if (group) setSongGroup(group.group_name);
-          }
+      const response = await fetch(`/api/projects/${projectId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setProject(null);
+          return;
         }
+        throw new Error('Failed to fetch project');
       }
 
-      // 獲取成員名單與位置分配
-      const { data: targets } = await supabase
-        .from('project_target')
-        .select('target_seq, idol_id, status')
-        .eq('project_id', parseInt(projectId))
-        .order('target_seq');
-
-      if (targets) {
-        const positionsData = await Promise.all(
-          targets.map(async (target) => {
-            let idolName: string | undefined;
-            if (target.idol_id) {
-              const { data: idol } = await supabase
-                .from('kpop_idols')
-                .select('stage_name')
-                .eq('idol_id', target.idol_id)
-                .single();
-              if (idol) idolName = idol.stage_name;
-            }
-
-            // 獲取成員資訊
-            const { data: member } = await supabase
-              .from('project_members')
-              .select('member_id')
-              .eq('p_id', parseInt(projectId))
-              .eq('target_seq', target.target_seq)
-              .eq('status', 'Y')
-              .single();
-
-            let memberName: string | undefined;
-            if (member) {
-              const { data: user } = await supabase
-                .from('users')
-                .select('name')
-                .eq('u_id', member.member_id)
-                .single();
-              if (user) memberName = user.name;
-            }
-
-            return {
-              target_seq: target.target_seq,
-              idol_id: target.idol_id || undefined,
-              idol_name: idolName,
-              member_id: member?.member_id,
-              member_name: memberName,
-              is_backup: !target.idol_id,
-            };
-          })
-        );
-
-        setPositions(positionsData);
-        setFilledCount(positionsData.filter(p => p.member_id).length);
+      const projectData = await response.json();
+      setProject(projectData);
+      setCreatorName(projectData.creator_name || '');
+      
+      if (projectData.song) {
+        setSongTitle(projectData.song.title || '');
+        setSongDifficulty(projectData.song.difficulty_level || null);
+        setSongGroup(projectData.song.group?.group_name || '');
       }
 
-      // 獲取所有申請記錄
-      const { data: applicationsData } = await supabase
-        .from('project_applications')
-        .select('application_id, applicant_id, target_seq, status, applied_time, review_time')
-        .eq('p_id', parseInt(projectId))
-        .order('applied_time', { ascending: false });
+      // 處理位置資訊
+      const positionsData: Position[] = [];
+      const allTargets = [
+        ...(projectData.missing_positions || []),
+        ...(projectData.filled_positions || []),
+      ];
 
-      if (applicationsData) {
-        const applicationsWithDetails = await Promise.all(
-          applicationsData.map(async (app) => {
-            // 獲取申請者名稱
-            const { data: applicant } = await supabase
-              .from('users')
-              .select('name')
-              .eq('u_id', app.applicant_id)
-              .single();
+      allTargets.forEach((target: any) => {
+        positionsData.push({
+          target_seq: target.target_seq,
+          idol_id: target.idol_id,
+          idol_name: target.idol_name,
+          member_id: target.member_id,
+          member_name: target.member_name,
+          is_backup: !target.idol_id,
+        });
+      });
 
-            // 獲取位置對應的偶像名稱
-            const { data: target } = await supabase
-              .from('project_target')
-              .select('idol_id')
-              .eq('project_id', parseInt(projectId))
-              .eq('target_seq', app.target_seq)
-              .single();
+      setPositions(positionsData);
+      setFilledCount(projectData.filled_positions?.length || 0);
 
-            let idolName: string | undefined;
-            if (target?.idol_id) {
-              const { data: idol } = await supabase
-                .from('kpop_idols')
-                .select('stage_name')
-                .eq('idol_id', target.idol_id)
-                .single();
-              if (idol) idolName = idol.stage_name;
-            }
-
-            return {
-              ...app,
-              applicant_name: applicant?.name || '未知',
-              idol_name: idolName,
-            };
-          })
-        );
-        setApplications(applicationsWithDetails);
+      // 獲取所有申請記錄（需要單獨 API）
+      const applicationsResponse = await fetch(`/api/admin/projects/${projectId}/applications`);
+      if (applicationsResponse.ok) {
+        const applicationsData = await applicationsResponse.json();
+        setApplications(applicationsData.applications || []);
       }
 
-      // 獲取練習時間表
-      const { data: schedules } = await supabase
-        .from('practice_schedule')
-        .select('*')
-        .eq('p_id', parseInt(projectId))
-        .order('practice_date');
-
-      if (schedules) setPracticeSchedules(schedules);
+      // 處理練習時間表
+      const schedulesData = (projectData.practice_schedules || []).map((s: any) => ({
+        schedule_id: 0, // API 可能不返回 ID
+        practice_date: s.date,
+        start_time: s.start_time,
+        end_time: s.end_time,
+      }));
+      setPracticeSchedules(schedulesData);
     } catch (error) {
       console.error('Error fetching project detail:', error);
     } finally {

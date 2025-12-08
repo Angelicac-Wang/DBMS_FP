@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { supabase } from '@/lib/supabase';
 import { getBehaviorStats, queryEvents } from '@/lib/behavior-analytics';
 import type { BehaviorStats, EventType } from '@/types/behavior';
 
@@ -40,55 +39,39 @@ export default function AnalyticsPage() {
     try {
       setAnalytics((prev) => ({ ...prev, loading: true }));
 
-      // 获取统计信息
-      const { data: stats } = await getBehaviorStats(
-        dateRange.start,
-        dateRange.end
+      // 直接使用 API 获取所有统计数据
+      const analyticsResponse = await fetch(
+        `/api/admin/analytics?start_date=${dateRange.start}&end_date=${dateRange.end}`
       );
-
-      // 获取最近的事件
-      const { data: recentEvents } = await queryEvents({
-        start_date: dateRange.start,
-        end_date: dateRange.end,
-        event_type: selectedEventType === 'all' ? undefined : selectedEventType,
-        limit: 50,
-        order_by: 'event_timestamp',
-        order: 'desc',
-      });
-
-      // 获取事件类型统计
-      const { data: allEvents } = await queryEvents({
-        start_date: dateRange.start,
-        end_date: dateRange.end,
-        limit: 10000, // 获取足够的数据进行统计
-      });
-
-      const eventTypeCounts: { [key: string]: number } = {};
-      if (allEvents) {
-        allEvents.forEach((event: any) => {
-          eventTypeCounts[event.event_type] = (eventTypeCounts[event.event_type] || 0) + 1;
-        });
+      
+      if (!analyticsResponse.ok) {
+        throw new Error('Failed to fetch analytics');
       }
 
-      const topEventTypes = Object.entries(eventTypeCounts)
-        .map(([event_type, count]) => ({ event_type, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
+      const analyticsData = await analyticsResponse.json();
 
-      // 获取会话数据
-      const { data: sessionsData } = await supabase
-        .from('user_sessions')
-        .select('*')
-        .gte('started_at', dateRange.start)
-        .lte('started_at', dateRange.end + 'T23:59:59')
-        .order('started_at', { ascending: false })
-        .limit(100);
+      // 构建 stats 对象
+      const stats = {
+        total_events: analyticsData.total_events || 0,
+        unique_users: analyticsData.unique_users || 0,
+        unique_sessions: analyticsData.unique_sessions || 0,
+        events_by_type: analyticsData.events_by_type || {},
+        events_by_date: analyticsData.events_by_date || [],
+      };
+
+      // 获取最近的事件（如果事件类型筛选不是全部）
+      let recentEvents = analyticsData.recentEvents || [];
+      if (selectedEventType !== 'all') {
+        recentEvents = recentEvents.filter(
+          (event: any) => event.event_type === selectedEventType
+        );
+      }
 
       setAnalytics({
-        stats: stats || null,
-        recentEvents: recentEvents || [],
-        topEventTypes,
-        sessions: sessionsData || [],
+        stats: stats,
+        recentEvents: recentEvents,
+        topEventTypes: analyticsData.topEventTypes || [],
+        sessions: analyticsData.sessions || [],
         loading: false,
       });
     } catch (error) {
@@ -142,11 +125,11 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-gray-900">行為分析</h1>
-        <div className="flex items-center space-x-4">
-          <div>
-            <label className="text-sm text-gray-600 mr-2">開始日期：</label>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 whitespace-nowrap">開始日期：</label>
             <input
               type="date"
               value={dateRange.start}
@@ -154,8 +137,8 @@ export default function AnalyticsPage() {
               className="border border-gray-300 rounded px-3 py-2 text-black"
             />
           </div>
-          <div>
-            <label className="text-sm text-gray-600 mr-2">結束日期：</label>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 whitespace-nowrap">結束日期：</label>
             <input
               type="date"
               value={dateRange.end}
@@ -163,8 +146,8 @@ export default function AnalyticsPage() {
               className="border border-gray-300 rounded px-3 py-2 text-black"
             />
           </div>
-          <div>
-            <label className="text-sm text-gray-600 mr-2">事件類型：</label>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 whitespace-nowrap">事件類型：</label>
             <select
               value={selectedEventType}
               onChange={(e) => setSelectedEventType(e.target.value as EventType | 'all')}
@@ -259,7 +242,7 @@ export default function AnalyticsPage() {
           {/* 事件類型分布 */}
           {analytics.topEventTypes.length > 0 && (
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">事件類型分布 (Top 10)</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">事件類型分布</h2>
               <div className="space-y-3">
                 {analytics.topEventTypes.map((item, index) => {
                   const total = analytics.stats?.total_events || 1;
@@ -298,7 +281,9 @@ export default function AnalyticsPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">每日事件趨勢</h2>
               <div className="space-y-2">
-                {analytics.stats.events_by_date.map((item) => {
+                {[...analytics.stats.events_by_date]
+                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .map((item) => {
                   const maxCount = Math.max(
                     ...analytics.stats!.events_by_date.map((d) => d.count)
                   );

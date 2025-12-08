@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { supabase } from '@/lib/supabase';
 
 interface Statistics {
   totalUsers: number;

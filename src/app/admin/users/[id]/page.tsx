@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import Link from 'next/link';
 
@@ -87,103 +86,23 @@ export default function UserDetailPage() {
     try {
       setLoading(true);
 
-      // 獲取使用者基本資料
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('u_id', parseInt(userId))
-        .single();
-
-      if (userError) throw userError;
-      setUser(userData);
-
-      // 獲取發起的專案
-      const { data: createdProjectsData } = await supabase
-        .from('project')
-        .select('p_id, porject_title, status, create_at')
-        .eq('creator_id', parseInt(userId))
-        .order('create_at', { ascending: false });
-
-      if (createdProjectsData) setCreatedProjects(createdProjectsData);
-
-      // 獲取參與的專案
-      const { data: membersData } = await supabase
-        .from('project_members')
-        .select('p_id, target_seq, join_date')
-        .eq('member_id', parseInt(userId))
-        .eq('status', 'Y');
-
-      if (membersData && membersData.length > 0) {
-        const projectIds = membersData.map(m => m.p_id);
-        const { data: projectsData } = await supabase
-          .from('project')
-          .select('p_id, porject_title')
-          .in('p_id', projectIds);
-
-        if (projectsData) {
-          const participated = membersData.map(m => {
-            const project = projectsData.find(p => p.p_id === m.p_id);
-            return {
-              p_id: m.p_id,
-              porject_title: project?.porject_title || '未知專案',
-              target_seq: m.target_seq,
-              join_date: m.join_date,
-            };
-          });
-          setParticipatedProjects(participated);
+      const response = await fetch(`/api/admin/users/${userId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setUser(null);
+          return;
         }
+        throw new Error('Failed to fetch user detail');
       }
 
-      // 獲取作品集
-      const { data: portfoliosData } = await supabase
-        .from('portfolios')
-        .select('*')
-        .eq('u_id', parseInt(userId))
-        .order('portfolio_id', { ascending: false });
-
-      if (portfoliosData) setPortfolios(portfoliosData);
-
-      // 獲取技能
-      const { data: skillsData } = await supabase
-        .from('user_skills')
-        .select('*')
-        .eq('u_id', parseInt(userId));
-
-      if (skillsData) setSkills(skillsData);
-
-      // 獲取社群連結
-      const { data: socialLinksData } = await supabase
-        .from('user_social_link')
-        .select('*')
-        .eq('u_id', parseInt(userId));
-
-      if (socialLinksData) setSocialLinks(socialLinksData);
-
-      // 獲取申請記錄
-      const { data: applicationsData } = await supabase
-        .from('project_applications')
-        .select('application_id, p_id, target_seq, status, applied_time')
-        .eq('applicant_id', parseInt(userId))
-        .order('applied_time', { ascending: false });
-
-      if (applicationsData && applicationsData.length > 0) {
-        const projectIds = applicationsData.map(a => a.p_id);
-        const { data: projectsData } = await supabase
-          .from('project')
-          .select('p_id, porject_title')
-          .in('p_id', projectIds);
-
-        if (projectsData) {
-          const applicationsWithTitle = applicationsData.map(a => {
-            const project = projectsData.find(p => p.p_id === a.p_id);
-            return {
-              ...a,
-              porject_title: project?.porject_title || '未知專案',
-            };
-          });
-          setApplications(applicationsWithTitle);
-        }
-      }
+      const data = await response.json();
+      setUser(data.user);
+      setCreatedProjects(data.createdProjects || []);
+      setParticipatedProjects(data.participatedProjects || []);
+      setPortfolios(data.portfolios || []);
+      setSkills(data.skills || []);
+      setSocialLinks(data.socialLinks || []);
+      setApplications(data.applications || []);
     } catch (error) {
       console.error('Error fetching user detail:', error);
     } finally {

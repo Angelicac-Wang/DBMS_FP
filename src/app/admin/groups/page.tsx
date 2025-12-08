@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import Link from 'next/link';
 
@@ -36,29 +35,31 @@ export default function GroupsPage() {
   const fetchGroups = async () => {
     try {
       setLoading(true);
-      let query = supabase.from('kpop_groups').select('*');
 
-      // 搜尋
+      const response = await fetch('/api/admin/groups');
+      if (!response.ok) throw new Error('Failed to fetch groups');
+
+      let data = await response.json();
+
+      // 前端篩選（因為 API 暫時沒有篩選功能）
       if (searchQuery) {
-        query = query.or(`group_name.ilike.%${searchQuery}%,group_namekr.ilike.%${searchQuery}%`);
+        data = data.filter((g: Group) =>
+          g.group_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (g.group_namekr && g.group_namekr.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
       }
 
-      // 篩選類型
       if (filterType) {
-        query = query.eq('group_type', filterType);
+        data = data.filter((g: Group) => g.group_type === filterType);
       }
 
-      // 篩選經紀公司
       if (filterCompany) {
-        query = query.ilike('company', `%${filterCompany}%`);
+        data = data.filter((g: Group) =>
+          g.company.toLowerCase().includes(filterCompany.toLowerCase())
+        );
       }
 
-      query = query.order('group_name');
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setGroups(data || []);
+      setGroups(data);
     } catch (error) {
       console.error('Error fetching groups:', error);
     } finally {
@@ -78,27 +79,14 @@ export default function GroupsPage() {
     }
 
     try {
-      // 檢查是否有關聯的歌曲
-      const { data: songs } = await supabase
-        .from('song_group')
-        .select('song_id')
-        .eq('group_id', groupId)
-        .limit(1);
-
-      if (songs && songs.length > 0) {
-        alert('無法刪除：此團體有關聯的歌曲，請先刪除相關歌曲。');
-        return;
-      }
-
-      const { error } = await supabase
-        .from('kpop_groups')
-        .delete()
-        .eq('group_id', groupId);
-
-      if (error) throw error;
-
-      alert('團體已成功刪除');
-      fetchGroups();
+      // TODO: 需要創建 DELETE API
+      alert('刪除功能暫時不可用，請聯繫管理員');
+      // const response = await fetch(`/api/admin/groups/${groupId}`, {
+      //   method: 'DELETE',
+      // });
+      // if (!response.ok) throw new Error('Failed to delete group');
+      // alert('團體已成功刪除');
+      // fetchGroups();
     } catch (error: any) {
       alert('刪除失敗：' + (error.message || '未知錯誤'));
     }

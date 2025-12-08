@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { getGroupTypeText } from '@/lib/utils';
 
@@ -37,60 +36,20 @@ export default function GroupDetailPage() {
     try {
       setLoading(true);
       
-      // 獲取團體基本資訊
-      const { data: groupData, error } = await supabase
-        .from('kpop_groups')
-        .select('*')
-        .eq('group_id', id)
-        .single();
-
-      if (error) throw error;
-
-      // 獲取團體成員（透過 GROUP_IDOL 關聯表）
-      const { data: groupIdols } = await supabase
-        .from('group_idol')
-        .select('idol_id')
-        .eq('group_id', id);
-      
-      let idols: any[] = [];
-      if (groupIdols && groupIdols.length > 0) {
-        const idolIds = groupIdols.map(gi => gi.idol_id);
-        const { data: idolsData } = await supabase
-          .from('kpop_idols')
-          .select('idol_id, stage_name, stage_name_kr')
-          .in('idol_id', idolIds)
-          .order('idol_id');
-        idols = idolsData || [];
-      }
-
-      // 獲取團體的歌曲
-      const { data: songGroups } = await supabase
-        .from('song_group')
-        .select('song_id')
-        .eq('group_id', id);
-
-      const songs: Array<{ song_id: number; title: string; title_kr: string }> = [];
-      if (songGroups) {
-        for (const sg of songGroups) {
-          const { data: song } = await supabase
-            .from('kpop_songs')
-            .select('song_id, title, title_kr')
-            .eq('song_id', sg.song_id)
-            .single();
-          if (song) {
-            songs.push({
-              song_id: song.song_id,
-              title: song.title,
-              title_kr: song.title_kr,
-            });
-          }
+      const response = await fetch(`/api/groups/${id}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setGroup(null);
+          return;
         }
+        throw new Error('Failed to fetch group');
       }
 
+      const groupData = await response.json();
       setGroup({
         ...groupData,
-        members: idols || [],
-        songs: songs,
+        members: groupData.members || [],
+        songs: groupData.songs || [],
       });
     } catch (err) {
       console.error('Error fetching group detail:', err);

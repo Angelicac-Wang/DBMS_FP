@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
 interface IdolDetail {
@@ -36,60 +35,20 @@ export default function IdolDetailPage() {
     try {
       setLoading(true);
       
-      // 獲取偶像基本資訊
-      const { data: idolData, error } = await supabase
-        .from('kpop_idols')
-        .select('*')
-        .eq('idol_id', id)
-        .single();
-
-      if (error) throw error;
-
-      // 獲取所屬團體（透過 GROUP_IDOL 關聯表，可能有多個團體）
-      const { data: groupIdols } = await supabase
-        .from('group_idol')
-        .select('group_id')
-        .eq('idol_id', id);
-      
-      let groups: Array<{ group_id: number; group_name: string; group_namekr?: string }> = [];
-      if (groupIdols && groupIdols.length > 0) {
-        const groupIds = groupIdols.map(gi => gi.group_id);
-        const { data: groupsData } = await supabase
-          .from('kpop_groups')
-          .select('group_id, group_name, group_namekr')
-          .in('group_id', groupIds)
-          .order('group_name');
-        groups = groupsData || [];
-      }
-
-      // 獲取參與的歌曲
-      const { data: songIdols } = await supabase
-        .from('song_idol')
-        .select('song_id')
-        .eq('idol_id', id);
-
-      const songs: Array<{ song_id: number; title: string; title_kr: string }> = [];
-      if (songIdols) {
-        for (const si of songIdols) {
-          const { data: song } = await supabase
-            .from('kpop_songs')
-            .select('song_id, title, title_kr')
-            .eq('song_id', si.song_id)
-            .single();
-          if (song) {
-            songs.push({
-              song_id: song.song_id,
-              title: song.title,
-              title_kr: song.title_kr,
-            });
-          }
+      const response = await fetch(`/api/idols/${id}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setIdol(null);
+          return;
         }
+        throw new Error('Failed to fetch idol');
       }
 
+      const idolData = await response.json();
       setIdol({
         ...idolData,
-        groups: groups.length > 0 ? groups : undefined,
-        songs,
+        groups: idolData.groups && idolData.groups.length > 0 ? idolData.groups : undefined,
+        songs: idolData.songs || [],
       });
     } catch (err) {
       console.error('Error fetching idol detail:', err);

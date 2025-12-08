@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 export default function CreateGroupPage() {
@@ -28,46 +27,27 @@ export default function CreateGroupPage() {
     setError('');
 
     try {
-      // 生成唯一的 group_id
-      const generateGroupId = () => {
-        const timestamp = Date.now();
-        const random = Math.floor(Math.random() * 10000);
-        return timestamp * 10000 + random;
-      };
-
-      let newGroupId = generateGroupId();
-      let attempts = 0;
-      while (attempts < 10) {
-        const { data: checkId } = await supabase
-          .from('kpop_groups')
-          .select('group_id')
-          .eq('group_id', newGroupId)
-          .single();
-
-        if (!checkId) break;
-        newGroupId = generateGroupId();
-        attempts++;
-      }
-
-      if (attempts >= 10) {
-        setError('系統繁忙，請稍後再試');
-        setLoading(false);
-        return;
-      }
-
-      const { error: insertError } = await supabase.from('kpop_groups').insert({
-        group_id: newGroupId,
-        group_name: formData.group_name,
-        group_namekr: formData.group_namekr || null,
-        debut_date: formData.debut_date,
-        company: formData.company,
-        group_type: formData.group_type,
-        member_count: parseInt(formData.member_count),
-        logo_image: formData.logo_image || null,
-        discription: formData.discription || null,
+      const response = await fetch('/api/admin/groups', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          group_name: formData.group_name,
+          group_namekr: formData.group_namekr || null,
+          debut_date: formData.debut_date,
+          company: formData.company,
+          group_type: formData.group_type,
+          member_count: formData.member_count,
+          logo_image: formData.logo_image || null,
+          discription: formData.discription || null,
+        }),
       });
 
-      if (insertError) throw insertError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '建立失敗');
+      }
 
       alert('團體已成功建立');
       router.push('/admin/groups');

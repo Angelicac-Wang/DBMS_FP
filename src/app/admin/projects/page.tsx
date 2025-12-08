@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import Link from 'next/link';
 
@@ -36,62 +35,31 @@ export default function ProjectsPage() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      let query = supabase.from('project').select('p_id, porject_title, creator_id, song_id, status, target_cnt, create_at');
 
-      // 搜尋
+      const response = await fetch('/api/admin/projects');
+      if (!response.ok) throw new Error('Failed to fetch projects');
+
+      let data = await response.json();
+
+      // 前端篩選
       if (searchQuery) {
-        query = query.ilike('porject_title', `%${searchQuery}%`);
+        data = data.filter((p: Project) =>
+          p.porject_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (p.song_title && p.song_title.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
       }
 
-      // 篩選狀態
       if (filterStatus) {
-        query = query.eq('status', filterStatus);
+        data = data.filter((p: Project) => p.status === filterStatus);
       }
 
-      query = query.order('create_at', { ascending: false });
-
-      const { data: projectsData, error } = await query;
-
-      if (error) throw error;
-
-      // 獲取創建者名稱和歌曲名稱
-      const projectsWithDetails = await Promise.all(
-        (projectsData || []).map(async (project) => {
-          // 獲取創建者名稱
-          const { data: creator } = await supabase
-            .from('users')
-            .select('name')
-            .eq('u_id', project.creator_id)
-            .single();
-
-          // 獲取歌曲名稱
-          let songTitle = undefined;
-          if (project.song_id) {
-            const { data: song } = await supabase
-              .from('kpop_songs')
-              .select('title')
-              .eq('song_id', project.song_id)
-              .single();
-            songTitle = song?.title;
-          }
-
-          return {
-            ...project,
-            creator_name: creator?.name || '未知',
-            song_title: songTitle,
-          };
-        })
-      );
-
-      // 如果有篩選創建者，過濾結果
-      let filteredProjects = projectsWithDetails;
       if (filterCreator) {
-        filteredProjects = projectsWithDetails.filter(p =>
+        data = data.filter((p: Project) =>
           p.creator_name.toLowerCase().includes(filterCreator.toLowerCase())
         );
       }
 
-      setProjects(filteredProjects);
+      setProjects(data);
     } catch (error) {
       console.error('Error fetching projects:', error);
     } finally {

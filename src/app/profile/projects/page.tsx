@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { getStatusText, getStatusColor } from '@/lib/utils';
 
 interface Project {
@@ -42,195 +41,17 @@ export default function MyProjectsPage() {
   const fetchProjects = async (id: string) => {
     try {
       setLoading(true);
+      const response = await fetch(`/api/users/${id}/projects?filter=${filter}`);
 
-      let createdProjects: Project[] = [];
-      let joinedProjects: Project[] = [];
-
-      // 獲取我創建的專案
-      const { data: createdData } = await supabase
-        .from('project')
-        .select('*')
-        .eq('creator_id', id)
-        .order('create_at', { ascending: false });
-
-      // 獲取我參與的專案
-      const { data: membersData } = await supabase
-        .from('project_members')
-        .select('p_id')
-        .eq('member_id', id);
-
-      let joinedData: any[] = [];
-      if (membersData && membersData.length > 0) {
-        const projectIds = membersData.map((m) => m.p_id);
-        const { data } = await supabase
-          .from('project')
-          .select('*')
-          .in('p_id', projectIds)
-          .order('create_at', { ascending: false });
-        joinedData = data || [];
+      if (!response.ok) {
+        throw new Error('Failed to fetch projects');
       }
 
-      // 合併所有專案
-      const allProjects = [
-        ...(createdData || []),
-        ...joinedData
-      ];
-      const uniqueProjectIds = [...new Set(allProjects.map(p => p.p_id))];
-
-      if (uniqueProjectIds.length === 0) {
-        setProjects([]);
-        return;
-      }
-
-      // 從已獲取的專案資料中提取歌曲 ID
-      const songIds = [...new Set(
-        allProjects.map(p => p.song_id).filter(Boolean)
-      )];
-
-      // 批次查詢所有專案的詳細資訊
-      const [
-        songGroupsData,
-        groupsData,
-        membersDataBatch,
-        applicationsDataBatch
-      ] = await Promise.all([
-        // 批次查詢所有歌曲-團體關聯
-        songIds.length > 0
-          ? supabase
-              .from('song_group')
-              .select('song_id, group_id')
-              .in('song_id', songIds)
-          : Promise.resolve({ data: [], error: null }),
-        
-        // 批次查詢所有團體（在獲取 songGroups 後）
-        Promise.resolve().then(async () => {
-          if (songIds.length === 0) return { data: [], error: null };
-          
-          const { data: songGroups } = await supabase
-            .from('song_group')
-            .select('song_id, group_id')
-            .in('song_id', songIds);
-          
-          if (!songGroups || songGroups.length === 0) return { data: [], error: null };
-          
-          const groupIds = [...new Set(songGroups.map(sg => sg.group_id))];
-          return supabase
-            .from('kpop_groups')
-            .select('group_id, group_name')
-            .in('group_id', groupIds);
-        }),
-        
-        // 批次查詢所有成員
-        supabase
-          .from('project_members')
-          .select('p_id, member_id')
-          .in('p_id', uniqueProjectIds)
-          .eq('status', 'Y'),
-        
-        // 批次查詢所有申請
-        supabase
-          .from('project_applications')
-          .select('p_id, appli_id')
-          .in('p_id', uniqueProjectIds)
-          .eq('status', 'W')
-      ]);
-
-      // 獲取所有歌曲資訊
-      const songsInfoData = songIds.length > 0
-        ? await supabase
-            .from('kpop_songs')
-            .select('song_id, title')
-            .in('song_id', songIds)
-        : { data: [], error: null };
-
-      // 建立查找映射表
-      const projectSongMap = new Map(
-        allProjects.map(p => [p.p_id, p.song_id])
-      );
-      
-      const songsMap = new Map(
-        (songsInfoData.data || []).map(s => [s.song_id, s])
-      );
-      
-      const songGroupsMap = new Map<number, number>();
-      (songGroupsData.data || []).forEach(sg => {
-        if (!songGroupsMap.has(sg.song_id)) {
-          songGroupsMap.set(sg.song_id, sg.group_id);
-        }
-      });
-      
-      const groupsMap = new Map(
-        (groupsData.data || []).map(g => [g.group_id, g])
-      );
-      
-      const membersCountMap = new Map<number, number>();
-      (membersDataBatch.data || []).forEach(m => {
-        membersCountMap.set(m.p_id, (membersCountMap.get(m.p_id) || 0) + 1);
-      });
-      
-      const applicationsCountMap = new Map<number, number>();
-      (applicationsDataBatch.data || []).forEach(a => {
-        applicationsCountMap.set(a.p_id, (applicationsCountMap.get(a.p_id) || 0) + 1);
-      });
-
-      // 組裝專案詳細資訊的函數
-      const getProjectDetails = (projectId: number) => {
-        const songId = projectSongMap.get(projectId);
-        let songInfo = null;
-
-        if (songId) {
-          const song = songsMap.get(songId);
-          if (song) {
-            const groupId = songGroupsMap.get(songId);
-            const group = groupId ? groupsMap.get(groupId) : null;
-            songInfo = {
-              title: song.title,
-              group_name: group?.group_name || null
-            };
-          }
-        }
-
-        return {
-          song: songInfo,
-          member_count: membersCountMap.get(projectId) || 0,
-          application_count: applicationsCountMap.get(projectId) || 0,
-        };
-      };
-
-      // 組裝創建的專案
-      if (createdData) {
-        createdProjects = createdData.map((project) => {
-          const details = getProjectDetails(project.p_id);
-          return { ...project, ...details };
-        });
-      }
-
-      // 組裝參與的專案
-      if (joinedData.length > 0) {
-        joinedProjects = joinedData.map((project) => {
-          const details = getProjectDetails(project.p_id);
-          return { ...project, ...details };
-        });
-      }
-
-      // 根據篩選條件合併專案
-      let allProjects: Project[] = [];
-      if (filter === 'all') {
-        // 合併並去重
-        const projectMap = new Map();
-        [...createdProjects, ...joinedProjects].forEach((p) => {
-          projectMap.set(p.p_id, p);
-        });
-        allProjects = Array.from(projectMap.values());
-      } else if (filter === 'created') {
-        allProjects = createdProjects;
-      } else if (filter === 'joined') {
-        allProjects = joinedProjects;
-      }
-
-      setProjects(allProjects);
+      const data = await response.json();
+      setProjects(data);
     } catch (err) {
       console.error('Error fetching projects:', err);
+      setProjects([]);
     } finally {
       setLoading(false);
     }

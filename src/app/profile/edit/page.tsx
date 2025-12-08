@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 
 interface UserProfile {
   name: string;
@@ -46,35 +45,19 @@ export default function EditProfilePage() {
     try {
       setLoading(true);
       
-      // 獲取基本資料
-      const { data: userData } = await supabase
-        .from('users')
-        .select('name, region')
-        .eq('u_id', id)
-        .single();
-
-      if (userData) {
-        setProfile(userData);
-      }
-
-      // 獲取技能
-      const { data: skillsData } = await supabase
-        .from('user_skills')
-        .select('skill_type, proficiency_level, years_of_experience, discription')
-        .eq('u_id', id);
-
-      if (skillsData) {
-        setSkills(skillsData);
-      }
-
-      // 獲取社群連結
-      const { data: linksData } = await supabase
-        .from('user_social_link')
-        .select('url, platform, follower_cnt')
-        .eq('u_id', id);
-
-      if (linksData) {
-        setSocialLinks(linksData);
+      const response = await fetch(`/api/users/${id}`);
+      if (!response.ok) throw new Error('Failed to fetch user data');
+      
+      const userData = await response.json();
+      
+      setProfile({ name: userData.name || '', region: userData.region || '' });
+      setSkills(userData.skills || []);
+      
+      // 獲取社群連結（需要單獨查詢）
+      const linksResponse = await fetch(`/api/users/${id}/social-links`);
+      if (linksResponse.ok) {
+        const linksData = await linksResponse.json();
+        setSocialLinks(linksData || []);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -90,34 +73,22 @@ export default function EditProfilePage() {
       setSaving(true);
       setError('');
 
-      // 更新基本資料
-      await supabase
-        .from('users')
-        .update({ name: profile.name, region: profile.region })
-        .eq('u_id', userId);
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: profile.name,
+          region: profile.region,
+          skills,
+          socialLinks,
+        }),
+      });
 
-      // 更新技能（先刪除再插入）
-      await supabase
-        .from('user_skills')
-        .delete()
-        .eq('u_id', userId);
+      const result = await response.json();
 
-      if (skills.length > 0) {
-        await supabase
-          .from('user_skills')
-          .insert(skills.map(skill => ({ ...skill, u_id: userId })));
-      }
-
-      // 更新社群連結（先刪除再插入）
-      await supabase
-        .from('user_social_link')
-        .delete()
-        .eq('u_id', userId);
-
-      if (socialLinks.length > 0) {
-        await supabase
-          .from('user_social_link')
-          .insert(socialLinks.map(link => ({ ...link, u_id: userId })));
+      if (!response.ok) {
+        setError(result.error || '儲存失敗');
+        return;
       }
 
       router.push('/profile');

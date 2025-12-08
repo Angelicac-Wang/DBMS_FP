@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface Group {
@@ -46,26 +45,20 @@ export default function EditGroupPage() {
   const fetchGroup = async () => {
     try {
       setLoading(true);
-      const { data, error: fetchError } = await supabase
-        .from('kpop_groups')
-        .select('*')
-        .eq('group_id', parseInt(groupId))
-        .single();
+      const response = await fetch(`/api/groups/${groupId}`);
+      if (!response.ok) throw new Error('Failed to fetch group');
 
-      if (fetchError) throw fetchError;
-
-      if (data) {
-        setFormData({
-          group_name: data.group_name,
-          group_namekr: data.group_namekr || '',
-          debut_date: data.debut_date,
-          company: data.company,
-          group_type: data.group_type,
-          member_count: data.member_count.toString(),
-          logo_image: data.logo_image || '',
-          discription: data.discription || '',
-        });
-      }
+      const data = await response.json();
+      setFormData({
+        group_name: data.group_name,
+        group_namekr: data.group_namekr || '',
+        debut_date: data.debut_date,
+        company: data.company,
+        group_type: data.group_type,
+        member_count: data.member_count.toString(),
+        logo_image: data.logo_image || '',
+        discription: data.discription || '',
+      });
     } catch (err: any) {
       setError('載入失敗：' + (err.message || '未知錯誤'));
     } finally {
@@ -79,9 +72,10 @@ export default function EditGroupPage() {
     setError('');
 
     try {
-      const { error: updateError } = await supabase
-        .from('kpop_groups')
-        .update({
+      const response = await fetch(`/api/admin/groups/${groupId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           group_name: formData.group_name,
           group_namekr: formData.group_namekr || null,
           debut_date: formData.debut_date,
@@ -90,10 +84,14 @@ export default function EditGroupPage() {
           member_count: parseInt(formData.member_count),
           logo_image: formData.logo_image || null,
           discription: formData.discription || null,
-        })
-        .eq('group_id', parseInt(groupId));
+        }),
+      });
 
-      if (updateError) throw updateError;
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || '更新失敗');
+      }
 
       alert('團體已成功更新');
       router.push(`/admin/groups/${groupId}`);
@@ -110,24 +108,16 @@ export default function EditGroupPage() {
     }
 
     try {
-      // 檢查是否有關聯的歌曲
-      const { data: songs } = await supabase
-        .from('song_group')
-        .select('song_id')
-        .eq('group_id', parseInt(groupId))
-        .limit(1);
+      const response = await fetch(`/api/admin/groups/${groupId}`, {
+        method: 'DELETE',
+      });
 
-      if (songs && songs.length > 0) {
-        alert('無法刪除：此團體有關聯的歌曲，請先刪除相關歌曲。');
+      const result = await response.json();
+
+      if (!response.ok) {
+        alert(result.error || '刪除失敗');
         return;
       }
-
-      const { error: deleteError } = await supabase
-        .from('kpop_groups')
-        .delete()
-        .eq('group_id', parseInt(groupId));
-
-      if (deleteError) throw deleteError;
 
       alert('團體已成功刪除');
       router.push('/admin/groups');

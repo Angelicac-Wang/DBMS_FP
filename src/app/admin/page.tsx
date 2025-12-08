@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
 interface Statistics {
@@ -32,35 +31,15 @@ export default function AdminDashboard() {
     try {
       setLoadingStats(true);
 
-      // 總使用者數
-      const { count: totalUsers } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true });
-
-      // 總專案數
-      const { count: totalProjects } = await supabase
-        .from('project')
-        .select('*', { count: 'exact', head: true });
-
-      // 活躍專案數（狀態為 A）
-      const { count: activeProjects } = await supabase
-        .from('project')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'A');
-
-      // 今日新增專案數
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const { count: todayProjects } = await supabase
-        .from('project')
-        .select('*', { count: 'exact', head: true })
-        .gte('create_at', today.toISOString());
-
+      const response = await fetch('/api/admin/statistics');
+      if (!response.ok) throw new Error('Failed to fetch statistics');
+      
+      const statsData = await response.json();
       setStats({
-        totalUsers: totalUsers || 0,
-        totalProjects: totalProjects || 0,
-        activeProjects: activeProjects || 0,
-        todayProjects: todayProjects || 0,
+        totalUsers: statsData.totalUsers || 0,
+        totalProjects: statsData.totalProjects || 0,
+        activeProjects: statsData.activeProjects || 0,
+        todayProjects: statsData.todayProjects || 0,
       });
     } catch (error) {
       console.error('Error fetching statistics:', error);

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { formatDate, formatTime } from '@/lib/utils';
 
@@ -70,266 +69,78 @@ export default function ProjectDetailPage() {
   const logPrefix = `[ProjectDetail:${projectId}]`;
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<ProjectDetail | null>(null);
-  const userId = localStorage.getItem('userId');
+  const [userId, setUserId] = useState<string | null>(null);
   const [isMember, setIsMember] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [viewCount, setViewCount] = useState(0);
 
   useEffect(() => {
+    // 在客户端获取 userId
+    if (typeof window !== 'undefined') {
+      setUserId(localStorage.getItem('userId'));
+    }
+  }, []);
+
+  useEffect(() => {
     if (projectId) {
       fetchProjectDetail(projectId);
     }
-  }, [projectId]);
+  }, [projectId, userId]);
 
   const fetchProjectDetail = async (id: string) => {
     try {
       setLoading(true);
       console.info(`${logPrefix} start fetchProjectDetail`, { id });
       
-      // 使用 BigInt 以避免長數字精度損失
-      let projectIdNum: bigint;
-      try {
-        projectIdNum = BigInt(id);
-      } catch {
-        console.error(`${logPrefix} invalid project ID (BigInt parse failed)`, { id });
-        setProject(null);
-        return;
-      }
-      const projectIdStr = projectIdNum.toString();
-      console.info(`${logPrefix} parsed projectIdNum`, { projectIdNum: projectIdStr });
-      
-      // 獲取專案基本資訊 - 這是關鍵查詢，如果失敗則項目不存在
-      const { data: projectData, error } = await supabase
-        .from('project')
-        .select('*')
-        .eq('p_id', projectIdStr)
-        .maybeSingle();
-
-      if (error) {
-        console.error(`${logPrefix} error fetching project base data`, {
-          code: (error as any)?.code,
-          message: error.message,
-          details: (error as any)?.details,
-          hint: (error as any)?.hint,
-        });
-        // 只有項目基本信息查詢失敗才認為項目不存在
-        if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
+      const response = await fetch(`/api/projects/${id}`);
+      if (!response.ok) {
+        if (response.status === 404) {
           setProject(null);
           return;
         }
-        // 其他錯誤也認為項目不存在（可能是權限問題等）
-        setProject(null);
-        return;
+        throw new Error('Failed to fetch project');
       }
-
-      if (!projectData) {
-        console.warn(`${logPrefix} projectData empty after base query`, {
-          projectIdNum,
-        });
-        setProject(null);
-        return;
-      }
-      console.info(`${logPrefix} base project found`, { projectIdNum, projectData });
-
-      // 以下所有查詢都是關聯數據，失敗不影響項目顯示
-      let creatorName: string | undefined = undefined;
-      try {
-        const { data: creator } = await supabase
-          .from('users')
-          .select('name')
-          .eq('u_id', projectData.creator_id)
-          .maybeSingle();
-        creatorName = creator?.name;
-      } catch (err) {
-        console.error('Error fetching creator:', err);
-      }
-
-      // 獲取練習時間
-      let schedules: Array<{ date: string; start_time: string; end_time: string }> = [];
-      try {
-        const { data: schedulesData } = await supabase
-          .from('practice_schedule')
-          .select('date, start_time, end_time')
-          .eq('p_id', projectIdStr)
-          .order('date', { ascending: true });
-        schedules = schedulesData || [];
-      } catch (err) {
-        console.error('Error fetching schedules:', err);
-      }
-
-      // 獲取所有目標位置
-      let targets: Array<{ target_seq: number; idol_id?: number; status?: string }> = [];
-      try {
-        const { data: targetsData } = await supabase
-          .from('project_target')
-          .select('target_seq, idol_id, status')
-          .eq('project_id', projectIdStr)
-          .order('target_seq');
-        targets = targetsData || [];
-      } catch (err) {
-        console.error('Error fetching targets:', err);
-      }
-
-      // 獲取缺少的位置
-      const missingPositions: Array<{ target_seq: number; idol_id?: number; idol_name?: string }> = [];
-      const filledPositions: Array<{ target_seq: number; member_name: string; idol_id?: number; idol_name?: string }> = [];
-
-      if (targets && targets.length > 0) {
-        for (const target of targets) {
+      
+      const projectData = await response.json();
+      
+      // 檢查用戶是否已在專案中
+      const isUserCreator = userId && projectData.creator_id?.toString() === userId;
+      let userIsMember = false;
+      
+      if (userId) {
+        // 首先檢查是否為專案成員（從 filled_positions 中查找）
+        if (projectData.filled_positions) {
+          userIsMember = projectData.filled_positions.some((pos: any) => 
+            pos.member_id?.toString() === userId
+          );
+        }
+        
+        // 如果還不是成員，檢查是否有已接受的申請
+        if (!userIsMember) {
           try {
-            let idolName = undefined;
-            if (target.idol_id) {
-              try {
-                const { data: idol } = await supabase
-                  .from('kpop_idols')
-                  .select('stage_name')
-                  .eq('idol_id', target.idol_id)
-                  .maybeSingle();
-                if (idol) idolName = idol.stage_name;
-              } catch (err) {
-                console.error(`Error fetching idol ${target.idol_id}:`, err);
-              }
-            }
-
-            if (target.status === 'I') {
-              missingPositions.push({
-                target_seq: target.target_seq,
-                idol_id: target.idol_id || undefined,
-                idol_name: idolName,
-              });
-            } else if (target.status === 'F') {
-              // 獲取該位置的成員
-              try {
-                const { data: member } = await supabase
-                  .from('project_members')
-                  .select(`
-                    member_id,
-                    users(name)
-                  `)
-                .eq('p_id', projectIdStr)
-                  .eq('target_seq', target.target_seq)
-                  .eq('status', 'Y')
-                  .maybeSingle();
-
-                if (member) {
-                  filledPositions.push({
-                    target_seq: target.target_seq,
-                    member_name: (member.users as any)?.name || '未知',
-                    idol_id: target.idol_id || undefined,
-                    idol_name: idolName,
-                  });
-                }
-              } catch (err) {
-                console.error(`Error fetching member for target ${target.target_seq}:`, err);
-              }
+            const memberResponse = await fetch(`/api/projects/${id}/apply?userId=${userId}`);
+            if (memberResponse.ok) {
+              const memberData = await memberResponse.json();
+              // 檢查是否有已接受的申請
+              userIsMember = memberData.applications?.some((app: any) => app.status === 'A') || false;
             }
           } catch (err) {
-            console.error(`Error processing target ${target.target_seq}:`, err);
-            // 繼續處理下一個 target
+            console.error('Error checking membership:', err);
           }
         }
       }
 
-      // 獲取歌曲資訊（包含 YouTube URL 和 duration）
-      let songInfo = null;
-      if (projectData.song_id) {
-        try {
-          const { data: song } = await supabase
-            .from('kpop_songs')
-            .select('title, difficulty_level, youtube_original_url, duration')
-            .eq('song_id', projectData.song_id)
-            .maybeSingle();
-
-          if (song) {
-            let groupInfo = null;
-            try {
-              const { data: songGroups } = await supabase
-                .from('song_group')
-                .select('group_id')
-                .eq('song_id', projectData.song_id)
-                .limit(1);
-
-              if (songGroups && songGroups.length > 0) {
-                try {
-                  const { data: group } = await supabase
-                    .from('kpop_groups')
-                    .select('group_id, group_name')
-                    .eq('group_id', songGroups[0].group_id)
-                    .maybeSingle();
-                  
-                  if (group) {
-                    groupInfo = {
-                      group_id: group.group_id,
-                      group_name: group.group_name,
-                    };
-                  }
-                } catch (err) {
-                  console.error('Error fetching group:', err);
-                }
-              }
-            } catch (err) {
-              console.error('Error fetching song groups:', err);
-            }
-
-            songInfo = {
-              title: song.title,
-              duration: song.duration,
-              youtube_original_url: song.youtube_original_url,
-              group: groupInfo,
-            };
-          }
-        } catch (err) {
-          console.error('Error fetching song:', err);
-        }
-      }
-
-      // 檢查用戶是否已在專案中
-      let userIsMember = false;
-      const isUserCreator = userId && projectData.creator_id.toString() === userId;
-      if (userId) {
-        console.info(`${logPrefix} check membership`, { userId, isUserCreator });
-        try {
-          const { data: memberCheck } = await supabase
-            .from('project_members')
-            .select('member_id')
-            .eq('p_id', projectIdStr)
-            .eq('member_id', userId)
-            .eq('status', 'Y')
-            .maybeSingle();
-          userIsMember = !!memberCheck;
-        } catch (err) {
-          console.error('Error checking membership:', err);
-        }
-      }
-
-      // 只有當項目基本信息查詢成功時才設置項目數據
-      // 即使關聯數據查詢失敗，也應該顯示項目基本信息
-      console.info(`${logPrefix} set project data`, {
-        hasSong: !!songInfo,
-        schedulesCount: schedules.length,
-        missingCount: missingPositions.length,
-        filledCount: filledPositions.length,
-        isUserCreator,
-        userIsMember,
-      });
-      setProject({
-        ...projectData,
-        song: songInfo,
-        practice_schedules: schedules,
-        missing_positions: missingPositions,
-        filled_positions: filledPositions,
-        creator_name: creatorName,
-      });
+      setProject(projectData);
       setIsMember(userIsMember);
       setIsCreator(isUserCreator || false);
 
-      // 獲取專案瀏覽次數（失敗不影響項目顯示）
+      // 獲取專案瀏覽次數
       try {
-        const response = await fetch(`/api/analytics/query?event_type=project_view&limit=1000`);
-        const result = await response.json();
-        if (result.success && result.events) {
-          const projectViews = result.events.filter(
-            (event: any) => event.event_data?.project_id?.toString?.() === projectIdStr
+        const analyticsResponse = await fetch(`/api/analytics/query?event_type=project_view&limit=1000`);
+        const analyticsResult = await analyticsResponse.json();
+        if (analyticsResult.success && analyticsResult.events) {
+          const projectViews = analyticsResult.events.filter(
+            (event: any) => event.event_data?.project_id?.toString?.() === id
           );
           setViewCount(projectViews.length);
         }
@@ -338,8 +149,6 @@ export default function ProjectDetailPage() {
       }
     } catch (err: any) {
       console.error(`${logPrefix} unexpected error in fetchProjectDetail`, err);
-      // 只有在項目基本信息查詢失敗時才設置為 null
-      // 這裡的錯誤應該是項目基本信息查詢的錯誤
       setProject(null);
     } finally {
       setLoading(false);

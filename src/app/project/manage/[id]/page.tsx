@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 
 interface Application {
   appli_id: number;
@@ -54,138 +53,23 @@ export default function ManageProjectPage() {
     try {
       setLoading(true);
 
-      // 獲取專案資訊
-      const { data: projectData, error: projectError } = await supabase
-        .from('project')
-        .select('*')
-        .eq('p_id', id)
-        .single();
-
-      if (projectError) throw projectError;
-
-      // 檢查是否為專案創建者
-      if (projectData.creator_id.toString() !== creatorId) {
-        setError('您不是此專案的創建者');
-        return;
-      }
-
-      setProject(projectData);
-
-      // 獲取歌曲資訊
-      if (projectData.song_id) {
-        const { data: song } = await supabase
-          .from('kpop_songs')
-          .select('title')
-          .eq('song_id', projectData.song_id)
-          .single();
-
-        if (song) {
-          const { data: songGroups } = await supabase
-            .from('song_group')
-            .select('group_id')
-            .eq('song_id', projectData.song_id)
-            .limit(1);
-
-          let groupName = null;
-          if (songGroups && songGroups.length > 0) {
-            const { data: group } = await supabase
-              .from('kpop_groups')
-              .select('group_name')
-              .eq('group_id', songGroups[0].group_id)
-              .single();
-
-            if (group) groupName = group.group_name;
-          }
-
-          setSongInfo({ title: song.title, group_name: groupName });
+      const response = await fetch(`/api/projects/${id}/manage?userId=${creatorId}`);
+      if (!response.ok) {
+        if (response.status === 403) {
+          setError('您不是此專案的創建者');
+          return;
         }
+        throw new Error('Failed to fetch project data');
       }
 
-      // 獲取練習時間表
-      const { data: schedules } = await supabase
-        .from('practice_schedule')
-        .select('*')
-        .eq('p_id', id)
-        .order('date', { ascending: true });
+      const data = await response.json();
 
-      if (schedules) setPracticeSchedules(schedules);
-
-      // 獲取目標位置
-      const { data: targetsData } = await supabase
-        .from('project_target')
-        .select(`
-          target_seq,
-          idol_id,
-          status,
-          kpop_idols(stage_name)
-        `)
-        .eq('project_id', id)
-        .order('target_seq');
-
-      if (targetsData) {
-        setTargets(targetsData);
-      }
-
-      // 獲取成員
-      const { data: membersData } = await supabase
-        .from('project_members')
-        .select(`
-          member_id,
-          target_seq,
-          join_date,
-          status,
-          users(name)
-        `)
-        .eq('p_id', id);
-
-      if (membersData) {
-        setMembers(membersData);
-      }
-
-      // 獲取申請列表
-      const { data: applicationsData, error: appError } = await supabase
-        .from('project_applications')
-        .select('appli_id, applicant_id, target_seq, applied_time, status')
-        .eq('p_id', id)
-        .eq('status', 'W') // 只顯示等待審核的申請
-        .order('applied_time', { ascending: false });
-
-      if (applicationsData) {
-        // 獲取申請者詳細資訊
-        const applicationsWithDetails = await Promise.all(
-          applicationsData.map(async (app) => {
-            const { data: user } = await supabase
-              .from('users')
-              .select('name')
-              .eq('u_id', app.applicant_id)
-              .single();
-
-            const { data: skills } = await supabase
-              .from('user_skills')
-              .select('*')
-              .eq('u_id', app.applicant_id);
-
-            const { data: portfolios } = await supabase
-              .from('portfolios')
-              .select('*')
-              .eq('u_id', app.applicant_id)
-              .limit(3);
-
-            const target = targetsData?.find((t) => t.target_seq === app.target_seq);
-            const idolName = target?.kpop_idols && !Array.isArray(target.kpop_idols) ? (target.kpop_idols as any).stage_name : undefined;
-
-            return {
-              ...app,
-              applicant_name: user?.name,
-              applicant_skills: skills || [],
-              applicant_portfolios: portfolios || [],
-              idol_name: idolName,
-            };
-          })
-        );
-
-        setApplications(applicationsWithDetails);
-      }
+      setProject(data.project);
+      setSongInfo(data.songInfo);
+      setPracticeSchedules(data.practiceSchedules || []);
+      setTargets(data.targets || []);
+      setMembers(data.members || []);
+      setApplications(data.applications || []);
     } catch (err: any) {
       setError('載入失敗：' + (err.message || '未知錯誤'));
     } finally {
@@ -195,38 +79,15 @@ export default function ManageProjectPage() {
 
   const handleReviewApplication = async (appliId: number, status: 'A' | 'R') => {
     try {
-      const { error } = await supabase
-        .from('project_applications')
-        .update({
-          status,
-          reviewed_time: new Date().toISOString(),
-        })
-        .eq('appli_id', appliId);
+      const response = await fetch(`/api/projects/${projectId}/manage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appli_id: appliId, status }),
+      });
 
-      if (error) throw error;
-
-      if (status === 'A') {
-        // 如果接受申請，需要將申請者加入專案成員
-        const application = applications.find((app) => app.appli_id === appliId);
-        if (application) {
-          // 更新目標狀態為已填滿
-          await supabase
-            .from('project_target')
-            .update({ status: 'F' })
-            .eq('project_id', projectId)
-            .eq('target_seq', application.target_seq);
-
-          // 加入專案成員
-          await supabase
-            .from('project_members')
-            .insert({
-              p_id: projectId,
-              member_id: application.applicant_id,
-              join_date: new Date().toISOString().split('T')[0],
-              target_seq: application.target_seq,
-              status: 'Y',
-            });
-        }
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || '操作失敗');
       }
 
       // 重新載入資料
@@ -245,16 +106,21 @@ export default function ManageProjectPage() {
     }
 
     try {
-      const { error } = await supabase
-        .from('practice_schedule')
-        .insert({
-          p_id: projectId,
+      const response = await fetch(`/api/projects/${projectId}/manage`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'add',
           date: newSchedule.date,
           start_time: newSchedule.start_time,
           end_time: newSchedule.end_time,
-        });
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || '新增失敗');
+      }
 
       setNewSchedule({ date: '', start_time: '', end_time: '' });
       setShowScheduleForm(false);
@@ -270,13 +136,19 @@ export default function ManageProjectPage() {
     if (!confirm('確定要刪除此練習時間嗎？')) return;
 
     try {
-      const { error } = await supabase
-        .from('practice_schedule')
-        .delete()
-        .eq('p_id', projectId)
-        .eq('date', date);
+      const response = await fetch(`/api/projects/${projectId}/manage`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete',
+          schedule_date: date,
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || '刪除失敗');
+      }
 
       if (userId) {
         fetchProjectData(projectId, userId);
@@ -293,28 +165,14 @@ export default function ManageProjectPage() {
       setLoading(true);
       setError('');
 
-      // 根據外鍵約束，刪除順序很重要：
-      // 1. PROJECT_TARGET 的主鍵包含 project_id，需要先手動刪除（因為 ON DELETE SET NULL 會違反主鍵約束）
-      // 2. 其他表（PRACTICE_SCHEDULE, PROJECT_MEMBERS, PROJECT_APPLICATIONS）會因為 CASCADE 自動刪除
-      
-      // 先刪除 PROJECT_TARGET（因為主鍵包含 project_id，不能設為 NULL）
-      const { error: targetError } = await supabase
-        .from('project_target')
-        .delete()
-        .eq('project_id', projectId);
+      const response = await fetch(`/api/projects/${projectId}/manage`, {
+        method: 'DELETE',
+      });
 
-      if (targetError) throw targetError;
-
-      // 刪除專案（會自動 CASCADE 刪除相關資料）
-      // PRACTICE_SCHEDULE: ON DELETE CASCADE
-      // PROJECT_MEMBERS: ON DELETE CASCADE  
-      // PROJECT_APPLICATIONS: ON DELETE CASCADE
-      const { error: projectError } = await supabase
-        .from('project')
-        .delete()
-        .eq('p_id', projectId);
-
-      if (projectError) throw projectError;
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || '刪除失敗');
+      }
 
       // 刪除成功，返回專案列表
       alert('專案已成功刪除');

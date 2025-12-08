@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import Link from 'next/link';
 
@@ -53,73 +52,34 @@ export default function GroupDetailPage() {
     try {
       setLoading(true);
 
-      // 獲取團體基本資訊
-      const { data: groupData, error: groupError } = await supabase
-        .from('kpop_groups')
-        .select('*')
-        .eq('group_id', parseInt(groupId))
-        .single();
+      const response = await fetch(`/api/groups/${groupId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setGroup(null);
+          return;
+        }
+        throw new Error('Failed to fetch group');
+      }
 
-      if (groupError) throw groupError;
+      const groupData = await response.json();
       setGroup(groupData);
+      setIdols(groupData.members || []);
+      setSongs(groupData.songs || []);
 
-      // 獲取成員列表（透過 GROUP_IDOL 關聯表）
-      const { data: groupIdols } = await supabase
-        .from('group_idol')
-        .select('idol_id')
-        .eq('group_id', parseInt(groupId));
-      
-      if (groupIdols && groupIdols.length > 0) {
-        const idolIds = groupIdols.map(gi => gi.idol_id);
-        const { data: idolsData } = await supabase
-          .from('kpop_idols')
-          .select('idol_id, stage_name, stage_name_kr, nationality, debut_date')
-          .in('idol_id', idolIds)
-          .order('idol_id');
-        
-        if (idolsData) setIdols(idolsData);
+      // 獲取使用此團體歌曲的專案數
+      if (groupData.songs && groupData.songs.length > 0) {
+        const songIds = groupData.songs.map((s: any) => s.song_id);
+        const projectCountResponse = await fetch(
+          `/api/admin/groups/${groupId}/project-count?songIds=${songIds.join(',')}`
+        );
+        if (projectCountResponse.ok) {
+          const countData = await projectCountResponse.json();
+          setProjectCount(countData.count || 0);
+        } else {
+          setProjectCount(0);
+        }
       } else {
-        setIdols([]);
-      }
-
-      // 獲取歌曲列表
-      const { data: songGroups } = await supabase
-        .from('song_group')
-        .select('song_id')
-        .eq('group_id', parseInt(groupId));
-
-      if (songGroups && songGroups.length > 0) {
-        const songIds = songGroups.map(sg => sg.song_id);
-        const { data: songsData } = await supabase
-          .from('kpop_songs')
-          .select('song_id, title, title_kr')
-          .in('song_id', songIds)
-          .order('title');
-
-        if (songsData) setSongs(songsData);
-      }
-
-      // 獲取相關專案統計
-      const { data: projects } = await supabase
-        .from('project')
-        .select('p_id', { count: 'exact', head: true })
-        .eq('song_id', parseInt(groupId));
-
-      // 實際上需要透過 SONG_GROUP 來查詢，這裡簡化處理
-      const { count } = await supabase
-        .from('song_group')
-        .select('*', { count: 'exact', head: true })
-        .eq('group_id', parseInt(groupId));
-
-      // 查詢使用此團體歌曲的專案數
-      if (songGroups && songGroups.length > 0) {
-        const songIds = songGroups.map(sg => sg.song_id);
-        const { count: projectCountData } = await supabase
-          .from('project')
-          .select('*', { count: 'exact', head: true })
-          .in('song_id', songIds);
-
-        setProjectCount(projectCountData || 0);
+        setProjectCount(0);
       }
     } catch (error) {
       console.error('Error fetching group detail:', error);

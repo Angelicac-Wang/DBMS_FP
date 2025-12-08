@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 
 export default function AdminNav() {
   const router = useRouter();
@@ -18,11 +17,8 @@ export default function AdminNav() {
 
   const fetchAdminName = async (userId: string) => {
     try {
-      const { data } = await supabase
-        .from('users')
-        .select('name')
-        .eq('u_id', userId)
-        .single();
+      const response = await fetch(`/api/users/${userId}`);
+      const data = response.ok ? await response.json() : null;
       
       if (data) {
         setAdminName(data.name);

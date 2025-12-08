@@ -1,90 +1,283 @@
 # 舞告Match - K-pop 舞蹈翻跳媒合平台
 
-專為 K-pop 舞蹈翻跳愛好者打造的線上媒合平台。
+## 📖 專案簡介
 
-## 環境設定
+**舞告Match** 是一個專為 K-pop 舞蹈翻跳愛好者打造的線上媒合平台。無論你是想要尋找志同道合的舞者一起翻跳 K-pop 歌曲，還是想要招募成員完成你的翻跳專案，這個平台都能幫助你找到最適合的合作夥伴。
 
-1. 複製 `.env_example` 為 `.env.local`：
+### 核心功能
+
+- 🎯 **專案媒合**：創建或加入 K-pop 翻跳專案，招募特定偶像位置或伴舞
+- 🎵 **歌曲管理**：豐富的 K-pop 歌曲資料庫，包含團體、偶像資訊
+- 👥 **成員招募**：精確的成員位置招募系統，支援偶像角色和伴舞需求
+- 📅 **練習排程**：管理專案的練習時間和地點
+- 📊 **行為分析**：追蹤用戶行為，提供數據分析功能
+- 👤 **個人作品集**：展示過往翻跳作品，建立個人品牌
+- 🔍 **智能搜尋**：根據團體、地區、歌曲等條件篩選專案
+
+### 適用對象
+
+- K-pop 舞蹈愛好者
+- 想要組織翻跳專案的舞者
+- 尋找翻跳機會的舞者
+- 想要建立作品集的舞者
+
+---
+
+## 🚀 安裝說明
+
+### 前置需求
+
+- **Node.js** 18+ 和 **Yarn** 或 **npm**
+- **PostgreSQL** 14+（本地）
+- **Git**
+
+### 步驟 1: 克隆專案
+
+```bash
+git clone https://github.com/Angelicac-Wang/DBMS_FP.git
+git checkout local-DB
+```
+
+### 步驟 2: 安裝依賴
+
+```bash
+npm install
+```
+
+### 步驟 3: 資料庫設定
+
+1. **安裝 PostgreSQL**（如果尚未安裝）：
+   ```bash
+   # macOS (使用 Homebrew)
+   brew install postgresql@14
+   brew services start postgresql@14
+   
+   # 或使用其他方式安裝
+   ```
+
+2. **創建資料庫**：
+   ```bash
+   createdb -U your_username kpop_dance_db
+   ```
+
+3. **恢復資料庫備份**：
+   ```bash
+   psql -U your_username -d kpop_dance_db < database_backup.sql
+   ```
+   
+   > **注意**：`database_backup.sql` 包含完整的資料庫結構和資料，直接恢復即可使用，無需額外執行其他 SQL 文件。
+
+### 步驟 4: 環境變數設定
+
+創建 `.env.local` 文件：
+
 ```bash
 cp .env_example .env.local
 ```
 
-2. 在 `.env.local` 中填入你的 Supabase 專案資訊：
+編輯 `.env.local`，填入你的本地 PostgreSQL 資料庫資訊：
+
+```env
+# 本地 PostgreSQL 設定
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=kpop_dance_db
+DB_USER=your_username
+DB_PASSWORD=your_password
 ```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
 
-3. 安裝依賴套件：
-```bash
-yarn install
-```
+> **提示**：如果 PostgreSQL 沒有設定密碼，可以留空 `DB_PASSWORD=`
 
-## 資料庫設定
-
-1. 在 Supabase SQL Editor 中執行 `data_structure.sql` 建立資料表結構
-2. 執行 `insert_sample_data.sql` 插入測試資料
-
-## 開始使用
-
-啟動開發伺服器：
+### 步驟 5: 啟動開發伺服器
 
 ```bash
-yarn dev
+npm run dev
 ```
 
-開啟 [http://localhost:3000](http://localhost:3000) 查看結果。
+開啟瀏覽器訪問 [http://localhost:3000](http://localhost:3000)
 
-## 功能說明
+---
 
-- **登入/註冊**：簡化的用戶認證系統（登入只需用戶ID，註冊需填寫基本資料）
-- **專案瀏覽**：查看所有活躍的 K-pop 翻跳專案
-- **搜尋與篩選**：根據團名、地區等條件搜尋專案
-- **專案詳情**：查看專案的練習時間、地點、拍攝資訊、缺少的位置等
+## 📚 快速開始教學
 
-## 技術棧
+### 範例 1: 創建一個翻跳專案
 
-- **框架**：Next.js 16
-- **語言**：TypeScript
-- **樣式**：Tailwind CSS
-- **資料庫**：Supabase (PostgreSQL)
-- **套件管理**：Yarn
+1. **註冊/登入帳號**
+   - 訪問 `/auth` 頁面
+   - 輸入用戶 ID 登入，或填寫資料註冊新帳號
 
-## 專案結構
+2. **創建專案**
+   - 在主頁點擊「建立專案」按鈕
+   - 填寫專案資訊：
+     - **專案標題**：例如「TWICE - One Spark 翻跳」
+     - **翻跳歌曲**：搜尋並選擇要翻跳的歌曲
+     - **練習地點**：例如「台北車站」
+     - **專案描述**：說明專案需求和目標
+   
+3. **設定練習時間**
+   - 點擊「+ 新增時間」
+   - 選擇日期、開始時間和結束時間
+   - 可以新增多個練習時段
+
+4. **招募成員**
+   - 選擇歌曲後，系統會自動載入該歌曲的偶像列表
+   - 勾選要招募的偶像位置（例如：Sana、Mina）
+   - 或設定伴舞數量
+   - 系統會自動計算總招募人數
+
+5. **提交專案**
+   - 確認所有資訊無誤後，點擊「建立專案」
+   - 專案建立成功後，會自動跳轉到專案管理頁面
+
+### 範例 2: 申請加入專案
+
+1. **瀏覽專案**
+   - 訪問 `/projects` 頁面
+   - 使用搜尋和篩選功能找到感興趣的專案
+
+2. **查看專案詳情**
+   - 點擊專案卡片查看詳細資訊
+   - 查看練習時間、地點、缺少的位置等
+
+3. **申請加入**
+   - 點擊「申請加入」按鈕
+   - 選擇想要申請的位置（例如：Sana 位置）
+   - 提交申請
+
+4. **等待審核**
+   - 專案發起人會收到申請通知
+   - 審核通過後即可加入專案
+
+### 範例 3: 管理專案
+
+1. **查看我的專案**
+   - 訪問 `/profile/projects` 查看自己創建的專案
+
+2. **審核申請**
+   - 在專案管理頁面查看申請列表
+   - 批准或拒絕申請
+
+3. **更新專案狀態**
+   - 專案進行中時，可以更新狀態為「進行中」
+   - 完成後標記為「已完成」
+
+---
+
+## 🛠️ 技術棧
+
+- **前端框架**: Next.js 16 (App Router)
+- **語言**: TypeScript
+- **樣式**: Tailwind CSS
+- **資料庫**: PostgreSQL (本地)
+- **ORM/查詢**: pg (PostgreSQL 客戶端)
+- **套件管理**: Yarn / npm
+
+---
+
+## 📁 專案結構
 
 ```
-src/
-├── app/              # Next.js App Router 頁面
-│   ├── auth/         # 登入/註冊頁面
-│   └── page.tsx      # 主頁
-├── components/       # React 組件
-│   ├── BottomNav.tsx    # 底部導航欄
-│   └── ProjectCard.tsx  # 專案卡片
-└── lib/              # 工具函數
-    └── supabase.ts   # Supabase 客戶端配置
-
-docs/
-├── behavior-analytics/  # 行為分析系統文件
-│   ├── behavior_analytics_schema.sql
-│   ├── behavior_analytics_rls_safe.sql
-│   ├── BEHAVIOR_ANALYTICS_README.md
-│   └── ...
-└── data-scraping/      # 資料爬蟲文件
-    ├── fetch-kprofiles-groups.ts
-    ├── fetch-spotify-songs.ts
-    └── ...
+DBMS_FP/
+├── src/
+│   ├── app/                    # Next.js App Router 頁面
+│   │   ├── admin/              # 管理後台
+│   │   ├── api/                # API 路由
+│   │   ├── auth/               # 登入/註冊
+│   │   ├── project/            # 專案相關頁面
+│   │   └── profile/            # 個人資料
+│   ├── components/             # React 組件
+│   ├── hooks/                  # React Hooks
+│   ├── lib/                    # 工具函數
+│   │   └── db.ts              # 資料庫連接
+│   └── types/                  # TypeScript 類型定義
+├── docs/                       # 文件
+│   ├── behavior-analytics/    # 行為分析系統
+│   └── data-scraping/         # 資料爬蟲
+├── scripts/                    # 工具腳本
+├── data_structure.sql          # 資料庫結構
+├── database_backup.sql         # 資料庫備份
+└── README.md                  # 本文件
 ```
 
-## 文件說明
+---
 
-### 行為分析系統
-所有行為分析相關的文件已整理至 `docs/behavior-analytics/` 資料夾：
-- 資料庫 Schema 和 RLS 策略
-- 使用文件和說明
-- 詳細說明請參考 [行為分析文件](./docs/behavior-analytics/README.md)
+## 📖 功能說明
 
-### 資料爬蟲
-所有爬蟲相關的文件已整理至 `docs/data-scraping/` 資料夾：
-- Kprofiles 和 Spotify 爬蟲腳本
-- 資料文件和連結列表
-- 詳細說明請參考 [資料爬蟲文件](./docs/data-scraping/README.md)
+### 用戶功能
+- **登入/註冊**：簡化的用戶認證系統
+- **專案瀏覽**：查看所有活躍的翻跳專案
+- **搜尋與篩選**：根據團體、地區、歌曲等條件搜尋
+- **專案詳情**：查看練習時間、地點、缺少位置等
+- **申請加入**：申請加入感興趣的專案
+- **個人作品集**：上傳和管理翻跳作品
+
+### 管理功能
+- **專案管理**：創建、編輯、刪除專案
+- **申請審核**：審核成員申請
+- **數據統計**：查看平台使用統計
+- **行為分析**：追蹤用戶行為數據
+- **內容管理**：管理歌曲、團體、偶像資料
+
+---
+
+## 📝 資料庫備份與恢復
+
+專案包含完整的資料庫備份文件 `database_backup.sql`，包含所有資料表結構和資料。
+
+### 快速恢復（推薦）
+
+直接使用備份文件恢復，無需執行其他 SQL 文件：
+
+```bash
+# 創建資料庫（如果不存在）
+createdb -U your_username kpop_dance_db
+
+# 恢復備份（包含所有結構和資料）
+psql -U your_username -d kpop_dance_db < database_backup.sql
+```
+
+### 重新恢復
+
+如果需要重新恢復（會覆蓋現有資料）：
+
+```bash
+# 刪除現有資料庫（謹慎操作）
+dropdb -U your_username kpop_dance_db
+
+# 創建新資料庫
+createdb -U your_username kpop_dance_db
+
+# 恢復備份
+psql -U your_username -d kpop_dance_db < database_backup.sql
+```
+
+> **注意**：`database_backup.sql` 已經包含完整的資料庫結構和所有資料，直接恢復即可使用。
+
+詳細說明請參考 [DATABASE_BACKUP_README.md](./DATABASE_BACKUP_README.md)
+
+---
+
+## 📚 相關文件
+
+- [資料庫備份說明](./DATABASE_BACKUP_README.md)
+- [行為分析系統](./docs/behavior-analytics/README.md)
+- [資料爬蟲說明](./docs/data-scraping/README.md)
+- [遷移指南](./MIGRATION_GUIDE.md)
+
+---
+
+## 🤝 貢獻
+
+歡迎提交 Issue 和 Pull Request！
+
+---
+
+## 📄 授權
+
+本專案為學術專案，僅供學習和研究使用。
+
+---
+
+## 📧 聯絡方式
+
+如有問題或建議，請透過 GitHub Issues 聯繫。
