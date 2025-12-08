@@ -5,7 +5,6 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const searchQuery = searchParams.get('search');
-    const filterDifficulty = searchParams.get('difficulty');
     const filterGroup = searchParams.get('group');
 
     let query = `
@@ -21,24 +20,6 @@ export async function GET(request: Request) {
       query += ` AND (s.title ILIKE $${paramIndex} OR s.title_kr ILIKE $${paramIndex})`;
       params.push(`%${searchQuery}%`);
       paramIndex++;
-    }
-
-    // 篩選難度
-    if (filterDifficulty) {
-      const level = parseInt(filterDifficulty);
-      if (level === 1) {
-        query += ` AND s.difficulty_level >= $${paramIndex} AND s.difficulty_level <= $${paramIndex + 1}`;
-        params.push(1, 3);
-        paramIndex += 2;
-      } else if (level === 2) {
-        query += ` AND s.difficulty_level >= $${paramIndex} AND s.difficulty_level <= $${paramIndex + 1}`;
-        params.push(4, 6);
-        paramIndex += 2;
-      } else if (level === 3) {
-        query += ` AND s.difficulty_level >= $${paramIndex} AND s.difficulty_level <= $${paramIndex + 1}`;
-        params.push(7, 10);
-        paramIndex += 2;
-      }
     }
 
     query += ` ORDER BY s.title`;

@@ -31,7 +31,6 @@ export default function EditSongPage() {
     title_kr: '',
     release_date: '',
     duration: '',
-    difficulty_level: '',
     spotify_url: '',
     youtube_original_url: '',
   });
@@ -86,7 +85,6 @@ export default function EditSongPage() {
           title_kr: songData.title_kr,
           release_date: songData.release_date,
           duration: songData.duration.toString(),
-          difficulty_level: songData.difficulty_level.toString(),
           spotify_url: songData.spotify_url || '',
           youtube_original_url: songData.youtube_original_url,
         });
@@ -123,7 +121,6 @@ export default function EditSongPage() {
           title_kr: formData.title_kr,
           release_date: formData.release_date,
           duration: parseInt(formData.duration),
-          difficulty_level: parseInt(formData.difficulty_level),
           spotify_url: formData.spotify_url || null,
           youtube_original_url: formData.youtube_original_url,
           groups: selectedGroups,
@@ -267,21 +264,6 @@ export default function EditSongPage() {
               value={formData.duration}
               onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
               min="1"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              難度等級 (0-10) *
-            </label>
-            <input
-              type="number"
-              value={formData.difficulty_level}
-              onChange={(e) => setFormData({ ...formData, difficulty_level: e.target.value })}
-              min="0"
-              max="10"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
               required
             />

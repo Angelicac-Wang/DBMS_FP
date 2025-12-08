@@ -11,7 +11,7 @@ export async function GET(
     const query = `
       SELECT
         song_id, title, title_kr, release_date, duration,
-        difficulty_level, spotify_url, youtube_original_url
+        spotify_url, youtube_original_url
       FROM kpop_songs
       WHERE song_id = $1
     `;
@@ -64,7 +64,6 @@ export async function PUT(
       title_kr,
       release_date,
       duration,
-      difficulty_level,
       spotify_url,
       youtube_original_url,
       groups,
@@ -77,14 +76,13 @@ export async function PUT(
     await client.query(
       `UPDATE kpop_songs
        SET title = $1, title_kr = $2, release_date = $3, duration = $4,
-           difficulty_level = $5, spotify_url = $6, youtube_original_url = $7
-       WHERE song_id = $8`,
+           spotify_url = $5, youtube_original_url = $6
+       WHERE song_id = $7`,
       [
         title,
         title_kr,
         release_date,
         parseInt(duration),
-        parseInt(difficulty_level),
         spotify_url || null,
         youtube_original_url,
         songId,

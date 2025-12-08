@@ -13,10 +13,11 @@ interface ProjectItem {
   creator_id?: string;
   creator_name?: string;
   is_member?: boolean;
+  is_creator?: boolean;
+  pending_application?: { appli_id: number } | null;
   song_id?: string;
   song?: {
     title: string;
-    difficulty_level?: number;
     group?: {
       group_name: string;
       group_type?: string;
@@ -110,15 +111,18 @@ export default function ProjectsPage() {
   const monthOptions = useMemo(() => nextFiveMonths(), []);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const userId = localStorage.getItem('userId');
+    const storedUserId = localStorage.getItem('userId');
     const userRole = localStorage.getItem('userRole');
     
-    if (!userId) {
+    if (!storedUserId) {
       router.push('/auth');
       return;
     }
+    
+    setUserId(storedUserId);
     if (userRole === 'A') {
       router.push('/admin');
       return;
@@ -284,6 +288,8 @@ export default function ProjectsPage() {
           region,
           creator_name: project.creator_name || '舞者',
           is_member: project.is_member || false,
+          is_creator: project.is_creator || false,
+          pending_application: project.pending_application || null,
           songThumbnail: songThumbnail || undefined,
           groupLogoUrl: groupLogoUrl || undefined,
         };
@@ -561,13 +567,93 @@ export default function ProjectsPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-center gap-3 border-t border-gray-200 bg-white px-5 py-3 mt-auto">
+                  <div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-5 py-3 mt-auto">
+                    {/* 詳細資訊按鈕（始終顯示，放在左邊） */}
                     <button
                       onClick={() => router.push(`/project/${project.p_id}`)}
                       className="rounded-full border border-[#eca382] px-4 py-2 text-sm font-semibold text-[#eca382] hover:bg-[#eca382] hover:text-white transition-colors"
                     >
                       詳細資訊
                     </button>
+
+                    {/* 動態按鈕（放在右邊） */}
+                    <div className="flex items-center gap-3">
+                      {/* 管理專案按鈕（創建者） */}
+                      {userId && project.is_creator && (
+                        <button
+                          onClick={() => router.push(`/project/manage/${project.p_id}`)}
+                          className="rounded-full bg-[#eca382] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
+                        >
+                          管理專案
+                        </button>
+                      )}
+
+                      {/* 退出專案按鈕（成員但不是創建者） */}
+                      {userId && project.is_member && !project.is_creator && (
+                        <button
+                          onClick={async () => {
+                            if (!confirm('確定要退出此專案嗎？')) return;
+                            try {
+                              const response = await fetch(`/api/projects/${project.p_id}/leave`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId }),
+                              });
+                              if (!response.ok) {
+                                const result = await response.json();
+                                throw new Error(result.error || '退出失敗');
+                              }
+                              alert('已成功退出專案');
+                              // 重新載入專案列表
+                              fetchProjects(true);
+                              fetchFilteredCount();
+                            } catch (err: any) {
+                              alert('退出失敗：' + (err.message || '未知錯誤'));
+                            }
+                          }}
+                          className="rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-600 transition-colors"
+                        >
+                          退出專案
+                        </button>
+                      )}
+
+                      {/* 取消申請按鈕（有申請中的申請） */}
+                      {userId && !project.is_creator && !project.is_member && project.pending_application && (
+                        <button
+                          onClick={async () => {
+                            if (!confirm('確定要取消申請嗎？')) return;
+                            try {
+                              const response = await fetch(`/api/applications/${project.pending_application?.appli_id}/cancel`, {
+                                method: 'PUT',
+                              });
+                              if (!response.ok) {
+                                const result = await response.json();
+                                throw new Error(result.error || '取消申請失敗');
+                              }
+                              alert('申請已取消');
+                              // 重新載入專案列表
+                              fetchProjects(true);
+                              fetchFilteredCount();
+                            } catch (err: any) {
+                              alert('取消申請失敗：' + (err.message || '未知錯誤'));
+                            }
+                          }}
+                          className="rounded-full bg-yellow-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-600 transition-colors"
+                        >
+                          取消申請
+                        </button>
+                      )}
+
+                      {/* 申請加入按鈕（不在專案中、不是創建者、也沒有申請中、且有缺失位置） */}
+                      {userId && !project.is_creator && !project.is_member && !project.pending_application && project.missing_positions && project.missing_positions.length > 0 && (
+                        <button
+                          onClick={() => router.push(`/project/${project.p_id}/apply`)}
+                          className="rounded-full bg-[#eca382] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#e08f6f] transition-colors"
+                        >
+                          申請加入
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
                   ))}

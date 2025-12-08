@@ -52,9 +52,6 @@ CREATE INDEX IF NOT EXISTS idx_project_title_trgm ON project USING gin(porject_t
 -- 用於按 title 搜尋歌曲
 CREATE INDEX IF NOT EXISTS idx_songs_title_trgm ON kpop_songs USING gin(title gin_trgm_ops);
 
--- 用於按 difficulty_level 篩選
-CREATE INDEX IF NOT EXISTS idx_songs_difficulty ON kpop_songs(difficulty_level);
-
 -- 用於按發行日期排序
 CREATE INDEX IF NOT EXISTS idx_songs_release_date ON kpop_songs(release_date DESC);
 

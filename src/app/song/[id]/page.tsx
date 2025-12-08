@@ -11,7 +11,6 @@ interface SongDetail {
   title_kr: string;
   release_date: string;
   duration: number;
-  difficulty_level: number;
   spotify_url?: string;
   youtube_original_url: string;
   groups?: Array<{ group_id: number; group_name: string; group_namekr?: string }>;
@@ -191,18 +190,6 @@ export default function SongDetailPage() {
             <div>
               <span className="text-gray-600 text-sm block mb-1">時長</span>
               <p className="font-medium text-gray-800">{formatDuration(song.duration)}</p>
-            </div>
-            <div>
-              <span className="text-gray-600 text-sm block mb-1">難度等級</span>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-gray-800">{song.difficulty_level}/10</span>
-                <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-32">
-                  <div
-                    className="bg-[#eca382] h-2 rounded-full"
-                    style={{ width: `${(song.difficulty_level / 10) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

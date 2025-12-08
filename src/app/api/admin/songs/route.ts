@@ -10,7 +10,6 @@ export async function GET() {
         s.title_kr,
         s.release_date,
         s.duration,
-        s.difficulty_level,
         s.spotify_url,
         s.youtube_original_url
       FROM kpop_songs s
@@ -36,7 +35,6 @@ export async function POST(request: Request) {
       title_kr,
       release_date,
       duration,
-      difficulty_level,
       spotify_url,
       youtube_original_url,
     } = body;
@@ -74,15 +72,14 @@ export async function POST(request: Request) {
     await pool.query(
       `INSERT INTO kpop_songs (
         song_id, title, title_kr, release_date, duration,
-        difficulty_level, spotify_url, youtube_original_url
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        spotify_url, youtube_original_url
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         newSongId,
         title,
         title_kr,
         release_date,
         parseInt(duration),
-        parseInt(difficulty_level),
         spotify_url || null,
         youtube_original_url,
       ]

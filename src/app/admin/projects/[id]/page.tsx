@@ -55,7 +55,6 @@ export default function ProjectDetailPage() {
   const [creatorName, setCreatorName] = useState('');
   const [songTitle, setSongTitle] = useState('');
   const [songGroup, setSongGroup] = useState('');
-  const [songDifficulty, setSongDifficulty] = useState<number | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [practiceSchedules, setPracticeSchedules] = useState<PracticeSchedule[]>([]);
@@ -86,7 +85,6 @@ export default function ProjectDetailPage() {
       
       if (projectData.song) {
         setSongTitle(projectData.song.title || '');
-        setSongDifficulty(projectData.song.difficulty_level || null);
         setSongGroup(projectData.song.group?.group_name || '');
       }
 
@@ -227,7 +225,6 @@ export default function ProjectDetailPage() {
               <p className="text-lg font-medium text-gray-900">
                 {songTitle}
                 {songGroup && ` - ${songGroup}`}
-                {songDifficulty !== null && ` (難度: ${songDifficulty}/10)`}
               </p>
             </div>
           )}

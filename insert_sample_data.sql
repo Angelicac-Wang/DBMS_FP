@@ -41,10 +41,10 @@ INSERT INTO USERS (u_id, name, email, password, birthdate, gender, region, phone
 (1007, '吳小傑', 'wu@example.com', 'password404', '1998-09-30', 'B', '雙北', '0978901234', 'A', '2024-05-01 15:00:00', '2024-12-01 11:00:00', 'U');
 
 -- 4. KPOP_SONGS (K-pop 歌曲)
-INSERT INTO KPOP_SONGS (song_id, title, title_kr, release_date, duration, difficulty_level, spotify_url, youtube_original_url) VALUES
-(1, 'One Spark', '원 스파크', '2024-02-23', 210, 7, 'https://open.spotify.com/track/one-spark', 'https://www.youtube.com/watch?v=one-spark'),
-(2, 'Rich man', '리치맨', '2024-05-27', 195, 8, 'https://open.spotify.com/track/rich-man', 'https://www.youtube.com/watch?v=rich-man'),
-(3, 'Jump', '점프', '2024-06-28', 185, 6, 'https://open.spotify.com/track/jump', 'https://www.youtube.com/watch?v=jump');
+INSERT INTO KPOP_SONGS (song_id, title, title_kr, release_date, duration, spotify_url, youtube_original_url) VALUES
+(1, 'One Spark', '원 스파크', '2024-02-23', 210, 'https://open.spotify.com/track/one-spark', 'https://www.youtube.com/watch?v=one-spark'),
+(2, 'Rich man', '리치맨', '2024-05-27', 195, 'https://open.spotify.com/track/rich-man', 'https://www.youtube.com/watch?v=rich-man'),
+(3, 'Jump', '점프', '2024-06-28', 185, 'https://open.spotify.com/track/jump', 'https://www.youtube.com/watch?v=jump');
 
 -- 5. SONG_GROUP (歌曲與團體關聯)
 INSERT INTO SONG_GROUP (song_id, group_id) VALUES

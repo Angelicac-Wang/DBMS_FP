@@ -13,7 +13,6 @@ interface CreateProjectModalProps {
 interface Song {
   song_id: number;
   title: string;
-  difficulty_level: number;
   displayName: string;
 }
 

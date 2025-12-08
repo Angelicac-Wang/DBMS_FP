@@ -81,7 +81,6 @@ export async function GET(request: Request) {
         p.target_cnt,
         u.name as creator_name,
         s.title as song_title,
-        s.difficulty_level,
         s.youtube_original_url,
         g.group_name,
         g.group_type,
@@ -105,6 +104,8 @@ export async function GET(request: Request) {
     let membershipMap = new Map();
     let missingPositionsMap = new Map();
     let memberCountsMap = new Map();
+    let creatorMap = new Map();
+    let pendingApplicationMap = new Map();
 
     if (projectIds.length > 0) {
       // 批次獲取練習時間
@@ -139,14 +140,36 @@ export async function GET(request: Request) {
         memberCountsMap.set(m.p_id, parseInt(m.count));
       });
 
-      // 如果有 userId，檢查成員身份
+      // 如果有 userId，檢查用戶狀態（成員身份、創建者身份、待審核申請）
       if (userId) {
+        // 檢查成員身份（與詳細頁面邏輯一致：只檢查是否有記錄，不限制 status）
         const membershipResult = await pool.query(
-          `SELECT p_id FROM project_members WHERE member_id = $1 AND p_id = ANY($2) AND status = 'Y'`,
+          `SELECT p_id, status FROM project_members WHERE member_id = $1 AND p_id = ANY($2)`,
           [userId, projectIds]
         );
         membershipResult.rows.forEach(m => {
-          membershipMap.set(m.p_id, true);
+          // 只有 status = 'Y' 的才算成員（與詳細頁面邏輯一致）
+          if (m.status === 'Y') {
+            membershipMap.set(m.p_id, true);
+          }
+        });
+
+        // 檢查創建者身份
+        const creatorResult = await pool.query(
+          `SELECT p_id FROM project WHERE creator_id = $1 AND p_id = ANY($2)`,
+          [userId, projectIds]
+        );
+        creatorResult.rows.forEach(c => {
+          creatorMap.set(c.p_id, true);
+        });
+
+        // 檢查待審核申請
+        const applicationResult = await pool.query(
+          `SELECT p_id, appli_id FROM project_applications WHERE applicant_id = $1 AND p_id = ANY($2) AND status = 'W'`,
+          [userId, projectIds]
+        );
+        applicationResult.rows.forEach(a => {
+          pendingApplicationMap.set(a.p_id, { appli_id: a.appli_id });
         });
       }
 
@@ -186,6 +209,10 @@ export async function GET(request: Request) {
       const youtubeThumbnail = getYoutubeThumbnail(p.youtube_original_url);
       const groupLogoUrl = p.logo_image && !p.logo_image.includes('kprofiles.com') ? p.logo_image : null;
       
+      const isCreator = userId ? creatorMap.get(p.p_id) || false : false;
+      const isMember = userId ? membershipMap.get(p.p_id) || false : false;
+      const pendingApplication = userId ? pendingApplicationMap.get(p.p_id) || null : null;
+
       return {
         p_id: p.p_id.toString(),
         porject_title: p.porject_title,
@@ -193,13 +220,14 @@ export async function GET(request: Request) {
         status: p.status,
         creator_id: p.creator_id?.toString(),
         creator_name: p.creator_name,
-        is_member: membershipMap.get(p.p_id) || false,
+        is_member: isMember,
+        is_creator: isCreator,
+        pending_application: pendingApplication,
         song_id: p.song_id?.toString(),
         target_cnt: p.target_cnt || 0,
         member_count: memberCountsMap.get(p.p_id) || 0,
         song: p.song_title ? {
           title: p.song_title,
-          difficulty_level: p.difficulty_level,
           group: p.group_name ? {
             group_name: p.group_name,
             group_type: p.group_type,

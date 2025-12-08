@@ -19,7 +19,6 @@ CREATE TABLE KPOP_SONGS (
     title_kr VARCHAR(50) NOT NULL,
     release_date DATE NOT NULL,
     duration INT NOT NULL,
-    difficulty_level INT NOT NULL CHECK (difficulty_level BETWEEN 0 AND 10),
     spotify_url VARCHAR(100),
     youtube_original_url VARCHAR(100) NOT NULL
 );

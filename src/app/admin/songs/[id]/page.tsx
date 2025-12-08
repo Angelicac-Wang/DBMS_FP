@@ -11,7 +11,6 @@ interface Song {
   title_kr: string;
   release_date: string;
   duration: number;
-  difficulty_level: number;
   spotify_url?: string;
   youtube_original_url: string;
 }
@@ -149,10 +148,6 @@ export default function SongDetailPage() {
           <div>
             <span className="text-sm text-gray-600">時長</span>
             <p className="text-lg font-medium text-gray-900">{formatDuration(song.duration)}</p>
-          </div>
-          <div>
-            <span className="text-sm text-gray-600">難度等級</span>
-            <p className="text-lg font-medium text-gray-900">{song.difficulty_level}/10</p>
           </div>
           {song.spotify_url && (
             <div>

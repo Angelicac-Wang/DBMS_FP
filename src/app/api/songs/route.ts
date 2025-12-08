@@ -11,7 +11,6 @@ export async function GET(request: Request) {
       SELECT
         s.song_id,
         s.title,
-        s.difficulty_level,
         COALESCE(g.group_name, i.stage_name, s.title) as display_name
       FROM kpop_songs s
       LEFT JOIN song_group sg ON s.song_id = sg.song_id
@@ -27,7 +26,6 @@ export async function GET(request: Request) {
     const songs = result.rows.map(row => ({
       song_id: row.song_id,
       title: row.title,
-      difficulty_level: row.difficulty_level,
       displayName: row.display_name || row.title,
     }));
 

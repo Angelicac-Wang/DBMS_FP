@@ -11,7 +11,6 @@ interface Song {
   title_kr: string;
   release_date: string;
   duration: number;
-  difficulty_level: number;
   spotify_url?: string;
   youtube_original_url: string;
   groups?: string[];
@@ -24,7 +23,6 @@ export default function SongsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterGroup, setFilterGroup] = useState('');
-  const [filterDifficulty, setFilterDifficulty] = useState('');
 
   useEffect(() => {
     if (isAdmin) {
@@ -38,7 +36,6 @@ export default function SongsPage() {
       
       const params = new URLSearchParams();
       if (searchQuery) params.append('search', searchQuery);
-      if (filterDifficulty) params.append('difficulty', filterDifficulty);
       if (filterGroup) params.append('group', filterGroup);
 
       const response = await fetch(`/api/admin/songs/search?${params.toString()}`);
@@ -57,7 +54,7 @@ export default function SongsPage() {
     if (isAdmin) {
       fetchSongs();
     }
-  }, [searchQuery, filterDifficulty, filterGroup, isAdmin]);
+  }, [searchQuery, filterGroup, isAdmin]);
 
   const handleDelete = async (songId: number, songTitle: string) => {
     if (!confirm(`確定要刪除歌曲「${songTitle}」嗎？此操作無法復原。`)) {
@@ -147,19 +144,6 @@ export default function SongsPage() {
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">難度等級</label>
-            <select
-              value={filterDifficulty}
-              onChange={(e) => setFilterDifficulty(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] text-black"
-            >
-              <option value="">全部</option>
-              <option value="1">難度 1-3</option>
-              <option value="2">難度 4-6</option>
-              <option value="3">難度 7-10</option>
-            </select>
-          </div>
         </div>
       </div>
 
@@ -188,9 +172,6 @@ export default function SongsPage() {
                   發行日期
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  難度
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   時長
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -216,11 +197,6 @@ export default function SongsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {new Date(song.release_date).toLocaleDateString('zh-TW')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-[#fff2e6] text-gray-700">
-                      {song.difficulty_level}/10
-                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatDuration(song.duration)}
