@@ -67,6 +67,7 @@ export default function ProjectDetailPage() {
   const router = useRouter();
   const params = useParams();
   const projectId = params.id as string;
+  const logPrefix = `[ProjectDetail:${projectId}]`;
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const userId = localStorage.getItem('userId');
@@ -83,24 +84,34 @@ export default function ProjectDetailPage() {
   const fetchProjectDetail = async (id: string) => {
     try {
       setLoading(true);
+      console.info(`${logPrefix} start fetchProjectDetail`, { id });
       
-      // 將 id 轉換為數字
-      const projectIdNum = parseInt(id, 10);
-      if (isNaN(projectIdNum)) {
-        console.error('Invalid project ID:', id);
+      // 使用 BigInt 以避免長數字精度損失
+      let projectIdNum: bigint;
+      try {
+        projectIdNum = BigInt(id);
+      } catch {
+        console.error(`${logPrefix} invalid project ID (BigInt parse failed)`, { id });
         setProject(null);
         return;
       }
+      const projectIdStr = projectIdNum.toString();
+      console.info(`${logPrefix} parsed projectIdNum`, { projectIdNum: projectIdStr });
       
       // 獲取專案基本資訊 - 這是關鍵查詢，如果失敗則項目不存在
       const { data: projectData, error } = await supabase
         .from('project')
         .select('*')
-        .eq('p_id', projectIdNum)
+        .eq('p_id', projectIdStr)
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching project:', error);
+        console.error(`${logPrefix} error fetching project base data`, {
+          code: (error as any)?.code,
+          message: error.message,
+          details: (error as any)?.details,
+          hint: (error as any)?.hint,
+        });
         // 只有項目基本信息查詢失敗才認為項目不存在
         if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
           setProject(null);
@@ -112,9 +123,13 @@ export default function ProjectDetailPage() {
       }
 
       if (!projectData) {
+        console.warn(`${logPrefix} projectData empty after base query`, {
+          projectIdNum,
+        });
         setProject(null);
         return;
       }
+      console.info(`${logPrefix} base project found`, { projectIdNum, projectData });
 
       // 以下所有查詢都是關聯數據，失敗不影響項目顯示
       let creatorName: string | undefined = undefined;
@@ -135,7 +150,7 @@ export default function ProjectDetailPage() {
         const { data: schedulesData } = await supabase
           .from('practice_schedule')
           .select('date, start_time, end_time')
-          .eq('p_id', projectIdNum)
+          .eq('p_id', projectIdStr)
           .order('date', { ascending: true });
         schedules = schedulesData || [];
       } catch (err) {
@@ -148,7 +163,7 @@ export default function ProjectDetailPage() {
         const { data: targetsData } = await supabase
           .from('project_target')
           .select('target_seq, idol_id, status')
-          .eq('project_id', projectIdNum)
+          .eq('project_id', projectIdStr)
           .order('target_seq');
         targets = targetsData || [];
       } catch (err) {
@@ -191,7 +206,7 @@ export default function ProjectDetailPage() {
                     member_id,
                     users(name)
                   `)
-                  .eq('p_id', projectIdNum)
+                .eq('p_id', projectIdStr)
                   .eq('target_seq', target.target_seq)
                   .eq('status', 'Y')
                   .maybeSingle();
@@ -272,11 +287,12 @@ export default function ProjectDetailPage() {
       let userIsMember = false;
       const isUserCreator = userId && projectData.creator_id.toString() === userId;
       if (userId) {
+        console.info(`${logPrefix} check membership`, { userId, isUserCreator });
         try {
           const { data: memberCheck } = await supabase
             .from('project_members')
             .select('member_id')
-            .eq('p_id', projectIdNum)
+            .eq('p_id', projectIdStr)
             .eq('member_id', userId)
             .eq('status', 'Y')
             .maybeSingle();
@@ -288,6 +304,14 @@ export default function ProjectDetailPage() {
 
       // 只有當項目基本信息查詢成功時才設置項目數據
       // 即使關聯數據查詢失敗，也應該顯示項目基本信息
+      console.info(`${logPrefix} set project data`, {
+        hasSong: !!songInfo,
+        schedulesCount: schedules.length,
+        missingCount: missingPositions.length,
+        filledCount: filledPositions.length,
+        isUserCreator,
+        userIsMember,
+      });
       setProject({
         ...projectData,
         song: songInfo,
@@ -305,7 +329,7 @@ export default function ProjectDetailPage() {
         const result = await response.json();
         if (result.success && result.events) {
           const projectViews = result.events.filter(
-            (event: any) => event.event_data?.project_id === projectIdNum
+            (event: any) => event.event_data?.project_id?.toString?.() === projectIdStr
           );
           setViewCount(projectViews.length);
         }
@@ -313,7 +337,7 @@ export default function ProjectDetailPage() {
         console.error('Error fetching view count:', err);
       }
     } catch (err: any) {
-      console.error('Unexpected error in fetchProjectDetail:', err);
+      console.error(`${logPrefix} unexpected error in fetchProjectDetail`, err);
       // 只有在項目基本信息查詢失敗時才設置為 null
       // 這裡的錯誤應該是項目基本信息查詢的錯誤
       setProject(null);

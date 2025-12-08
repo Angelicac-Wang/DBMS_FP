@@ -7,14 +7,14 @@ import { useBehaviorTracking } from '@/hooks/useBehaviorTracking';
 import CreateProjectModal from '@/components/CreateProjectModal';
 
 interface ProjectItem {
-  p_id: number;
+  p_id: string;
   porject_title: string;
   practice_location: string;
   status: string;
-  creator_id?: number;
+  creator_id?: string;
   creator_name?: string;
   is_member?: boolean;
-  song_id?: number;
+  song_id?: string;
   song?: {
     title: string;
     difficulty_level?: number;
@@ -230,12 +230,12 @@ export default function ProjectsPage() {
       const { data: projectsData, error: projectsError } = await supabase
         .from('project')
         .select(`
-          p_id,
+          p_id:p_id::text,
           porject_title,
           practice_location,
           status,
-          song_id,
-          creator_id,
+          song_id:song_id::text,
+          creator_id:creator_id::text,
           target_cnt,
           create_at
         `)
@@ -285,14 +285,14 @@ export default function ProjectsPage() {
         // 批次查詢所有練習時間表
         supabase
           .from('practice_schedule')
-          .select('p_id, date, start_time, end_time')
+          .select('p_id:p_id::text, date, start_time, end_time')
           .in('p_id', projectIds)
           .order('date', { ascending: true }),
         
         // 批次查詢所有目標位置
         supabase
           .from('project_target')
-          .select('project_id, target_seq, idol_id, status')
+          .select('project_id:project_id::text, target_seq, idol_id:idol_id::text, status')
           .in('project_id', projectIds)
           .eq('status', 'I'),
         
@@ -300,7 +300,7 @@ export default function ProjectsPage() {
         songIds.length > 0
           ? supabase
               .from('kpop_songs')
-              .select('song_id, title, difficulty_level, youtube_original_url')
+              .select('song_id:song_id::text, title, difficulty_level, youtube_original_url')
               .in('song_id', songIds)
           : Promise.resolve({ data: [], error: null }),
         
@@ -308,7 +308,7 @@ export default function ProjectsPage() {
         songIds.length > 0
           ? supabase
               .from('song_group')
-              .select('song_id, group_id')
+              .select('song_id:song_id::text, group_id:group_id::text')
               .in('song_id', songIds)
           : Promise.resolve({ data: [], error: null }),
         
@@ -317,7 +317,7 @@ export default function ProjectsPage() {
           if (songIds.length === 0) return { data: [], error: null };
           const { data: songGroups } = await supabase
             .from('song_group')
-            .select('song_id, group_id')
+            .select('song_id:song_id::text, group_id:group_id::text')
             .in('song_id', songIds);
           
           if (!songGroups || songGroups.length === 0) return { data: [], error: null };
@@ -325,7 +325,7 @@ export default function ProjectsPage() {
           const groupIds = [...new Set(songGroups.map(sg => sg.group_id))];
           return supabase
             .from('kpop_groups')
-            .select('group_id, group_name, group_type, logo_image')
+            .select('group_id:group_id::text, group_name, group_type, logo_image')
             .in('group_id', groupIds);
         }),
         
@@ -333,7 +333,7 @@ export default function ProjectsPage() {
         userId
           ? supabase
               .from('project_members')
-              .select('p_id, member_id')
+              .select('p_id:p_id::text, member_id:member_id::text')
               .in('p_id', projectIds)
               .eq('member_id', userId)
               .eq('status', 'Y')
@@ -357,24 +357,26 @@ export default function ProjectsPage() {
         (creatorsData.data || []).map(c => [c.u_id, c.name])
       );
       
-      const schedulesMap = new Map<number, Array<{ date: string; start_time: string; end_time: string }>>();
+      const schedulesMap = new Map<string, Array<{ date: string; start_time: string; end_time: string }>>();
       (schedulesData.data || []).forEach(schedule => {
-        if (!schedulesMap.has(schedule.p_id)) {
-          schedulesMap.set(schedule.p_id, []);
+        const pid = String(schedule.p_id);
+        if (!schedulesMap.has(pid)) {
+          schedulesMap.set(pid, []);
         }
-        schedulesMap.get(schedule.p_id)!.push({
+        schedulesMap.get(pid)!.push({
           date: schedule.date,
           start_time: schedule.start_time,
           end_time: schedule.end_time
         });
       });
       
-      const targetsMap = new Map<number, Array<{ target_seq: number; idol_id: number | null; status: string }>>();
+      const targetsMap = new Map<string, Array<{ target_seq: number; idol_id: number | null; status: string }>>();
       (targetsData.data || []).forEach(target => {
-        if (!targetsMap.has(target.project_id)) {
-          targetsMap.set(target.project_id, []);
+        const pid = String(target.project_id);
+        if (!targetsMap.has(pid)) {
+          targetsMap.set(pid, []);
         }
-        targetsMap.get(target.project_id)!.push({
+        targetsMap.get(pid)!.push({
           target_seq: target.target_seq,
           idol_id: target.idol_id,
           status: target.status
@@ -382,27 +384,27 @@ export default function ProjectsPage() {
       });
       
       const idolsMap = new Map(
-        (idolsData.data || []).map(i => [i.idol_id, i.stage_name])
+        (idolsData.data || []).map(i => [String(i.idol_id), i.stage_name])
       );
       
       const songsMap = new Map(
-        (songsData.data || []).map(s => [s.song_id, s])
+        (songsData.data || []).map(s => [String(s.song_id), s])
       );
       
-      const songGroupsMap = new Map<number, number>();
+      const songGroupsMap = new Map<string, string>();
       (songGroupsData.data || []).forEach(sg => {
         // 每個歌曲只取第一個團體
         if (!songGroupsMap.has(sg.song_id)) {
-          songGroupsMap.set(sg.song_id, sg.group_id);
+          songGroupsMap.set(String(sg.song_id), String(sg.group_id));
         }
       });
       
       const groupsMap = new Map(
-        (groupsData.data || []).map(g => [g.group_id, g])
+        (groupsData.data || []).map(g => [String(g.group_id), g])
       );
       
       const memberSet = new Set(
-        (memberChecksData.data || []).map(m => m.p_id)
+        (memberChecksData.data || []).map(m => String(m.p_id))
       );
 
       // 組裝專案資料
@@ -414,7 +416,7 @@ export default function ProjectsPage() {
         const missingPositions: string[] = [];
         targets.forEach(target => {
           if (target.idol_id) {
-            const idolName = idolsMap.get(target.idol_id);
+            const idolName = idolsMap.get(String(target.idol_id));
             if (idolName) {
               missingPositions.push(idolName);
             } else {
