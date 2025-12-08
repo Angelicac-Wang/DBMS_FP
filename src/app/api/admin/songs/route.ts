@@ -39,34 +39,12 @@ export async function POST(request: Request) {
       youtube_original_url,
     } = body;
 
-    // 生成歌曲 ID
-    const generateSongId = () => {
-      const timestamp = Date.now();
-      const random = Math.floor(Math.random() * 10000);
-      return timestamp * 10000 + random;
-    };
-
-    let newSongId = generateSongId();
-
-    // 檢查 ID 是否已存在
-    let attempts = 0;
-    while (attempts < 10) {
-      const checkResult = await pool.query(
-        'SELECT song_id FROM kpop_songs WHERE song_id = $1',
-        [newSongId]
-      );
-
-      if (checkResult.rows.length === 0) break;
-      newSongId = generateSongId();
-      attempts++;
-    }
-
-    if (attempts >= 10) {
-      return NextResponse.json(
-        { error: '系統繁忙，請稍後再試' },
-        { status: 500 }
-      );
-    }
+    // 獲取最大 song_id 並 +1
+    const maxIdResult = await pool.query(
+      'SELECT COALESCE(MAX(song_id), 0) as max_id FROM kpop_songs'
+    );
+    const maxId = parseInt(maxIdResult.rows[0].max_id) || 0;
+    const newSongId = maxId + 1;
 
     // 插入歌曲
     await pool.query(

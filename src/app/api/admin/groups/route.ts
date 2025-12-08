@@ -35,34 +35,12 @@ export async function POST(request: Request) {
       discription,
     } = body;
 
-    // 生成團體 ID
-    const generateGroupId = () => {
-      const timestamp = Date.now();
-      const random = Math.floor(Math.random() * 10000);
-      return timestamp * 10000 + random;
-    };
-
-    let newGroupId = generateGroupId();
-
-    // 檢查 ID 是否已存在
-    let attempts = 0;
-    while (attempts < 10) {
-      const checkResult = await pool.query(
-        'SELECT group_id FROM kpop_groups WHERE group_id = $1',
-        [newGroupId]
-      );
-
-      if (checkResult.rows.length === 0) break;
-      newGroupId = generateGroupId();
-      attempts++;
-    }
-
-    if (attempts >= 10) {
-      return NextResponse.json(
-        { error: '系統繁忙，請稍後再試' },
-        { status: 500 }
-      );
-    }
+    // 獲取最大 group_id 並 +1
+    const maxIdResult = await pool.query(
+      'SELECT COALESCE(MAX(group_id), 0) as max_id FROM kpop_groups'
+    );
+    const maxId = parseInt(maxIdResult.rows[0].max_id) || 0;
+    const newGroupId = maxId + 1;
 
     // 插入團體
     await pool.query(
