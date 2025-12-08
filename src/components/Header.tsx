@@ -8,11 +8,34 @@ export default function Header() {
   const pathname = usePathname();
   const [showMenu, setShowMenu] = useState(false);
   const [displayName, setDisplayName] = useState('舞者');
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedName = localStorage.getItem('userName') || localStorage.getItem('userEmail');
-    if (storedName) setDisplayName(storedName);
+    const storedUserId = localStorage.getItem('userId');
+    if (storedUserId) {
+      setUserId(storedUserId);
+      fetchUserName(storedUserId);
+    }
   }, []);
+
+  const fetchUserName = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/users/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.name) {
+          setDisplayName(data.name);
+          // 同时保存到 localStorage 以便下次快速使用
+          localStorage.setItem('userName', data.name);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user name:', error);
+      // 如果 API 失败，尝试从 localStorage 获取
+      const storedName = localStorage.getItem('userName') || localStorage.getItem('userEmail');
+      if (storedName) setDisplayName(storedName);
+    }
+  };
 
   // 點擊外部關閉選單
   useEffect(() => {
@@ -30,6 +53,9 @@ export default function Header() {
   }, [showMenu]);
 
   const avatarText = useMemo(() => displayName.charAt(0).toUpperCase(), [displayName]);
+  // 临时替换 angelica 的头像（不存数据库）
+  const isAngelica = displayName.toLowerCase() === 'angelica' || userId === '17643916039294400';
+  const angelicaAvatarUrl = '/profile.jpg';
 
   const handleLogout = () => {
     localStorage.removeItem('userId');
@@ -86,10 +112,27 @@ export default function Header() {
           <div className="relative user-menu-container">
             <button
               onClick={() => setShowMenu((prev) => !prev)}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-amber-200 text-sm font-bold text-[#7a2d81]"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-amber-200 text-sm font-bold text-[#7a2d81] overflow-hidden"
               aria-label="user menu"
             >
-              {avatarText}
+              {isAngelica ? (
+                <img
+                  src={angelicaAvatarUrl}
+                  alt={displayName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // 如果图片加载失败，回退到首字母显示
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent) {
+                      parent.textContent = avatarText;
+                    }
+                  }}
+                />
+              ) : (
+                avatarText
+              )}
             </button>
             {showMenu && (
               <div className="absolute right-0 mt-3 w-44 rounded-2xl bg-white p-2 shadow-xl ring-1 ring-gray-100 z-50">
@@ -101,7 +144,7 @@ export default function Header() {
                   }}
                   className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-gray-800 hover:bg-amber-50"
                 >
-                  Profile
+                  個人檔案
                 </button>
                 <button
                   onClick={() => {

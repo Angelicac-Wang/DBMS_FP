@@ -64,10 +64,23 @@ export async function GET(
       [userId]
     );
 
+    // 獲取用戶社群連結
+    const socialLinksResult = await pool.query(
+      `SELECT
+        url,
+        platform,
+        follower_cnt
+       FROM user_social_link
+       WHERE u_id = $1
+       ORDER BY follower_cnt DESC`,
+      [userId]
+    );
+
     return NextResponse.json({
       ...userData,
       skills: skillsResult.rows,
       portfolios: portfoliosResult.rows,
+      socialLinks: socialLinksResult.rows,
     });
   } catch (error: any) {
     console.error('Error fetching user profile:', error);

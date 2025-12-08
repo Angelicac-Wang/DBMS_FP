@@ -32,6 +32,12 @@ interface Portfolio {
   view_cnt: number;
 }
 
+interface SocialLink {
+  url: string;
+  platform: string;
+  follower_cnt: number;
+}
+
 function extractYoutubeId(url: string): string | null {
   const match = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
   return match ? match[1] : null;
@@ -49,6 +55,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [skills, setSkills] = useState<UserSkill[]>([]);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [songs, setSongs] = useState<Array<{ song_id: number; title: string; displayName: string }>>([]);
   const [filteredSongs, setFilteredSongs] = useState<Array<{ song_id: number; title: string; displayName: string }>>([]);
@@ -128,6 +135,7 @@ export default function ProfilePage() {
       const userData = await response.json();
       setUser(userData);
       setSkills(userData.skills || []);
+      setSocialLinks(userData.socialLinks || []);
     } catch (error) {
       console.error('Error fetching user profile:', error);
     } finally {
@@ -255,6 +263,9 @@ export default function ProfilePage() {
   }
 
   const avatarInitial = user.name.charAt(0).toUpperCase();
+  // 临时替换 angelica 的头像（不存数据库）
+  const isAngelica = user.name.toLowerCase() === 'angelica' || user.u_id === 17643916039294400;
+  const angelicaAvatarUrl = '/profile.jpg';
 
   return (
     <div className="min-h-screen bg-[#fff6ec]">
@@ -266,49 +277,128 @@ export default function ProfilePage() {
           
           {/* 大頭貼（切齊 bar 底部，橫向置中） */}
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-            <div className="w-32 h-32 rounded-full bg-gradient-to-r from-orange-400 to-pink-500 flex items-center justify-center text-white text-4xl font-bold shadow-lg ring-4 ring-white">
-              {avatarInitial}
+            <div className="relative">
+            {isAngelica ? (
+              <img
+                src={angelicaAvatarUrl}
+                alt={user.name}
+                className="w-32 h-32 rounded-full object-cover shadow-lg ring-4 ring-white"
+                onError={(e) => {
+                  // 如果图片加载失败，回退到首字母显示
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.innerHTML = `<div class="w-32 h-32 rounded-full bg-gradient-to-r from-orange-400 to-pink-500 flex items-center justify-center text-white text-4xl font-bold shadow-lg ring-4 ring-white">${avatarInitial}</div>`;
+                  }
+                }}
+              />
+            ) : (
+              <div className="w-32 h-32 rounded-full bg-gradient-to-r from-orange-400 to-pink-500 flex items-center justify-center text-white text-4xl font-bold shadow-lg ring-4 ring-white">
+                {avatarInitial}
+              </div>
+            )}
+            {/* 編輯按鈕（頭像右下角） */}
+            {isOwnProfile && (
+              <Link
+                href="/profile/edit"
+                className="absolute bottom-0 right-0 p-2 rounded-full bg-white shadow-md hover:bg-gray-50 transition-colors ring-2 ring-white"
+                aria-label="編輯個人資訊"
+              >
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </Link>
+            )}
             </div>
           </div>
         </div>
 
-        {/* 暱稱和修改 icon */}
-        <div className="flex items-center justify-center gap-3 mb-6" style={{ marginTop: '4rem' }}>
+        {/* 暱稱 */}
+        <div className="flex items-center justify-center mb-6" style={{ marginTop: '4.5rem' }}>
           <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
-          {isOwnProfile && (
-            <Link
-              href="/profile/edit"
-              className="p-2 rounded-full bg-white shadow-sm hover:bg-gray-50 transition-colors"
-              aria-label="編輯個人資訊"
-            >
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </Link>
-          )}
         </div>
 
-        {/* Skills */}
-        {skills.length > 0 && (
-          <div className="mb-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">My Skills</h2>
-            <div className="flex flex-wrap justify-center gap-3">
-              {skills.map((skill, index) => (
-                <div
-                  key={index}
-                  className={`${getSkillColor(skill.proficiency_level)} text-white px-4 py-2 rounded-full text-sm font-semibold shadow-sm`}
-                >
-                  {skill.skill_type}
+        {/* Skills and Social Links - 并排显示 */}
+        {(skills.length > 0 || socialLinks.length > 0) && (
+          <div className="mb-8 flex flex-col md:flex-row items-center justify-center gap-1">
+            {/* Skills */}
+            {skills.length > 0 && (
+              <div className="flex-1 max-w-sm">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">我的技能</h2>
+                <div className="flex flex-wrap justify-center gap-3">
+                  {skills.map((skill, index) => (
+                    <div
+                      key={index}
+                      className={`${getSkillColor(skill.proficiency_level)} text-white px-4 py-2 rounded-full text-sm font-semibold shadow-sm`}
+                    >
+                      {skill.skill_type}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
+
+            {/* Social Links */}
+            {socialLinks.length > 0 && (
+              <div className="flex-1 max-w-sm">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">社群媒體</h2>
+                <div className="flex flex-wrap justify-center gap-4">
+                  {socialLinks.map((link, index) => {
+                    const getPlatformIcon = (platform: string) => {
+                      const lowerPlatform = platform.toLowerCase();
+                      if (lowerPlatform.includes('instagram')) {
+                        return (
+                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                          </svg>
+                        );
+                      } else if (lowerPlatform.includes('youtube')) {
+                        return (
+                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                          </svg>
+                        );
+                      } else if (lowerPlatform.includes('tiktok')) {
+                        return (
+                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                          </svg>
+                        );
+                      }
+                      return (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                      );
+                    };
+
+                    return (
+                      <a
+                        key={index}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#eca382] to-[#f0b89a] rounded-lg shadow-sm hover:shadow-md transition-all border border-[#eca382] hover:from-[#e08f6f] hover:to-[#eca382] text-white"
+                      >
+                        {getPlatformIcon(link.platform)}
+                        <span className="text-sm font-medium text-white">{link.platform}</span>
+                        {link.follower_cnt > 0 && (
+                          <span className="text-xs text-white/80">({link.follower_cnt.toLocaleString()})</span>
+                        )}
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {/* Portfolios */}
         <div className="pb-12">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">My Cover Portfolio</h2>
+            <h2 className="text-xl font-bold text-gray-900">我的作品集</h2>
             {isOwnProfile && (
               <button
                 onClick={handleAddPortfolio}

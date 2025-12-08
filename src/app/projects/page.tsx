@@ -405,7 +405,7 @@ export default function ProjectsPage() {
         {/* Projects list */}
         <section className="flex-1 pl-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">Browse Projects</h2>
+            <h2 className="text-2xl font-bold text-gray-900">瀏覽專案</h2>
             <span className="text-sm font-semibold text-gray-600">共 {filteredProjects.length} 個專案</span>
           </div>
 
