@@ -145,12 +145,16 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const client = await pool.connect();
   try {
+    // 開始事務
+    await client.query('BEGIN');
+
     const { id: projectId } = await params;
     const { appli_id, status } = await request.json();
 
     // 更新申請狀態
-    await pool.query(
+    await client.query(
       `UPDATE project_applications
        SET status = $1, reviewed_time = NOW()
        WHERE appli_id = $2`,
@@ -159,7 +163,7 @@ export async function POST(
 
     if (status === 'A') {
       // 如果接受申請，需要將申請者加入專案成員
-      const appResult = await pool.query(
+      const appResult = await client.query(
         'SELECT applicant_id, target_seq FROM project_applications WHERE appli_id = $1',
         [appli_id]
       );
@@ -168,7 +172,7 @@ export async function POST(
         const app = appResult.rows[0];
 
         // 1. 拒絕同一個位置的其他申請（同一個 target_seq，但不同的 applicant_id）
-        await pool.query(
+        await client.query(
           `UPDATE project_applications
            SET status = 'R', reviewed_time = NOW()
            WHERE p_id = $1 AND target_seq = $2 AND applicant_id != $3 AND status = 'W'`,
@@ -176,7 +180,7 @@ export async function POST(
         );
 
         // 2. 拒絕同一個申請者的其他申請（同一個 applicant_id，但不同的 target_seq）
-        await pool.query(
+        await client.query(
           `UPDATE project_applications
            SET status = 'R', reviewed_time = NOW()
            WHERE p_id = $1 AND applicant_id = $2 AND target_seq != $3 AND status = 'W'`,
@@ -184,7 +188,7 @@ export async function POST(
         );
 
         // 更新目標狀態為已填滿
-        await pool.query(
+        await client.query(
           `UPDATE project_target
            SET status = 'F'
            WHERE project_id = $1 AND target_seq = $2`,
@@ -192,7 +196,7 @@ export async function POST(
         );
 
         // 檢查該成員是否已存在
-        const existingMember = await pool.query(
+        const existingMember = await client.query(
           `SELECT p_id, member_id FROM project_members
            WHERE p_id = $1 AND member_id = $2`,
           [projectId, app.applicant_id]
@@ -200,7 +204,7 @@ export async function POST(
 
         if (existingMember.rows.length > 0) {
           // 如果已存在，更新狀態和位置
-          await pool.query(
+          await client.query(
             `UPDATE project_members
              SET status = 'Y', target_seq = $1, join_date = CURRENT_DATE
              WHERE p_id = $2 AND member_id = $3`,
@@ -208,7 +212,7 @@ export async function POST(
           );
         } else {
           // 如果不存在，插入新記錄
-          await pool.query(
+          await client.query(
             `INSERT INTO project_members (p_id, member_id, join_date, target_seq, status)
              VALUES ($1, $2, CURRENT_DATE, $3, 'Y')`,
             [projectId, app.applicant_id, app.target_seq]
@@ -216,7 +220,7 @@ export async function POST(
         }
 
         // 檢查專案是否已招募完成（所有位置都已填滿）
-        const memberCountResult = await pool.query(
+        const memberCountResult = await client.query(
           `SELECT COUNT(*) as count FROM project_members
            WHERE p_id = $1 AND status = 'Y'`,
           [projectId]
@@ -224,7 +228,7 @@ export async function POST(
 
         const memberCount = parseInt(memberCountResult.rows[0].count);
 
-        const projectInfoResult = await pool.query(
+        const projectInfoResult = await client.query(
           `SELECT target_cnt, status FROM project WHERE p_id = $1`,
           [projectId]
         );
@@ -233,7 +237,7 @@ export async function POST(
           const projectInfo = projectInfoResult.rows[0];
           // 如果成員數達到目標人數且專案狀態不是 'F'，則更新為已招募完成
           if (memberCount >= projectInfo.target_cnt && projectInfo.status !== 'F') {
-            await pool.query(
+            await client.query(
               `UPDATE project
                SET status = 'F', update_at = NOW()
                WHERE p_id = $1`,
@@ -244,13 +248,20 @@ export async function POST(
       }
     }
 
+    // 提交事務
+    await client.query('COMMIT');
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    // 回滾事務
+    await client.query('ROLLBACK');
     console.error('Error reviewing application:', error);
     return NextResponse.json(
       { error: 'Failed to review: ' + error.message },
       { status: 500 }
     );
+  } finally {
+    // 釋放連接
+    client.release();
   }
 }
 
