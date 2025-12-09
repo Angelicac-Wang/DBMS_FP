@@ -396,8 +396,8 @@ export default function AnalyticsPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {analytics.recentEvents.slice(0, 30).map((event) => (
-                      <tr key={event.event_id}>
+                    {analytics.recentEvents.slice(0, 30).map((event, index) => (
+                      <tr key={`${event.event_id || event._id || event.session_id || index}-${index}`}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatDate(event.event_timestamp)}
                         </td>

@@ -28,7 +28,8 @@
 ### 前置需求
 
 - **Node.js** 18+ 和 **Yarn** 或 **npm**
-- **PostgreSQL** 14+（本地）
+- **PostgreSQL** 14+（本地）- 用于存储交易数据
+- **MongoDB** 6.0+（本地）- 用于存储行为分析数据
 - **Git**
 
 ### 步驟 1: 克隆專案
@@ -45,6 +46,8 @@ npm install
 ```
 
 ### 步驟 3: 資料庫設定
+
+#### 3.1 PostgreSQL（交易資料）
 
 1. **安裝 PostgreSQL**（如果尚未安裝）：
    ```bash
@@ -67,6 +70,31 @@ npm install
    
    > **注意**：`database_backup.sql` 包含完整的資料庫結構和資料，直接恢復即可使用，無需額外執行其他 SQL 文件。
 
+#### 3.2 MongoDB（行為分析資料）
+
+1. **安裝 MongoDB**（如果尚未安裝）：
+   ```bash
+   # macOS (使用 Homebrew)
+   brew tap mongodb/brew
+   brew install mongodb/brew/mongodb-community
+   brew services start mongodb/brew/mongodb-community
+   
+   # 或使用 Docker
+   docker run -d -p 27017:27017 --name mongodb mongo:latest
+   ```
+
+2. **MongoDB 會自動創建資料庫**，無需手動創建。
+
+3. **（可選）創建索引以優化查詢性能**：
+   ```bash
+   npx tsx scripts/create-mongodb-indexes.ts
+   ```
+
+4. **（可選）遷移現有行為資料**：
+   ```bash
+   npx tsx scripts/migrate-behavior-to-mongodb.ts
+   ```
+
 ### 步驟 4: 環境變數設定
 
 創建 `.env.local` 文件：
@@ -75,18 +103,24 @@ npm install
 cp .env_example .env.local
 ```
 
-編輯 `.env.local`，填入你的本地 PostgreSQL 資料庫資訊：
+編輯 `.env.local`，填入你的資料庫資訊：
 
 ```env
-# 本地 PostgreSQL 設定
+# PostgreSQL 設定（交易資料）
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=kpop_dance_db
 DB_USER=your_username
 DB_PASSWORD=your_password
+
+# MongoDB 設定（行為分析資料）
+MONGODB_URI=mongodb://localhost:27017
+MONGODB_DB_NAME=kpop_dance_analytics
 ```
 
-> **提示**：如果 PostgreSQL 沒有設定密碼，可以留空 `DB_PASSWORD=`
+> **提示**：
+> - 如果 PostgreSQL 沒有設定密碼，可以留空 `DB_PASSWORD=`
+> - MongoDB 預設不需要認證，如果使用 Docker 或遠端 MongoDB，請相應調整 `MONGODB_URI`
 
 ### 步驟 5: 啟動開發伺服器
 
@@ -169,8 +203,12 @@ npm run dev
 - **前端框架**: Next.js 16 (App Router)
 - **語言**: TypeScript
 - **樣式**: Tailwind CSS
-- **資料庫**: PostgreSQL (本地)
-- **ORM/查詢**: pg (PostgreSQL 客戶端)
+- **資料庫**: 
+  - PostgreSQL (本地) - 交易資料
+  - MongoDB (本地) - 行為分析資料
+- **ORM/查詢**: 
+  - pg (PostgreSQL 客戶端)
+  - mongodb (MongoDB 官方驅動)
 - **套件管理**: Yarn / npm
 
 ---
@@ -271,7 +309,7 @@ psql -U your_username -d kpop_dance_db < database_backup_latest.sql
 psql -U your_username -d kpop_dance_db < database_backup_20251209_005036.sql
 ```
 
-### 重新恢復
+### 重新恢復（PostgreSQL）
 
 如果需要重新恢復（會覆蓋現有資料）：
 
@@ -290,11 +328,56 @@ psql -U your_username -d kpop_dance_db < database_backup_latest.sql
 
 詳細說明請參考 [DATABASE_BACKUP_README.md](./DATABASE_BACKUP_README.md)
 
+### MongoDB 備份與還原
+
+> 目標資料庫：`kpop_dance_analytics`（`MONGODB_DB_NAME`），檔案存放於 `mongo-backups/` 並提供 `latest` 連結。
+
+#### 快速備份
+```bash
+chmod +x backup_mongodb.sh
+# 全量備份（含索引），預設輸出到 mongo-backups/時間戳
+./backup_mongodb.sh
+
+# 或指定輸出資料夾
+./backup_mongodb.sh /path/to/mongo-backups
+```
+
+備份結果：
+- 目錄：`mongo-backups/<timestamp>/`（內含資料庫資料夾）
+- 最新連結：`mongo-backups/latest` 指向最近一次備份
+
+#### 快速還原
+```bash
+# 還原 latest（使用預設 localhost:27017）
+mongorestore --uri "mongodb://localhost:27017/kpop_dance_analytics" --drop \
+  mongo-backups/latest/kpop_dance_analytics
+
+# 還原指定時間戳
+mongorestore --uri "mongodb://localhost:27017/kpop_dance_analytics" --drop \
+  mongo-backups/20251209_203933/kpop_dance_analytics
+
+# 或使用環境變數（如果已設定）
+mongorestore --uri "${MONGODB_URI:-mongodb://localhost:27017}/${MONGODB_DB_NAME:-kpop_dance_analytics}" --drop \
+  mongo-backups/latest/kpop_dance_analytics
+```
+
+> **注意**：`--drop` 會先刪除現有資料庫，請謹慎使用。如果不想刪除現有資料，可以移除 `--drop` 參數。
+
+#### 手動使用 mongodump / mongorestore
+```bash
+# 備份
+mongodump --db kpop_dance_analytics --out ./mongo-backups/$(date +%Y%m%d_%H%M%S)
+
+# 還原
+mongorestore --db kpop_dance_analytics --drop ./mongo-backups/20251209_203933/kpop_dance_analytics
+```
+
 ---
 
 ## 📚 相關文件
 
 - [資料庫備份說明](./DATABASE_BACKUP_README.md)
+- [MongoDB 遷移指南](./docs/MONGODB_MIGRATION.md) - **新增：MongoDB 設定和遷移說明**
 - [行為分析系統](./docs/behavior-analytics/README.md)
 - [資料爬蟲說明](./docs/data-scraping/README.md)
 - [遷移指南](./MIGRATION_GUIDE.md)

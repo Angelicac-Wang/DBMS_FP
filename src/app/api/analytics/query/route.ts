@@ -1,70 +1,86 @@
-// API 路由：查询行为事件
+// API 路由：查询行为事件（使用 MongoDB）
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import { getBehaviorEventsCollection, documentToBehaviorEvent } from '@/lib/mongodb-models';
+import type { BehaviorEventDocument } from '@/lib/mongodb-models';
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
+    const collection = await getBehaviorEventsCollection();
     
-    // 构建查询
-    let query = 'SELECT * FROM user_behavior_events WHERE 1=1';
-    const params: any[] = [];
-    let paramIndex = 1;
+    // 构建 MongoDB 查询过滤器
+    const filter: any = {};
 
     if (searchParams.get('user_id')) {
-      query += ` AND user_id = $${paramIndex++}`;
-      params.push(parseInt(searchParams.get('user_id')!));
+      filter.user_id = parseInt(searchParams.get('user_id')!);
     }
 
     if (searchParams.get('event_type')) {
       const eventType = searchParams.get('event_type')!;
       if (eventType.includes(',')) {
-        const types = eventType.split(',');
-        query += ` AND event_type = ANY($${paramIndex++})`;
-        params.push(types);
+        filter.event_type = { $in: eventType.split(',') };
       } else {
-        query += ` AND event_type = $${paramIndex++}`;
-        params.push(eventType);
+        filter.event_type = eventType;
       }
     }
 
     if (searchParams.get('start_date')) {
-      query += ` AND event_timestamp >= $${paramIndex++}`;
-      params.push(searchParams.get('start_date')!);
+      filter.event_timestamp = { 
+        ...filter.event_timestamp,
+        $gte: new Date(searchParams.get('start_date')!)
+      };
     }
 
     if (searchParams.get('end_date')) {
-      query += ` AND event_timestamp <= $${paramIndex++}`;
-      params.push(searchParams.get('end_date')! + 'T23:59:59');
+      const endDate = new Date(searchParams.get('end_date')!);
+      endDate.setHours(23, 59, 59, 999);
+      filter.event_timestamp = {
+        ...filter.event_timestamp,
+        $lte: endDate
+      };
     }
 
     if (searchParams.get('session_id')) {
-      query += ` AND session_id = $${paramIndex++}`;
-      params.push(searchParams.get('session_id')!);
+      filter.session_id = searchParams.get('session_id')!;
     }
 
-    // 排序
+    // JSONB 查询支持（event_data 字段）
+    if (searchParams.get('event_data_key') && searchParams.get('event_data_value')) {
+      const key = searchParams.get('event_data_key')!;
+      const value = searchParams.get('event_data_value')!;
+      filter[`event_data.${key}`] = value;
+    }
+
+    // 构建排序选项
     const orderBy = searchParams.get('order_by') || 'event_timestamp';
     const order = searchParams.get('order') || 'desc';
-    query += ` ORDER BY ${orderBy} ${order.toUpperCase()}`;
+    const sort: any = {};
+    sort[orderBy] = order === 'asc' ? 1 : -1;
 
-    // 限制
+    // 构建查询选项
+    const options: any = { sort };
+    
     if (searchParams.get('limit')) {
-      query += ` LIMIT $${paramIndex++}`;
-      params.push(parseInt(searchParams.get('limit')!));
+      options.limit = parseInt(searchParams.get('limit')!);
     }
 
     if (searchParams.get('offset')) {
-      query += ` OFFSET $${paramIndex++}`;
-      params.push(parseInt(searchParams.get('offset')!));
+      options.skip = parseInt(searchParams.get('offset')!);
     }
 
-    const result = await pool.query(query, params);
+    // 执行查询
+    const cursor = collection.find(filter, options);
+    const documents = await cursor.toArray();
+
+    // 转换为 UserBehaviorEvent 格式
+    const events = documents.map((doc: BehaviorEventDocument) => 
+      documentToBehaviorEvent(doc)
+    );
 
     return NextResponse.json({ 
       success: true, 
-      events: result.rows,
-      count: result.rows.length
+      events,
+      count: events.length
     });
   } catch (error: any) {
     console.error('Error querying events:', error);
