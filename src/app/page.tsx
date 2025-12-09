@@ -179,13 +179,19 @@ export default function Home() {
                     const thumbnailUrl = youtubeId
                       ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`
                       : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+';
+                    const isActive = index === activeSlide;
                     
                     return (
                       <div
                         key={portfolio.video_url}
-                        onClick={() => router.push(`/portfolio/${encodeURIComponent(portfolio.video_url)}`)}
-                        className={`absolute inset-0 h-full w-full cursor-pointer transition-opacity duration-700 ${
-                          index === activeSlide ? 'opacity-100' : 'opacity-0'
+                        onClick={(e) => {
+                          if (isActive) {
+                            e.stopPropagation();
+                            router.push(`/portfolio/${encodeURIComponent(portfolio.video_url)}`);
+                          }
+                        }}
+                        className={`absolute inset-0 h-full w-full transition-opacity duration-700 ${
+                          isActive ? 'opacity-100 cursor-pointer z-10' : 'opacity-0 pointer-events-none z-0'
                         }`}
                       >
                         <img
@@ -209,11 +215,14 @@ export default function Home() {
                       </div>
                     );
                   })}
-                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
                     {topPortfolios.map((_, index) => (
                       <button
                         key={index}
-                        onClick={() => setActiveSlide(index)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveSlide(index);
+                        }}
                         className={`h-2 w-8 rounded-full transition-all ${
                           index === activeSlide ? 'bg-white shadow-lg' : 'bg-white/60'
                         }`}
