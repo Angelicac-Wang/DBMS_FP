@@ -104,36 +104,12 @@ export default function MyProjectsPage() {
         allProjects.map(p => p.song_id).filter(Boolean)
       )];
 
-      // 批次查詢所有待審核申請
-      const applicationsCountMap = new Map<number, number>();
-      if (uniqueProjectIds.length > 0) {
-        const { data: applicationsData, error: appError } = await supabase
-          .from('project_applications')
-          .select('p_id')
-          .in('p_id', uniqueProjectIds)
-          .eq('status', 'W');
-        
-        // 只有在真的有錯誤訊息時才記錄錯誤
-        if (appError && appError.message) {
-          console.error('fetch pending count error', appError);
-        }
-        
-        // 處理查詢結果
-        if (applicationsData && Array.isArray(applicationsData)) {
-          applicationsData.forEach((a) => {
-            const pid = typeof a.p_id === 'string' ? Number(a.p_id) : a.p_id;
-            if (!Number.isNaN(pid)) {
-              applicationsCountMap.set(pid, (applicationsCountMap.get(pid) || 0) + 1);
-            }
-          });
-        }
-      }
-
-      // 批次查詢所有專案的詳細資訊
+      // 批次查詢所有專案的詳細資訊（包含待審核申請）
       const [
         songGroupsData,
         groupsData,
-        membersDataBatch
+        membersDataBatch,
+        applicationsDataBatch
       ] = await Promise.all([
         // 批次查詢所有歌曲-團體關聯
         songIds.length > 0
@@ -166,7 +142,20 @@ export default function MyProjectsPage() {
           .from('project_members')
           .select('p_id, member_id')
           .in('p_id', uniqueProjectIds)
-          .eq('status', 'Y')
+          .eq('status', 'Y'),
+        
+        // 批次查詢所有待審核申請
+        uniqueProjectIds.length > 0
+          ? (() => {
+              console.log('準備查詢待審核申請，專案 IDs:', uniqueProjectIds.slice(0, 5), '... (共', uniqueProjectIds.length, '個)');
+              // 嘗試選擇所有欄位，看看實際的表結構
+              return supabase
+                .from('project_applications')
+                .select('*')
+                .in('p_id', uniqueProjectIds)
+                .eq('status', 'W');
+            })()
+          : Promise.resolve({ data: [], error: null })
       ]);
 
       // 獲取所有歌曲資訊
@@ -207,6 +196,52 @@ export default function MyProjectsPage() {
         }
       });
       
+      // 處理待審核申請查詢結果
+      const applicationsCountMap = new Map<number, number>();
+      if (applicationsDataBatch.error) {
+        console.error('待審核申請查詢錯誤:', applicationsDataBatch.error);
+        // 如果查詢失敗，嘗試逐個查詢（作為備用方案）
+        if (uniqueProjectIds.length > 0 && uniqueProjectIds.length <= 10) {
+          console.log('嘗試逐個查詢待審核申請...');
+          try {
+            const individualQueries = await Promise.all(
+              uniqueProjectIds.map(async (pid) => {
+                const { count, error } = await supabase
+                  .from('project_applications')
+                  .select('appli_id', { count: 'exact', head: true })
+                  .eq('p_id', pid)
+                  .eq('status', 'W');
+                return { pid, count: error ? 0 : (count || 0), error };
+              })
+            );
+            individualQueries.forEach(({ pid, count }) => {
+              if (count > 0) {
+                applicationsCountMap.set(pid, count);
+              }
+            });
+            console.log('逐個查詢結果:', Array.from(applicationsCountMap.entries()));
+          } catch (err) {
+            console.error('逐個查詢也失敗:', err);
+          }
+        }
+      } else if (applicationsDataBatch.data && Array.isArray(applicationsDataBatch.data)) {
+        console.log('處理待審核申請查詢結果，共', applicationsDataBatch.data.length, '筆');
+        console.log('第一筆資料範例:', applicationsDataBatch.data[0]);
+        applicationsDataBatch.data.forEach((a) => {
+          // 嘗試多種可能的欄位名稱
+          const pid = a.p_id || a.P_ID || a.project_id || a.project_Id;
+          if (pid !== undefined && pid !== null) {
+            const pidNum = typeof pid === 'string' ? Number(pid) : Number(pid);
+            if (!Number.isNaN(pidNum) && pidNum > 0) {
+              applicationsCountMap.set(pidNum, (applicationsCountMap.get(pidNum) || 0) + 1);
+            }
+          }
+        });
+        console.log('待審核申請統計結果:', Array.from(applicationsCountMap.entries()));
+      } else {
+        console.log('待審核申請查詢結果為空:', applicationsDataBatch);
+      }
+      
       // 組裝專案詳細資訊的函數
       const getProjectDetails = (project: any) => {
         const projectId = Number(project.p_id);
@@ -229,9 +264,23 @@ export default function MyProjectsPage() {
           membersCountMap.get(projectId) ??
           Number(project.member_count ?? 0);
 
-        const applicationCount = applicationsCountMap.has(projectId)
-          ? applicationsCountMap.get(projectId) || 0
-          : Number(project.application_count ?? 0);
+        // 優先使用查詢結果，如果沒有則使用聚合視圖的資料
+        let applicationCount = 0;
+        if (applicationsCountMap.has(projectId)) {
+          applicationCount = applicationsCountMap.get(projectId) || 0;
+        } else if (project.application_count !== undefined && project.application_count !== null) {
+          applicationCount = Number(project.application_count);
+        }
+        
+        // 調試：檢查專案 ID 和待審核數（僅在開發時顯示）
+        if (process.env.NODE_ENV === 'development' && project.creator_id?.toString() === id && applicationCount > 0) {
+          console.log(`專案 ${projectId} 待審核數:`, {
+            projectId,
+            hasInMap: applicationsCountMap.has(projectId),
+            mapValue: applicationsCountMap.get(projectId),
+            finalCount: applicationCount
+          });
+        }
 
         return {
           song: songInfo,

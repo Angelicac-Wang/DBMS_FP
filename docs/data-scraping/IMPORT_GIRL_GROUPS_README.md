@@ -107,3 +107,8 @@ relation "kpop_groups" does not exist
 ### 錯誤：欄位長度超過限制
 腳本會自動截斷，但會顯示警告訊息
 
+
+
+
+
+
