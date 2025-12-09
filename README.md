@@ -83,17 +83,15 @@ npm install
    docker run -d -p 27017:27017 --name mongodb mongo:latest
    ```
 
-2. **MongoDB 會自動創建資料庫**，無需手動創建。
+2. 快速還原
+```bash
+# 還原 latest（使用預設 localhost:27017）
+mongorestore --uri "mongodb://localhost:27017/kpop_dance_analytics" --drop \
+  mongo-backups/latest/kpop_dance_analytics
+```
 
-3. **（可選）創建索引以優化查詢性能**：
-   ```bash
-   npx tsx scripts/create-mongodb-indexes.ts
-   ```
 
-4. **（可選）遷移現有行為資料**：
-   ```bash
-   npx tsx scripts/migrate-behavior-to-mongodb.ts
-   ```
+
 
 ### 步驟 4: 環境變數設定
 
@@ -382,20 +380,3 @@ mongorestore --db kpop_dance_analytics --drop ./mongo-backups/20251209_203933/kp
 - [資料爬蟲說明](./docs/data-scraping/README.md)
 - [遷移指南](./MIGRATION_GUIDE.md)
 
----
-
-## 🤝 貢獻
-
-歡迎提交 Issue 和 Pull Request！
-
----
-
-## 📄 授權
-
-本專案為學術專案，僅供學習和研究使用。
-
----
-
-## 📧 聯絡方式
-
-如有問題或建議，請透過 GitHub Issues 聯繫。
