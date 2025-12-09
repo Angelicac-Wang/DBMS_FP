@@ -92,6 +92,7 @@ DB_PASSWORD=your_password
 
 ```bash
 npm run dev
+
 ```
 
 開啟瀏覽器訪問 [http://localhost:3000](http://localhost:3000)

@@ -26,7 +26,9 @@ export default function MyProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [filter, setFilter] = useState<'all' | 'created' | 'joined'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const id = localStorage.getItem('userId');
@@ -49,9 +51,11 @@ export default function MyProjectsPage() {
 
       const data = await response.json();
       setProjects(data);
+      setFilteredProjects(data);
     } catch (err) {
       console.error('Error fetching projects:', err);
       setProjects([]);
+      setFilteredProjects([]);
     } finally {
       setLoading(false);
     }
@@ -62,6 +66,24 @@ export default function MyProjectsPage() {
       fetchProjects(userId);
     }
   }, [filter, userId]);
+
+  // 搜尋功能
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredProjects(projects);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = projects.filter((project) => {
+      const matchesTitle = project.porject_title.toLowerCase().includes(query);
+      const matchesSong = project.song?.title?.toLowerCase().includes(query);
+      const matchesGroup = project.song?.group_name?.toLowerCase().includes(query);
+      return matchesTitle || matchesSong || matchesGroup;
+    });
+
+    setFilteredProjects(filtered);
+  }, [searchQuery, projects]);
 
 
   if (loading) {
@@ -91,7 +113,7 @@ export default function MyProjectsPage() {
         </div>
 
         {/* 篩選器 */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-4">
           <button
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -124,9 +146,20 @@ export default function MyProjectsPage() {
           </button>
         </div>
 
+        {/* 搜尋框 */}
+        <div className="mb-6">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="搜尋專案、歌曲或團體..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-sm text-black bg-white"
+          />
+        </div>
+
         {/* 專案列表 */}
         <div className="space-y-4">
-          {projects.length === 0 ? (
+          {filteredProjects.length === 0 && projects.length === 0 ? (
             <div className="bg-white rounded-xl shadow-md p-12 text-center">
               <p className="text-gray-500 mb-4">目前沒有專案記錄</p>
               <button
@@ -136,8 +169,12 @@ export default function MyProjectsPage() {
                 建立新專案
               </button>
             </div>
+          ) : filteredProjects.length === 0 && searchQuery ? (
+            <div className="bg-white rounded-xl shadow-md p-12 text-center">
+              <p className="text-gray-500">沒有符合搜尋條件的專案</p>
+            </div>
           ) : (
-            projects.map((project) => (
+            filteredProjects.map((project) => (
               <div key={project.p_id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
