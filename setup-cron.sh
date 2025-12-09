@@ -40,3 +40,4 @@ echo ""
 echo "🗑️  移除 cron job："
 echo "   crontab -l | grep -v 'clean-expired-applications' | crontab -"
 
+

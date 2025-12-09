@@ -16,3 +16,4 @@ ALTER TABLE kpop_songs DROP COLUMN IF EXISTS difficulty_level;
 
 
 
+

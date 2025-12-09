@@ -25,3 +25,4 @@ SELECT
   COUNT(*) as total
 FROM project_applications;
 
+

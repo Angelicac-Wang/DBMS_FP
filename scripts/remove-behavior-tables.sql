@@ -19,3 +19,4 @@ WHERE
     table_schema = 'public' 
     AND table_name IN ('user_behavior_events', 'user_sessions', 'behavior_aggregates');
 
+
