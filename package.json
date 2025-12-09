@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "tsx scripts/start-dev-with-cron.ts",
+    "dev:next": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "fetch-spotify": "tsx scripts/fetch-spotify-songs.ts"
+    "fetch-spotify": "tsx scripts/fetch-spotify-songs.ts",
+    "clean-expired-applications": "tsx scripts/clean-expired-applications.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.86.0",
@@ -15,6 +17,7 @@
     "cheerio": "^1.1.2",
     "mongodb": "^7.0.0",
     "next": "16.0.5",
+    "node-cron": "^3.0.3",
     "pg": "^8.16.3",
     "react": "19.2.0",
     "react-dom": "19.2.0"
@@ -22,6 +25,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/node-cron": "^3.0.11",
     "@types/pg": "^8.15.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
