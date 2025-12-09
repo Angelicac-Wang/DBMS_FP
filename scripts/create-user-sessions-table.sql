@@ -42,3 +42,5 @@ COMMENT ON COLUMN user_sessions.country IS '国家';
 COMMENT ON COLUMN user_sessions.city IS '城市';
 COMMENT ON COLUMN user_sessions.session_data IS '会话数据（JSONB）';
 
+
+

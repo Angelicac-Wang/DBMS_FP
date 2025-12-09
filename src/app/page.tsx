@@ -19,26 +19,12 @@ interface NewestProject {
   creatorName?: string;
 }
 
-const heroSlides = [
-  {
-    title: 'Find Your Stage',
-    subtitle: 'Join dancers who love K-POP covers as much as you do.',
-    image:
-      'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=1600&q=80',
-  },
-  {
-    title: 'From Practice Room to Spotlight',
-    subtitle: 'Connect with crews, rehearse, and shine on stage together.',
-    image:
-      'https://images.unsplash.com/photo-1486591038957-19e7c73bdc41?auto=format&fit=crop&w=1600&q=80',
-  },
-  {
-    title: 'Cover Your Favorite Tracks',
-    subtitle: 'Match with projects that fit your style and schedule.',
-    image:
-      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=1600&q=80',
-  },
-];
+interface TopPortfolio {
+  video_url: string;
+  title: string;
+  discription?: string;
+  created_at?: string;
+}
 
 function extractYoutubeId(url?: string | null): string | null {
   if (!url) return null;
@@ -79,18 +65,39 @@ export default function Home() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [newestProjects, setNewestProjects] = useState<NewestProject[]>([]);
   const [loadingNewest, setLoadingNewest] = useState(true);
+  const [topPortfolios, setTopPortfolios] = useState<TopPortfolio[]>([]);
+  const [loadingTopPortfolios, setLoadingTopPortfolios] = useState(true);
 
   useEffect(() => {
     trackPageView('/', '舞告Match - 首頁');
     fetchNewestProjects();
+    fetchTopPortfolios();
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 5200);
-    return () => clearInterval(timer);
-  }, []);
+    if (topPortfolios.length > 0) {
+      const timer = setInterval(() => {
+        setActiveSlide((prev) => (prev + 1) % topPortfolios.length);
+      }, 5200);
+      return () => clearInterval(timer);
+    }
+  }, [topPortfolios]);
+
+  const fetchTopPortfolios = async () => {
+    try {
+      setLoadingTopPortfolios(true);
+      const response = await fetch('/api/portfolios/user/angelica');
+      if (!response.ok) throw new Error('Failed to fetch portfolios');
+      
+      const portfoliosData = await response.json();
+      setTopPortfolios(portfoliosData || []);
+    } catch (err) {
+      console.error('Failed to load portfolios', err);
+      setTopPortfolios([]);
+    } finally {
+      setLoadingTopPortfolios(false);
+    }
+  };
 
   const fetchNewestProjects = async () => {
     try {
@@ -161,28 +168,65 @@ export default function Home() {
         <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#fff4e6] via-[#ffe1d2] to-[#ffd2ec] shadow-lg">
           <div className="grid gap-6 p-6 md:grid-cols-2 md:p-10">
             <div className="relative h-64 overflow-hidden rounded-2xl shadow-xl md:h-full">
-              {heroSlides.map((slide, index) => (
-                <img
-                  key={slide.title}
-                  src={slide.image}
-                  alt={slide.title}
-                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-                    index === activeSlide ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-              ))}
-              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-                {heroSlides.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setActiveSlide(index)}
-                    className={`h-2 w-8 rounded-full transition-all ${
-                      index === activeSlide ? 'bg-white shadow-lg' : 'bg-white/60'
-                    }`}
-                    aria-label={`slide-${index}`}
-                  />
-                ))}
-              </div>
+              {loadingTopPortfolios ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+                  <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#eca382] border-t-transparent" />
+                </div>
+              ) : topPortfolios.length > 0 ? (
+                <>
+                  {topPortfolios.map((portfolio, index) => {
+                    const youtubeId = extractYoutubeId(portfolio.video_url);
+                    const thumbnailUrl = youtubeId
+                      ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`
+                      : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+';
+                    
+                    return (
+                      <div
+                        key={portfolio.video_url}
+                        onClick={() => router.push(`/portfolio/${encodeURIComponent(portfolio.video_url)}`)}
+                        className={`absolute inset-0 h-full w-full cursor-pointer transition-opacity duration-700 ${
+                          index === activeSlide ? 'opacity-100' : 'opacity-0'
+                        }`}
+                      >
+                        <img
+                          src={thumbnailUrl}
+                          alt={portfolio.title}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            const fallback = youtubeId
+                              ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`
+                              : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+';
+                            if (target.src !== fallback) {
+                              target.src = fallback;
+                            }
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                          <h3 className="text-lg font-bold mb-1">{portfolio.title}</h3>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                    {topPortfolios.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setActiveSlide(index)}
+                        className={`h-2 w-8 rounded-full transition-all ${
+                          index === activeSlide ? 'bg-white shadow-lg' : 'bg-white/60'
+                        }`}
+                        aria-label={`slide-${index}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-200 text-gray-500">
+                  <p>暫無熱門作品</p>
+                </div>
+              )}
             </div>
             <div className="flex flex-col justify-center gap-5">
               <p className="rounded-full bg-white/80 px-4 py-1 text-xs font-semibold text-[#7a2d81] shadow-sm w-fit">

@@ -14,3 +14,5 @@ ALTER TABLE kpop_songs DROP COLUMN IF EXISTS difficulty_level;
 -- 完成迁移
 -- 注意：此操作不可逆，请确保已备份数据库
 
+
+

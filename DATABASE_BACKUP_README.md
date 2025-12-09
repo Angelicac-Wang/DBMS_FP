@@ -61,3 +61,5 @@ pg_dump -U yu -d kpop_dance_db --clean --if-exists --no-owner --no-acl -F p > da
 - `--no-acl`: 不包含权限信息
 - `-F p`: 纯文本格式（SQL）
 
+
+
