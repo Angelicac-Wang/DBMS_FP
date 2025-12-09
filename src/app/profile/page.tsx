@@ -57,11 +57,12 @@ export default function ProfilePage() {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [songs, setSongs] = useState<Array<{ song_id: number; title: string; displayName: string }>>([]);
   const [filteredSongs, setFilteredSongs] = useState<Array<{ song_id: number; title: string; displayName: string }>>([]);
   const [songSearchQuery, setSongSearchQuery] = useState('');
   const [showSongDropdown, setShowSongDropdown] = useState(false);
   const [error, setError] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isOwnProfile, setIsOwnProfile] = useState(true);
   const [formData, setFormData] = useState({
     video_url: '',
@@ -94,7 +95,7 @@ export default function ProfilePage() {
       fetchPortfolios(currentUserId);
     }
 
-    fetchSongs();
+    // 不再預先載入所有歌曲，改為在搜尋時才載入
   }, [router]);
 
   // 點擊外部關閉下拉選單
@@ -112,16 +113,35 @@ export default function ProfilePage() {
     }
   }, [showSongDropdown]);
 
-  const fetchSongs = async () => {
+  // 清理 timeout
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
+  }, [searchTimeout]);
+
+  const fetchSongs = async (searchQuery: string = '') => {
     try {
-      const response = await fetch('/api/songs?limit=500');
-      if (!response.ok) return;
+      setSearchLoading(true);
+      const url = searchQuery.trim() 
+        ? `/api/songs?search=${encodeURIComponent(searchQuery.trim())}&limit=100`
+        : '/api/songs?limit=50'; // 沒有搜尋時只載入前 50 首作為預覽
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        setFilteredSongs([]);
+        return;
+      }
       
       const songsData = await response.json();
-      setSongs(songsData);
       setFilteredSongs(songsData);
     } catch (err) {
       console.error('Error fetching songs:', err);
+      setFilteredSongs([]);
+    } finally {
+      setSearchLoading(false);
     }
   };
 
@@ -167,23 +187,34 @@ export default function ProfilePage() {
   const handleAddPortfolio = () => {
     setFormData({ video_url: '', title: '', discription: '', cover_song_id: '', cover_song_display: '' });
     setSongSearchQuery('');
-    setFilteredSongs(songs);
+    setFilteredSongs([]);
     setShowSongDropdown(false);
     setError('');
     setShowModal(true);
   };
 
+  // 使用 debounce 來延遲搜尋請求
   const handleSongSearch = (query: string) => {
     setSongSearchQuery(query);
-    if (query.trim() === '') {
-      setFilteredSongs(songs);
-    } else {
-      const filtered = songs.filter((song) =>
-        song.displayName.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredSongs(filtered);
-    }
     setShowSongDropdown(true);
+
+    // 清除之前的 timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    // 如果搜尋為空，顯示一些預設結果
+    if (query.trim() === '') {
+      fetchSongs(''); // 載入前 50 首作為預覽
+      return;
+    }
+
+    // 設置新的 timeout，300ms 後執行搜尋
+    const timeout = setTimeout(() => {
+      fetchSongs(query);
+    }, 300);
+
+    setSearchTimeout(timeout);
   };
 
   const handleSelectSong = (song: { song_id: number; displayName: string }) => {
@@ -230,7 +261,7 @@ export default function ProfilePage() {
       setShowModal(false);
       setFormData({ video_url: '', title: '', discription: '', cover_song_id: '', cover_song_display: '' });
       setSongSearchQuery('');
-      setFilteredSongs(songs);
+      setFilteredSongs([]);
       fetchPortfolios(userId);
     } catch (err: any) {
       setError('儲存失敗：' + (err.message || '未知錯誤'));
@@ -470,7 +501,7 @@ export default function ProfilePage() {
                     setError('');
                     setFormData({ video_url: '', title: '', discription: '', cover_song_id: '', cover_song_display: '' });
                     setSongSearchQuery('');
-                    setFilteredSongs(songs);
+                    setFilteredSongs([]);
                     setShowSongDropdown(false);
                   }}
                   className="text-gray-400 hover:text-gray-600"
@@ -516,22 +547,39 @@ export default function ProfilePage() {
                     type="text"
                     value={songSearchQuery}
                     onChange={(e) => handleSongSearch(e.target.value)}
-                    onFocus={() => setShowSongDropdown(true)}
-                    placeholder="搜尋歌曲..."
+                    onFocus={() => {
+                      setShowSongDropdown(true);
+                      // 如果沒有搜尋結果且輸入框為空，載入一些預設結果
+                      if (filteredSongs.length === 0 && !songSearchQuery.trim()) {
+                        fetchSongs('');
+                      }
+                    }}
+                    placeholder="搜尋歌曲（輸入歌名、團名或偶像名）..."
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
                   />
-                  {showSongDropdown && filteredSongs.length > 0 && (
+                  {showSongDropdown && (
                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      {filteredSongs.map((song) => (
-                        <button
-                          key={song.song_id}
-                          type="button"
-                          onClick={() => handleSelectSong(song)}
-                          className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors text-black"
-                        >
-                          {song.displayName}
-                        </button>
-                      ))}
+                      {searchLoading ? (
+                        <div className="px-4 py-2 text-center text-gray-500">
+                          <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-[#eca382] mr-2"></div>
+                          搜尋中...
+                        </div>
+                      ) : filteredSongs.length > 0 ? (
+                        filteredSongs.map((song) => (
+                          <button
+                            key={song.song_id}
+                            type="button"
+                            onClick={() => handleSelectSong(song)}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors text-black"
+                          >
+                            {song.displayName}
+                          </button>
+                        ))
+                      ) : songSearchQuery.trim() ? (
+                        <div className="px-4 py-2 text-center text-gray-500">
+                          找不到符合的歌曲
+                        </div>
+                      ) : null}
                     </div>
                   )}
                 </div>
@@ -553,7 +601,7 @@ export default function ProfilePage() {
                       setError('');
                       setFormData({ video_url: '', title: '', discription: '', cover_song_id: '', cover_song_display: '' });
                       setSongSearchQuery('');
-                      setFilteredSongs(songs);
+                      setFilteredSongs([]);
                       setShowSongDropdown(false);
                     }}
                     className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors"

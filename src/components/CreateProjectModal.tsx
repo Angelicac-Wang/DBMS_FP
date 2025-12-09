@@ -30,6 +30,8 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
   const [showSongDropdown, setShowSongDropdown] = useState(false);
   const [error, setError] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const [formData, setFormData] = useState({
     song_id: '',
@@ -59,7 +61,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
       return;
     }
     setUserId(id);
-    fetchSongs();
+    // 不再預先載入所有歌曲，改為在搜尋時才載入
     fetchPracticeLocationTags();
   }, [router]);
 
@@ -71,6 +73,15 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
       setSelectedIdols(new Set());
     }
   }, [formData.song_id]);
+
+  // 清理 timeout
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
+  }, [searchTimeout]);
 
   const fetchPracticeLocationTags = async () => {
     try {
@@ -103,16 +114,28 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
     setShowLocationDropdown(false);
   };
 
-  const fetchSongs = async () => {
+  const fetchSongs = async (searchQuery: string = '') => {
     try {
-      const response = await fetch('/api/songs');
+      setSearchLoading(true);
+      const url = searchQuery.trim() 
+        ? `/api/songs?search=${encodeURIComponent(searchQuery.trim())}&limit=100`
+        : '/api/songs?limit=50'; // 沒有搜尋時只載入前 50 首作為預覽
+      
+      console.log('Fetching songs with URL:', url);
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
-        setSongs(data);
+        console.log(`Received ${data.length} songs`);
         setFilteredSongs(data);
+      } else {
+        console.error('Failed to fetch songs:', response.status);
+        setFilteredSongs([]);
       }
     } catch (err) {
       console.error('Error fetching songs:', err);
+      setFilteredSongs([]);
+    } finally {
+      setSearchLoading(false);
     }
   };
 
@@ -131,17 +154,28 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
     }
   };
 
+  // 使用 debounce 來延遲搜尋請求
   const handleSongSearch = (query: string) => {
     setSongSearchQuery(query);
-    if (query.trim() === '') {
-      setFilteredSongs(songs);
-    } else {
-      const filtered = songs.filter((song) =>
-        song.displayName.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredSongs(filtered);
-    }
     setShowSongDropdown(true);
+
+    // 清除之前的 timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    // 如果搜尋為空，顯示一些預設結果
+    if (query.trim() === '') {
+      fetchSongs(''); // 載入前 50 首作為預覽
+      return;
+    }
+
+    // 設置新的 timeout，300ms 後執行搜尋
+    const timeout = setTimeout(() => {
+      fetchSongs(query);
+    }, 300);
+
+    setSearchTimeout(timeout);
   };
 
   const handleSelectSong = (song: Song) => {
@@ -400,23 +434,40 @@ export default function CreateProjectModal({ isOpen, onClose, onSuccess }: Creat
                     type="text"
                     value={songSearchQuery}
                     onChange={(e) => handleSongSearch(e.target.value)}
-                    onFocus={() => setShowSongDropdown(true)}
-                    placeholder="搜尋歌曲..."
+                    onFocus={() => {
+                      setShowSongDropdown(true);
+                      // 如果沒有搜尋結果且輸入框為空，載入一些預設結果
+                      if (filteredSongs.length === 0 && !songSearchQuery.trim()) {
+                        fetchSongs('');
+                      }
+                    }}
+                    placeholder="搜尋歌曲（輸入歌名、團名或偶像名）..."
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#eca382] focus:border-transparent text-black"
                     required
                   />
-                  {showSongDropdown && filteredSongs.length > 0 && (
+                  {showSongDropdown && (
                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      {filteredSongs.map((song) => (
-                        <button
-                          key={song.song_id}
-                          type="button"
-                          onClick={() => handleSelectSong(song)}
-                          className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors"
-                        >
-                          {song.displayName}
-                        </button>
-                      ))}
+                      {searchLoading ? (
+                        <div className="px-4 py-2 text-center text-gray-500">
+                          <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-[#eca382] mr-2"></div>
+                          搜尋中...
+                        </div>
+                      ) : filteredSongs.length > 0 ? (
+                        filteredSongs.map((song) => (
+                          <button
+                            key={song.song_id}
+                            type="button"
+                            onClick={() => handleSelectSong(song)}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors"
+                          >
+                            {song.displayName}
+                          </button>
+                        ))
+                      ) : songSearchQuery.trim() ? (
+                        <div className="px-4 py-2 text-center text-gray-500">
+                          找不到符合的歌曲
+                        </div>
+                      ) : null}
                     </div>
                   )}
                 </div>

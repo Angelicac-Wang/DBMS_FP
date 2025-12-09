@@ -41,19 +41,29 @@ export async function GET(
 
     // 獲取作品集
     const portfoliosResult = await pool.query(
-      'SELECT portfolio_id, title, video_url, discription FROM portfolios WHERE u_id = $1',
+      `SELECT 
+        p.video_url,
+        p.title,
+        p.discription,
+        vd.cover_song_id,
+        vd.created_at,
+        vd.view_cnt
+       FROM portfolios p
+       LEFT JOIN video_detail vd ON p.video_url = vd.video_url
+       WHERE p.u_id = $1
+       ORDER BY vd.created_at DESC NULLS LAST`,
       [userId]
     );
 
     // 獲取技能
     const skillsResult = await pool.query(
-      'SELECT skill_id, skill_type, proficiency_level, years_of_experience as experience_years FROM user_skills WHERE u_id = $1',
+      'SELECT skill_type, proficiency_level, years_of_experience as experience_years FROM user_skills WHERE u_id = $1',
       [userId]
     );
 
     // 獲取社群連結
     const socialLinksResult = await pool.query(
-      'SELECT link_id, platform, url, follower_cnt as follower_count FROM user_social_link WHERE u_id = $1',
+      'SELECT platform, url, follower_cnt as follower_count FROM user_social_link WHERE u_id = $1',
       [userId]
     );
 

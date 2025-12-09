@@ -192,6 +192,7 @@ export default function EditProfilePage() {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-gray-800">技能</h2>
             <button
+              type="button"
               onClick={addSkill}
               className="px-4 py-2 bg-[#eca382] text-white rounded-lg text-sm hover:bg-[#e08f6f]"
             >
@@ -204,6 +205,7 @@ export default function EditProfilePage() {
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="font-medium text-gray-800">技能 {index + 1}</h3>
                   <button
+                    type="button"
                     onClick={() => removeSkill(index)}
                     className="text-red-500 hover:text-red-700 text-sm"
                   >
@@ -270,6 +272,7 @@ export default function EditProfilePage() {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-gray-800">社群連結</h2>
             <button
+              type="button"
               onClick={addSocialLink}
               className="px-4 py-2 bg-[#eca382] text-white rounded-lg text-sm hover:bg-[#e08f6f]"
             >
@@ -282,6 +285,7 @@ export default function EditProfilePage() {
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="font-medium text-gray-800">連結 {index + 1}</h3>
                   <button
+                    type="button"
                     onClick={() => removeSocialLink(index)}
                     className="text-red-500 hover:text-red-700 text-sm"
                   >

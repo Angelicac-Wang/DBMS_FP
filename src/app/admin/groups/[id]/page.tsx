@@ -41,6 +41,7 @@ export default function GroupDetailPage() {
   const [idols, setIdols] = useState<Idol[]>([]);
   const [songs, setSongs] = useState<Song[]>([]);
   const [projectCount, setProjectCount] = useState(0);
+  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     if (isAdmin && groupId) {
@@ -65,6 +66,7 @@ export default function GroupDetailPage() {
       setGroup(groupData);
       setIdols(groupData.members || []);
       setSongs(groupData.songs || []);
+      setLogoError(false); // 重置Logo错误状态
 
       // 獲取使用此團體歌曲的專案數
       if (groupData.songs && groupData.songs.length > 0) {
@@ -184,15 +186,46 @@ export default function GroupDetailPage() {
             <div className="md:col-span-2">
               <span className="text-sm text-gray-600">Logo</span>
               <div className="mt-2">
-                <img
-                  src={group.logo_image.includes('kprofiles.com') ? 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+' : group.logo_image}
-                  alt={group.group_name}
-                  className="h-32 w-32 object-contain"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+';
-                  }}
-                />
+                {logoError ? (
+                  <div className="h-32 w-32 bg-gray-100 border border-gray-300 rounded flex flex-col items-center justify-center p-2">
+                    <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-xs text-gray-500 text-center">圖片載入失敗</span>
+                    {group.logo_image.includes('kprofiles.com') && (
+                      <span className="text-xs text-gray-400 text-center mt-1">(kprofiles.com 可能有 CORS 限制)</span>
+                    )}
+                    <a
+                      href={group.logo_image}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-500 hover:underline mt-1"
+                    >
+                      在新視窗開啟
+                    </a>
+                  </div>
+                ) : (
+                  <img
+                    src={group.logo_image}
+                    alt={group.group_name}
+                    className="h-32 w-32 object-contain border border-gray-200 rounded"
+                    onError={() => setLogoError(true)}
+                    onLoad={() => setLogoError(false)}
+                  />
+                )}
+              </div>
+              <div className="mt-2">
+                <a
+                  href={group.logo_image}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-500 hover:underline"
+                >
+                  查看原始連結
+                </a>
+                {group.logo_image.includes('kprofiles.com') && (
+                  <span className="text-xs text-gray-400 ml-2">(如無法顯示，請點擊連結查看)</span>
+                )}
               </div>
             </div>
           )}

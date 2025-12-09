@@ -33,21 +33,21 @@ interface ParticipatedProject {
 }
 
 interface Portfolio {
-  portfolio_id: number;
-  title: string;
   video_url: string;
+  title: string;
   discription?: string;
+  cover_song_id?: number;
+  created_at?: string;
+  view_cnt?: number;
 }
 
 interface Skill {
-  skill_id: number;
   skill_type: string;
   proficiency_level: number;
   experience_years: number;
 }
 
 interface SocialLink {
-  link_id: number;
   platform: string;
   url: string;
   follower_count?: number;
@@ -68,6 +68,7 @@ export default function UserDetailPage() {
   const params = useParams();
   const userId = params.id as string;
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [createdProjects, setCreatedProjects] = useState<Project[]>([]);
   const [participatedProjects, setParticipatedProjects] = useState<ParticipatedProject[]>([]);
@@ -85,17 +86,27 @@ export default function UserDetailPage() {
   const fetchUserDetail = async () => {
     try {
       setLoading(true);
+      setError(null);
 
       const response = await fetch(`/api/admin/users/${userId}`);
       if (!response.ok) {
         if (response.status === 404) {
           setUser(null);
+          setError('使用者不存在');
           return;
         }
-        throw new Error('Failed to fetch user detail');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to fetch user detail`);
       }
 
       const data = await response.json();
+      
+      if (!data.user) {
+        setUser(null);
+        setError('使用者資料格式錯誤');
+        return;
+      }
+      
       setUser(data.user);
       setCreatedProjects(data.createdProjects || []);
       setParticipatedProjects(data.participatedProjects || []);
@@ -103,8 +114,10 @@ export default function UserDetailPage() {
       setSkills(data.skills || []);
       setSocialLinks(data.socialLinks || []);
       setApplications(data.applications || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching user detail:', error);
+      setError(error.message || '載入使用者資料時發生錯誤');
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -158,13 +171,27 @@ export default function UserDetailPage() {
   if (!user) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">使用者不存在</p>
-        <button
-          onClick={() => router.push('/admin/users')}
-          className="mt-4 px-4 py-2 bg-[#eca382] text-white rounded-lg"
-        >
-          返回列表
-        </button>
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-600 rounded-lg p-4 max-w-md mx-auto">
+            <p className="font-semibold">錯誤</p>
+            <p className="text-sm mt-1">{error}</p>
+          </div>
+        )}
+        <p className="text-gray-600">{error || '使用者不存在'}</p>
+        <div className="flex gap-3 justify-center mt-4">
+          <button
+            onClick={() => router.push('/admin/users')}
+            className="px-4 py-2 bg-[#eca382] text-white rounded-lg hover:bg-[#e08f6f]"
+          >
+            返回列表
+          </button>
+          <button
+            onClick={fetchUserDetail}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+          >
+            重新載入
+          </button>
+        </div>
       </div>
     );
   }
@@ -180,6 +207,13 @@ export default function UserDetailPage() {
           ← 返回
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg p-4">
+          <p className="font-semibold">錯誤</p>
+          <p className="text-sm mt-1">{error}</p>
+        </div>
+      )}
 
       {/* 基本資料 */}
       <div className="bg-white rounded-lg shadow p-6">
@@ -309,10 +343,20 @@ export default function UserDetailPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {portfolios.map((portfolio) => (
-              <div key={portfolio.portfolio_id} className="border border-gray-200 rounded-lg p-4">
+              <div key={portfolio.video_url} className="border border-gray-200 rounded-lg p-4">
                 <div className="font-medium text-gray-900">{portfolio.title}</div>
                 {portfolio.discription && (
                   <div className="text-sm text-gray-600 mt-1">{portfolio.discription}</div>
+                )}
+                {portfolio.view_cnt !== undefined && portfolio.view_cnt !== null && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    瀏覽次數：{portfolio.view_cnt.toLocaleString()}
+                  </div>
+                )}
+                {portfolio.created_at && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    建立時間：{new Date(portfolio.created_at).toLocaleDateString('zh-TW')}
+                  </div>
                 )}
                 <a
                   href={portfolio.video_url}
@@ -335,8 +379,8 @@ export default function UserDetailPage() {
           <p className="text-gray-500">尚無技能資料</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {skills.map((skill) => (
-              <div key={skill.skill_id} className="border border-gray-200 rounded-lg p-4">
+            {skills.map((skill, index) => (
+              <div key={`${skill.skill_type}-${index}`} className="border border-gray-200 rounded-lg p-4">
                 <div className="font-medium text-gray-900">{skill.skill_type}</div>
                 <div className="text-sm text-gray-600 mt-1">
                   熟練度：{skill.proficiency_level}/10 · 經驗：{skill.experience_years} 年
@@ -355,7 +399,7 @@ export default function UserDetailPage() {
         ) : (
           <div className="space-y-2">
             {socialLinks.map((link) => (
-              <div key={link.link_id} className="border border-gray-200 rounded-lg p-4">
+              <div key={link.url} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex justify-between items-center">
                   <div>
                     <div className="font-medium text-gray-900">{link.platform}</div>

@@ -117,8 +117,8 @@ export default function ProjectDetailPage() {
       }
 
       // 處理練習時間表
-      const schedulesData = (projectData.practice_schedules || []).map((s: any) => ({
-        schedule_id: 0, // API 可能不返回 ID
+      const schedulesData = (projectData.practice_schedules || []).map((s: any, index: number) => ({
+        schedule_id: s.schedule_id || index, // 使用 API 返回的 ID 或索引作為備用
         practice_date: s.date,
         start_time: s.start_time,
         end_time: s.end_time,
@@ -352,9 +352,9 @@ export default function ProjectDetailPage() {
           <p className="text-gray-500">尚無練習時間</p>
         ) : (
           <div className="space-y-2">
-            {practiceSchedules.map((schedule) => (
+            {practiceSchedules.map((schedule, index) => (
               <div
-                key={schedule.schedule_id}
+                key={`${schedule.practice_date}-${schedule.start_time}-${index}`}
                 className="border border-gray-200 rounded-lg p-4"
               >
                 <div className="font-medium text-gray-900">

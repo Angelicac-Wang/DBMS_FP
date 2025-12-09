@@ -28,6 +28,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const client = await pool.connect();
   try {
     const body = await request.json();
     const {
@@ -37,17 +38,21 @@ export async function POST(request: Request) {
       duration,
       spotify_url,
       youtube_original_url,
+      groups,
+      idols,
     } = body;
 
+    await client.query('BEGIN');
+
     // 獲取最大 song_id 並 +1
-    const maxIdResult = await pool.query(
+    const maxIdResult = await client.query(
       'SELECT COALESCE(MAX(song_id), 0) as max_id FROM kpop_songs'
     );
     const maxId = parseInt(maxIdResult.rows[0].max_id) || 0;
     const newSongId = maxId + 1;
 
     // 插入歌曲
-    await pool.query(
+    await client.query(
       `INSERT INTO kpop_songs (
         song_id, title, title_kr, release_date, duration,
         spotify_url, youtube_original_url
@@ -63,12 +68,36 @@ export async function POST(request: Request) {
       ]
     );
 
+    // 插入團體關聯
+    if (groups && Array.isArray(groups) && groups.length > 0) {
+      for (const groupId of groups) {
+        await client.query(
+          'INSERT INTO song_group (song_id, group_id) VALUES ($1, $2)',
+          [newSongId, groupId]
+        );
+      }
+    }
+
+    // 插入偶像關聯
+    if (idols && Array.isArray(idols) && idols.length > 0) {
+      for (const idolId of idols) {
+        await client.query(
+          'INSERT INTO song_idol (song_id, idol_id) VALUES ($1, $2)',
+          [newSongId, idolId]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
     return NextResponse.json({ song_id: newSongId });
   } catch (error: any) {
+    await client.query('ROLLBACK');
     console.error('Error creating song:', error);
     return NextResponse.json(
       { error: 'Failed to create song: ' + error.message },
       { status: 500 }
     );
+  } finally {
+    client.release();
   }
 }

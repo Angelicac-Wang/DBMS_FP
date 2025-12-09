@@ -49,10 +49,27 @@ export default function EditGroupPage() {
       if (!response.ok) throw new Error('Failed to fetch group');
 
       const data = await response.json();
+      
+      // 格式化日期為 YYYY-MM-DD 格式（HTML date input 需要的格式）
+      let formattedDate = '';
+      if (data.debut_date) {
+        const date = new Date(data.debut_date);
+        if (!isNaN(date.getTime())) {
+          // 使用本地時區的日期，避免時區轉換問題
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          formattedDate = `${year}-${month}-${day}`;
+        } else {
+          // 如果無法解析，嘗試直接使用（可能是已經是 YYYY-MM-DD 格式）
+          formattedDate = data.debut_date.split('T')[0]; // 移除時間部分
+        }
+      }
+      
       setFormData({
         group_name: data.group_name,
         group_namekr: data.group_namekr || '',
-        debut_date: data.debut_date,
+        debut_date: formattedDate,
         company: data.company,
         group_type: data.group_type,
         member_count: data.member_count.toString(),

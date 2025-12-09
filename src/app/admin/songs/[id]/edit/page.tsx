@@ -307,8 +307,8 @@ export default function EditSongPage() {
               <p className="text-gray-500">載入中...</p>
             ) : (
               <div className="space-y-2">
-                {groups.map((group) => (
-                  <label key={group.group_id} className="flex items-center space-x-2 cursor-pointer">
+                {groups.map((group, index) => (
+                  <label key={`group-${group.group_id}-${index}`} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={selectedGroups.includes(group.group_id)}
@@ -333,8 +333,8 @@ export default function EditSongPage() {
               <p className="text-gray-500">載入中...</p>
             ) : (
               <div className="space-y-2">
-                {idols.map((idol) => (
-                  <label key={idol.idol_id} className="flex items-center space-x-2 cursor-pointer">
+                {idols.map((idol, index) => (
+                  <label key={`idol-${idol.idol_id}-${idol.group_name || ''}-${index}`} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={selectedIdols.includes(idol.idol_id)}

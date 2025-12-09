@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
 export async function POST(request: Request) {
+  const client = await pool.connect();
+  
   try {
     const body = await request.json();
     const {
@@ -36,7 +38,7 @@ export async function POST(request: Request) {
 
     let newProjectId = generateProjectId();
 
-    // 檢查 ID 是否已存在
+    // 檢查 ID 是否已存在（在交易外進行，因為只是讀取）
     let attempts = 0;
     while (attempts < 10) {
       const checkResult = await pool.query(
@@ -56,10 +58,13 @@ export async function POST(request: Request) {
       );
     }
 
+    // 開始交易
+    await client.query('BEGIN');
+
     const now = new Date();
 
     // 插入專案
-    await pool.query(
+    await client.query(
       `INSERT INTO project (
         p_id, creator_id, song_id, porject_title, target_cnt,
         practice_location, create_at, update_at, status, description
@@ -93,7 +98,7 @@ export async function POST(request: Request) {
         s.end_time,
       ]);
 
-      await pool.query(
+      await client.query(
         `INSERT INTO practice_schedule (p_id, date, start_time, end_time)
          VALUES ${scheduleValues}`,
         scheduleParams
@@ -115,19 +120,27 @@ export async function POST(request: Request) {
         t.status || 'I', // Default status to 'I' if not provided
       ]);
 
-      await pool.query(
+      await client.query(
         `INSERT INTO project_target (target_seq, project_id, idol_id, status)
          VALUES ${targetValues}`,
         targetParams
       );
     }
 
+    // 提交交易
+    await client.query('COMMIT');
+
     return NextResponse.json({ p_id: newProjectId, project_id: newProjectId });
   } catch (error: any) {
+    // 回滾交易
+    await client.query('ROLLBACK');
     console.error('Error creating project:', error);
     return NextResponse.json(
       { error: 'Failed to create project: ' + error.message },
       { status: 500 }
     );
+  } finally {
+    // 釋放連接
+    client.release();
   }
 }
